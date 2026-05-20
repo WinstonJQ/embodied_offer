@@ -38,7 +38,7 @@ Phase 1  → 调研：多关键词跨平台爬取 + 同义题合并 + 频次统�
 Phase 0  → 提交题目清单给用户审过删/加/换（必停下等用户回复）
 Phase 2  → 起草 docs/interviews/XX_<slug>.md（<details> 折叠块格式）
 Phase 3  → codex gpt-5.5 xhigh 跨模型审查（10 项检查）
-            循环修 FAIL → fresh thread 再审，典型收敛 3-5 轮
+            循环修 FAIL → fresh thread 再审，典型收敛 5-6 轮（卷三实测，见 §11.2）
             审计日志：docs/interviews/XX_<slug>.review.json
 Phase 4  → 渲染 academic 模板 HTML
 Phase 5  → 更新 docs/index.html（主册入口卡片状态 + Top N）
@@ -127,7 +127,7 @@ mcp__codex__codex(
 2. frequency_validity：🔥×N 与 Phase 1 调研报告频次一致
 3. difficulty_appropriate：L1/L2/L3 标定合理（L1 不是太难，L3 不是太浅）
 4. timeliness：题目仍是当前高频（>2 年过时题剔除）
-5. answer_conciseness：答案 ≤200 字（超长的拆段）
+5. answer_conciseness：单题答案体 **≤350 字 PASS / 350-500 WARN / >500 FAIL**（见 §11.1）
 6. details_block_well_formed：每个 <details><summary> 结构闭合
 7. duplicate_detection：无未合并的同义题（70% 相似视为重复）
 8. citation_check：题目引用的论文/数字正确
@@ -200,3 +200,65 @@ git push origin master
 - ❌ 不要保留 SJTU / JHC / Server5 / /Users/ 等个人信息
 - ❌ 不要 force push 到 master
 - ❌ 不要复活旧 pi_series / rl_foundations / ppo_sac 内容
+
+## 11. 经验沉淀（来自卷三 VLA/IL 实战）
+
+> 新卷开工前先看一遍。这部分**只随实战更新**，不要凭印象改。
+
+### 11.1 起草阶段（Phase 2）
+
+- 答案体目标 **≤350 字**（不是 200）——实务里 200 字目标常超到 400-500，留 100-150 字 buffer 给后期压缩
+- 超过 350 字的题拆成 **答 / 关键对比 / 易错** 3 段；超过 5 段反而冗长
+- **每题必有"易错"一句**——这是面试题库区分于教程的核心
+- 避免过度精确小数字（如"10-20% 提升"）除非有论文表格依据；笼统说"显著提升"反而更稳
+
+### 11.2 跨模型审查（Phase 3）
+
+- **第 1 轮 prompt 就明确字数阈值**（`≤350 PASS / 350-500 WARN / >500 FAIL`），否则 codex 自己定标准、越往后越苛刻，到 Round 3-5 才发现长度问题
+- 每轮 prompt 都要明确告知 "**本轮已应用 N 个 fix**"——避免 codex 重复发现已修问题，浪费轮次
+- **fresh thread 不可降级**（绝不调 `codex-reply`）；`sandbox=read-only` 防 codex 误修文件
+- 输出 JSON schema 必须在 prompt 明示——否则 codex 散文输出难解析
+- **典型收敛 5-6 轮**（实测卷三 6 轮，不是 CLAUDE.md §2 原写的 3-5 轮）；超过 7 轮无收敛 → 停下来报用户
+- 审计日志 `.review.json` 必含：每轮 verdict + 主要 fix、`key_facts_verified` 清单、`sources_consulted`（arXiv 链接）——便于下卷参考已验证过的事实
+
+### 11.3 Edit / Bash 操作（避免破坏文件）
+
+- 批量 `replace_all=true` 后再单独 Edit 同一段易失败（上下文已变）——**顺序：先单独 Edit → 最后批量 replace_all**；批量改后必须 `Read` 确认上下文
+- `<details>...</details>` 块替换易留多余闭合——前后用 `grep -c "<details" / "</details>"` 验证 N/N 平衡
+- 用 HTML 注释 `<!-- TODO §X 待补 -->` 做分批 Write 的 marker，**不要用裸字符串占位符**（会被后续 Edit 误匹配 / 造成内容重复）
+- **Anthropic auto-classifier 偶尔限流**——不是 rate limit，是后端 classifier 服务可用性问题，几分钟恢复，不用紧张
+
+### 11.4 具身智能领域固定避坑点（codex 审查 prompt 必带这一节）
+
+写新卷前，把以下事实纳入审查 prompt 的"已知避坑点"清单，让 codex 重点核对：
+
+- **OpenVLA 动作 = 7 维** `[Δx, Δy, Δz, Δroll, Δpitch, Δyaw, gripper]`（gripper 已含在 7 维里，不是 7-DoF+gripper=8）
+- **OXE = ~60 datasets / 22 embodiments / 1M+ trajectories**（不是 22 datasets）；OpenVLA 用 ~970K curated 子集
+- **DROID 不在 OXE 原始列表**（OXE 2023-10 早于 DROID 2024）；DROID = 564 scenes / 350h / 76K demos / ~86 tasks
+- **Franka/Panda = 7-DoF / UR5e = 6-DoF / Mobile ALOHA = 16 维**（14 双臂 + 2 base v/ω；易写反）
+- **π0.5 主体 = open-world generalization + co-training**；**KI 是 π0.5 框架的后续扩展工作**（不是 π0.5 核心）
+- **RECAP 全称 = "RL with Experience and Corrections via Advantage-conditioned Policies"**（不是 "Retrospective Conditioned Advantage Policy"）；属于 π\*0.6，2025-11，arXiv:2511.14759
+- **π0.7 = 2026-04** 发布（不是 2025）
+- **RT-2 视觉 = PaLI-X / PaLM-E 内置 ViT**（不能简化为 SigLIP；SigLIP+DINOv2 双路是 OpenVLA 才有）
+- **OpenVLA 推理 = 6 Hz**（4090 未优化，**不是 7 Hz**）
+- **OpenVLA-OFT 提速** = 论文报告 **~26× throughput / ~3× latency**（arXiv:2502.19645），不要瞎写"5-10×"
+- **FAST = DCT → scale → round → flatten → BPE 五步**（少一步都不对）
+- **π0 控制频率 50 Hz**，chunk **H=50 是覆盖时长 ≈1 秒**——不要混成"每秒重算一次 chunk"；重规划频率由 execution horizon / temporal ensemble / 异步调度决定
+- **跨 embodiment 动作对齐**：单臂用 **7D canonicalization**（IK 映射，不是截断）；**双臂/移动平台不能粗暴截断到 7D**，要 embodiment-specific head + padding mask
+- **Mobile ALOHA = 16 维**（14 双臂 + 2 base v/ω），不是 14
+- **DDIM 在 DP 早期 OOD 步表现差**——不是绝对不如 DDPM
+- **复合误差表述**：chunking 减少高层决策点数量 $T \to T/K$，**不能严格说"$O(\epsilon T^2) \to O(\epsilon T^2/K^2)$"**（chunk 内 open-loop 仍累积）
+
+### 11.5 题源调研（Phase 1）
+
+- **小红书反爬严，且具身面经绝对数量也不大**——主流用户群（年轻女性 / 生活分享）与具身求职人群（理工科男性）重叠度低；卷三 30 分钟 8 种反爬策略最终只挖到 4 题。**不要假设"小红书是富矿"**
+- **跨平台转载（如品玩 AI 教授 AMA）是隐藏好题源**——顶级 lab 教授（许华哲 / 周博宇 / 高飞 / 梁俊卫等）在小红书答疑被科技媒体整理转载，可公开引用，等同高权威性题源
+- **一亩三分地全部 login wall**——除非用户能授权登录态，否则**不可作主源**；少量信息靠 SERP 摘要
+- **真正的"具身 VLA 算法岗"面经数量仍偏少**（2025-2026 行业窗口期）——题目集中度高（OpenVLA vs RT-2 / DP / ACT 等几题占大半）；**频次 2 + 来源权威**可破例入选主表
+- 同义题合并 70% 相似 + 频次 ≥3 入主表 + 频次 1-2 入低频备选——这套规则实务有效
+
+### 11.6 Phase 0 / 用户审过
+
+- 题目清单给用户审时，**按节展开 + 频次降序**，每题一行（不要把 200 字答案也展示）；用户决策成本要低
+- 必须提供 ≤4 个明确决策点（如 "全收 / 严守阈值 / 跳过"），避免开放式问"你觉得呢"
+- N1/N2/... 这种"破例入选"题要**单独标记**并给出破例理由（来源权威 + 频次说明）
