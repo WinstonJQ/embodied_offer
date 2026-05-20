@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Embodied-AI-in-Offer · 具身智能秋招速查手册</title>
+<style>
+:root {
+  --bg: #fafafa;
+  --fg: #1a1a1a;
+  --muted: #666;
+  --accent: #2563eb;
+  --card: #fff;
+  --border: #e5e7eb;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+}
+.container {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+header { text-align: center; margin-bottom: 3rem; }
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.85rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+h1 { font-size: 2.2rem; margin: 0.5rem 0; }
+.subtitle { color: var(--muted); font-size: 1.05rem; }
+.tier { margin-bottom: 2.5rem; }
+.tier h2 {
+  font-size: 1.3rem;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 0.4rem;
+  margin-bottom: 1rem;
+}
+.card {
+  display: block;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.2rem;
+  margin-bottom: 0.6rem;
+  text-decoration: none;
+  color: var(--fg);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
+}
+.card.todo { opacity: 0.55; cursor: not-allowed; }
+.card-title { font-weight: 600; font-size: 1.05rem; }
+.card-desc { color: var(--muted); font-size: 0.92rem; margin-top: 0.3rem; }
+.badge {
+  display: inline-block;
+  background: var(--accent);
+  color: white;
+  font-size: 0.7rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 4px;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+.badge.todo { background: #94a3b8; }
+footer {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+  padding: 2rem 0;
+  border-top: 1px solid var(--border);
+  margin-top: 3rem;
+}
+footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+<div class="eyebrow">Embodied AI Interview Prep · 秋招速查</div>
+<h1>具身智能秋招速查手册</h1>
+<p class="subtitle">强化学习 · 机器人 · VLA · π 系列 · 世界模型 · 18 份长篇 cheat sheet</p>
+</header>
+
+<section class="tier">
+<h2>Tier 3 — VLA &amp; 机器人大模型</h2>
+
+<a class="card" href="tutorials/pi_series_tutorial.html">
+<div class="card-title">π 系列 (π0 → π0.7) 面试 Cheat Sheet <span class="badge">DONE</span></div>
+<div class="card-desc">Physical Intelligence 全家谱：π0 / π0-FAST / Hi Robot / π0.5 / KI / RTC / π0.6 / π*0.6 / Robot Olympics / MEM / RLT / π0.7。Flow matching 数学 + 1092 行长文 + 25 道高频题 + 跨模型 5 轮审查。</div>
+</a>
+
+<div class="card todo">
+<div class="card-title">VLA 综述（RT-1 / RT-2 / RT-X / OpenVLA） <span class="badge todo">TODO</span></div>
+<div class="card-desc">Google + Stanford VLA 主线。</div>
+</div>
+
+<div class="card todo">
+<div class="card-title">Diffusion Policy / 动作扩散 <span class="badge todo">TODO</span></div>
+<div class="card-desc">DP / 3D-DP / RDT-1B。</div>
+</div>
+</section>
+
+<section class="tier">
+<h2>Tier 1 — RL 与决策基础</h2>
+<div class="card todo"><div class="card-title">RL 基础 <span class="badge todo">TODO</span></div></div>
+<div class="card todo"><div class="card-title">PPO / TRPO / GAE <span class="badge todo">TODO</span></div></div>
+<div class="card todo"><div class="card-title">SAC / TD3 / DDPG <span class="badge todo">TODO</span></div></div>
+<div class="card todo"><div class="card-title">Offline RL（CQL / IQL / AWAC） <span class="badge todo">TODO</span></div></div>
+<div class="card todo"><div class="card-title">模仿学习（BC / DAgger / GAIL） <span class="badge todo">TODO</span></div></div>
+</section>
+
+<section class="tier">
+<h2>Tier 2 — 机器人学与控制</h2>
+<div class="card todo"><div class="card-title">机器人学速查 <span class="badge todo">TODO</span></div></div>
+<div class="card todo"><div class="card-title">MPC &amp; 轨迹优化 <span class="badge todo">TODO</span></div></div>
+<div class="card todo"><div class="card-title">Sim-to-Real <span class="badge todo">TODO</span></div></div>
+</section>
+
+<section class="tier">
+<h2>Tier 4 — 世界模型与生成式规划</h2>
+<div class="card todo"><div class="card-title">世界模型基础（Dreamer / TD-MPC2） <span class="badge todo">TODO</span></div></div>
+<div class="card todo"><div class="card-title">大世界模型（Genie / GAIA-1 / V-JEPA） <span class="badge todo">TODO</span></div></div>
+<div class="card todo"><div class="card-title">MBRL &amp; Planning <span class="badge todo">TODO</span></div></div>
+</section>
+
+<section class="tier">
+<h2>Tier 5 — 任务域 &amp; 仿真</h2>
+<div class="card todo"><div class="card-title">Manipulation 基准 <span class="badge todo">TODO</span></div></div>
+<div class="card todo"><div class="card-title">导航 &amp; VLN <span class="badge todo">TODO</span></div></div>
+</section>
+
+<footer>
+构建思路源自 <a href="https://github.com/wanshuiyin/ARIS-in-AI-Offer">ARIS-in-AI-Offer</a> · MIT License
+</footer>
+
+</div>
+</body>
+</html>

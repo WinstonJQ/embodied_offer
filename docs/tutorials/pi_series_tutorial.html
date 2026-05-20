@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>π 系列 (π0 → π0.7) 面试 Cheat Sheet</title>
+
+<meta name="generator" content="ARIS render-html (academic, v1)">
+<meta name="aris:source-path" content="docs/tutorials/pi_series_tutorial.md">
+<meta name="aris:source-sha256" content="943f5003cc199154a365305f001635d8d264d8d2b362c30a7778c661c9554500">
+<meta name="aris:generated-at" content="2026-05-20 08:06 UTC">
+
+<!-- MathJax 3 -->
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']], processEscapes: true },
+  options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+
+<!-- highlight.js -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/atom-one-light.min.css">
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded', () => hljs.highlightAll());</script>
+
+
+<style>
+:root {
+  --bg: #fdfcf7;
+  --bg-soft: #f4f1ea;
+  --bg-code: #f8f5ec;
+  --ink: #1a1a1a;
+  --ink-soft: #4a4a4a;
+  --ink-muted: #6b6b6b;
+  --primary: #1a4a8c;
+  --primary-soft: #2d6cb8;
+  --accent: #b8390e;
+  --warn: #b45309;
+  --warn-bg: #fef3c7;
+  --info-bg: #dbeafe;
+  --good-bg: #d1fae5;
+  --good: #065f46;
+  --bad-bg: #fee2e2;
+  --bad: #991b1b;
+  --border: #d6d0c0;
+  --border-soft: #e8e3d5;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: "Source Serif Pro", "Source Serif 4", "Crimson Pro", "Georgia", "Songti SC", "STSong", serif;
+  line-height: 1.65;
+  color: var(--ink);
+  background: var(--bg);
+  margin: 0;
+  padding: 0;
+  font-size: 16px;
+}
+
+.layout {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 48px;
+  padding: 40px 32px;
+}
+
+nav.toc {
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  font-size: 13px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  border-right: 1px solid var(--border-soft);
+  padding-right: 16px;
+}
+nav.toc h3 {
+  margin: 0 0 12px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+  font-weight: 600;
+}
+nav.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+nav.toc ol li { margin: 5px 0; counter-increment: toc; }
+nav.toc ol li::before { content: counter(toc) ". "; color: var(--ink-muted); margin-right: 4px; }
+nav.toc a {
+  color: var(--ink-soft);
+  text-decoration: none;
+  border-bottom: 1px dotted transparent;
+}
+nav.toc a:hover { color: var(--primary); border-bottom-color: var(--primary); }
+nav.toc ul { list-style: none; padding-left: 14px; margin: 3px 0; font-size: 12px; }
+nav.toc ul li::before { content: "→ "; color: var(--border); }
+
+main { min-width: 0; }
+
+header.hero {
+  border-bottom: 3px double var(--primary);
+  padding-bottom: 24px;
+  margin-bottom: 32px;
+}
+header.hero .eyebrow {
+  color: var(--accent);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+header.hero h1 {
+  font-size: 32px;
+  line-height: 1.2;
+  margin: 0 0 12px;
+  color: var(--ink);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+header.hero .subtitle {
+  font-size: 16px;
+  color: var(--ink-soft);
+  margin: 0 0 8px;
+  font-style: italic;
+}
+header.hero .byline {
+  font-size: 14px;
+  color: var(--ink-soft);
+  margin: 0 0 20px;
+}
+header.hero .byline strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+header.hero .meta {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--ink-muted);
+  border-top: 1px solid var(--border-soft);
+  padding-top: 14px;
+}
+header.hero .meta span strong { color: var(--ink-soft); }
+header.hero .meta code {
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", "Consolas", monospace;
+  font-size: 11px;
+  background: var(--bg-soft);
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid var(--border-soft);
+}
+
+h2 {
+  font-size: 24px;
+  margin: 44px 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  color: var(--ink);
+  font-weight: 700;
+}
+h2 .num { color: var(--primary); font-weight: 600; margin-right: 8px; }
+h3 { font-size: 19px; margin: 28px 0 10px; color: var(--primary); font-weight: 600; }
+h4 { font-size: 16px; margin: 20px 0 8px; color: var(--ink); font-weight: 600; }
+
+p { margin: 10px 0; }
+ul, ol { padding-left: 22px; margin: 10px 0; }
+ul li, ol li { margin: 4px 0; }
+ul li::marker { color: var(--primary); }
+
+strong { color: var(--accent); font-weight: 600; }
+em { color: var(--ink-soft); }
+
+a { color: var(--primary); }
+a:hover { color: var(--accent); }
+
+code:not(.hljs) {
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", "Consolas", monospace;
+  font-size: 0.86em;
+  background: var(--bg-code);
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid var(--border-soft);
+  color: var(--accent);
+}
+
+pre {
+  background: #fafaf6;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  padding: 0;
+  overflow-x: auto;
+  border-radius: 4px;
+  margin: 14px 0;
+}
+pre code, pre code.hljs {
+  background: transparent !important;
+  display: block;
+  padding: 14px 18px !important;
+  font-size: 13px;
+  line-height: 1.55;
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", monospace;
+  color: var(--ink);
+}
+pre.diagram {
+  background: #f9f6ed;
+  border-left: 4px solid var(--accent);
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.callout {
+  margin: 16px 0;
+  padding: 12px 16px;
+  border-radius: 4px;
+  border-left: 4px solid;
+  font-size: 15px;
+}
+.callout-title {
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.callout-info { background: var(--info-bg); border-left-color: var(--primary); }
+.callout-info .callout-title { color: var(--primary); }
+.callout-warn { background: var(--warn-bg); border-left-color: var(--warn); }
+.callout-warn .callout-title { color: var(--warn); }
+.callout-good { background: var(--good-bg); border-left-color: var(--good); }
+.callout-good .callout-title { color: var(--good); }
+.callout-bad { background: var(--bad-bg); border-left-color: var(--bad); }
+.callout-bad .callout-title { color: var(--bad); }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 14px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+thead { background: var(--primary); color: white; }
+th, td {
+  text-align: left;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border-soft);
+  vertical-align: top;
+}
+th { font-weight: 600; font-size: 13px; letter-spacing: 0.02em; }
+tr:last-child td { border-bottom: none; }
+tbody tr:nth-child(even) { background: var(--bg-soft); }
+
+details.qa, details {
+  background: white;
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  margin: 10px 0;
+  padding: 0;
+}
+details summary {
+  cursor: pointer;
+  padding: 10px 14px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--primary);
+  list-style: none;
+  user-select: none;
+}
+details summary::-webkit-details-marker { display: none; }
+details summary::before {
+  content: "▸ ";
+  margin-right: 4px;
+  display: inline-block;
+  transition: transform 0.15s;
+}
+details[open] summary::before { transform: rotate(90deg); }
+details[open] summary { border-bottom: 1px solid var(--border-soft); }
+details > :not(summary) { padding: 10px 14px; }
+details p:first-of-type { margin-top: 8px; }
+
+mjx-container[display="true"] { margin: 12px 0 !important; }
+
+footer.aris-footer {
+  margin-top: 60px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+footer.aris-footer a { color: var(--ink-muted); border-bottom: 1px dotted var(--border); }
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; gap: 20px; padding: 20px 16px; }
+  nav.toc {
+    position: static;
+    max-height: none;
+    border-right: none;
+    border-bottom: 1px solid var(--border-soft);
+    padding-right: 0;
+    padding-bottom: 14px;
+  }
+  header.hero h1 { font-size: 24px; }
+  h2 { font-size: 20px; }
+}
+@media print {
+  nav.toc { display: none; }
+  .layout { grid-template-columns: 1fr; padding: 0; }
+  body { background: white; }
+  header.hero { border-bottom-color: var(--ink); }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="toc">
+  <h3>Contents</h3>
+  <ol>
+<li><a href="#0-tldr-cheat-sheet">§0 TL;DR Cheat Sheet</a>
+</li>
+<li><a href="#1-直觉与定位">§1 直觉与定位</a>
+<ul>
+<li><a href="#11-vla-是什么-在哪一格">1.1 VLA 是什么？π 在哪一格？</a></li>
+<li><a href="#12-为什么是-flow-matching-而不是-diffusion">1.2 为什么是 Flow Matching 而不是 Diffusion？</a></li>
+<li><a href="#13-谱系一张图按时间排序">1.3 谱系一张图（按时间排序）</a></li>
+</ul>
+</li>
+<li><a href="#2-0--第一代旗舰-vla-flow-model">§2 π0 — 第一代旗舰 VLA Flow Model</a>
+<ul>
+<li><a href="#21-架构总览">2.1 架构总览</a></li>
+<li><a href="#22-核心公式flow-matching-训练--推理">2.2 核心公式：Flow Matching 训练 / 推理</a></li>
+<li><a href="#23-训练数据跨本体大锅炖">2.3 训练数据：跨本体大锅炖</a></li>
+<li><a href="#24-关键-benchmark">2.4 关键 benchmark</a></li>
+</ul>
+</li>
+<li><a href="#3-0-fast--离散动作-token-ar">§3 π0-FAST — 离散动作 Token AR</a>
+<ul>
+<li><a href="#31-动机">3.1 动机</a></li>
+<li><a href="#32-fast三步压缩">3.2 FAST：三步压缩</a></li>
+<li><a href="#33-fast-通用-tokenizer">3.3 FAST+ 通用 tokenizer</a></li>
+<li><a href="#34-0-fast-架构--训练">3.4 π0-FAST 架构 &amp; 训练</a></li>
+<li><a href="#35-性能-trade-off">3.5 性能 trade-off</a></li>
+</ul>
+</li>
+<li><a href="#4-hi-robot--system-1--system-2-分层">§4 Hi Robot — System 1 / System 2 分层</a>
+<ul>
+<li><a href="#41-直觉kahneman-thinking-fast-and-slow">4.1 直觉：Kahneman Thinking, Fast and Slow</a></li>
+<li><a href="#42-训练数据三元组">4.2 训练数据三元组</a></li>
+<li><a href="#43-instruction-accuracy-数字">4.3 Instruction Accuracy 数字</a></li>
+</ul>
+</li>
+<li><a href="#5-05--开放世界泛化">§5 π0.5 — 开放世界泛化</a>
+<ul>
+<li><a href="#51-目标让机器人进-未见过的家庭">5.1 目标：让机器人进 *未见过的家庭*</a></li>
+<li><a href="#52-两阶段训练-recipe">5.2 两阶段训练 recipe</a></li>
+<li><a href="#53-训练数据五路--web">5.3 训练数据五路 + Web</a></li>
+<li><a href="#54-关键消融">5.4 关键消融</a></li>
+<li><a href="#55-unseen-homes-benchmark">5.5 Unseen Homes Benchmark</a></li>
+</ul>
+</li>
+<li><a href="#6-knowledge-insulation-ki--05--06-的训练-recipe">§6 Knowledge Insulation (KI) — π0.5 → π0.6 的训练 recipe</a>
+<ul>
+<li><a href="#61-痛点">6.1 痛点</a></li>
+<li><a href="#62-解法stop-grad-隔离--三目标">6.2 解法：stop-grad 隔离 + 三目标</a></li>
+<li><a href="#63-数字">6.3 数字</a></li>
+</ul>
+</li>
+<li><a href="#7-real-time-chunking-rtc--thinking-while-moving">§7 Real-Time Chunking (RTC) — Thinking While Moving</a>
+<ul>
+<li><a href="#71-问题推理延迟会卡死机器人">7.1 问题：推理延迟会卡死机器人</a></li>
+<li><a href="#72-异步-chunk--inpainting">7.2 异步 chunk + Inpainting</a></li>
+<li><a href="#73-延迟数字">7.3 延迟数字</a></li>
+</ul>
+</li>
+<li><a href="#8-06--06--recap-强化学习上线">§8 π0.6 + π\*0.6 — RECAP 强化学习上线</a>
+<ul>
+<li><a href="#81-backbone-升级06-base">8.1 Backbone 升级（π0.6 base）</a></li>
+<li><a href="#82-recap-三阶段">8.2 RECAP 三阶段</a></li>
+<li><a href="#83-advantage-conditioned-policy">8.3 Advantage-Conditioned Policy</a></li>
+<li><a href="#84-9-个任务的专家级数字">8.4 9 个任务的专家级数字</a></li>
+<li><a href="#85-robot-olympics2025-12">8.5 Robot Olympics（2025-12）</a></li>
+</ul>
+</li>
+<li><a href="#9-mem--rlt--长程记忆与在线-rl-token">§9 MEM + RLT — 长程记忆与在线 RL Token</a>
+<ul>
+<li><a href="#91-mem2026-03-03双时间尺度记忆">9.1 MEM（2026-03-03）：双时间尺度记忆</a></li>
+<li><a href="#92-rlt2026-03-19把-vla-接到在线-rl">9.2 RLT（2026-03-19）：把 VLA 接到在线 RL</a></li>
+</ul>
+</li>
+<li><a href="#10-07--steerable-generalist-with-emergent-capabilities">§10 π0.7 — Steerable Generalist with Emergent Capabilities</a>
+<ul>
+<li><a href="#101-范式跃迁从-language-conditioned-到-diverse-context-conditioned">10.1 范式跃迁：从 &quot;language conditioned&quot; 到 &quot;diverse context conditioned&quot;</a></li>
+<li><a href="#102-架构06--ki--mem">10.2 架构：π0.6 + KI + MEM</a></li>
+<li><a href="#103-训练数据pi-未精确披露量级比-06-更大且更异质">10.3 训练数据（PI 未精确披露量级，**比 π0.6 更大且更异质**）</a></li>
+<li><a href="#104-关键-benchmark">10.4 关键 benchmark</a></li>
+<li><a href="#105-compositional-generalization首次出现">10.5 Compositional Generalization（首次出现）</a></li>
+<li><a href="#106-steerability">10.6 Steerability</a></li>
+</ul>
+</li>
+<li><a href="#11-从零实现flow-matching-action-headpytorch">§11 从零实现：Flow Matching Action Head（PyTorch）</a>
+</li>
+<li><a href="#12-复杂度--资源">§12 复杂度 &amp; 资源</a>
+<ul>
+<li><a href="#121-模型大小演进">12.1 模型大小演进</a></li>
+<li><a href="#122-训练--推理时间复杂度">12.2 训练 / 推理时间复杂度</a></li>
+<li><a href="#123-训练资源公开信息粗估">12.3 训练资源（公开信息粗估）</a></li>
+</ul>
+</li>
+<li><a href="#13-与其他-vla-横向对比">§13 与其他 VLA 横向对比</a>
+</li>
+<li><a href="#14-25-道高频面试题">§14 25 道高频面试题</a>
+<ul>
+<li><a href="#l1--必会10-题">L1 — 必会（10 题）</a></li>
+<li><a href="#l2--进阶10-题">L2 — 进阶（10 题）</a></li>
+<li><a href="#l3--顶级-lab5-题">L3 — 顶级 lab（5 题）</a></li>
+</ul>
+</li>
+<li><a href="#a-附录参考资料">§A 附录：参考资料</a>
+<ul>
+<li><a href="#论文--技术报告">论文 / 技术报告</a></li>
+<li><a href="#代码">代码</a></li>
+<li><a href="#相关-vla">相关 VLA</a></li>
+<li><a href="#关键人物pi-核心团队">关键人物（PI 核心团队）</a></li>
+<li><a href="#中文社区资源">中文社区资源</a></li>
+</ul>
+</li>
+</ol>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="eyebrow">Embodied AI Interview Prep · Physical Intelligence π Series</div>
+  <h1>π 系列 (π0 → π0.7) 面试 Cheat Sheet</h1>
+  <p class="subtitle">Physical Intelligence VLA 全家谱 · 公式推导 + From-Scratch 代码 + 25 高频题（L1 必会 · L2 进阶 · L3 顶级 lab）</p>
+  <p class="byline">By <strong>WinstonJQ</strong></p>
+  <div class="meta">
+    <span><strong>Source:</strong> <code>docs/tutorials/pi_series_tutorial.md</code></span>
+    <span><strong>SHA256:</strong> <code>943f5003cc19</code></span>
+    <span><strong>Rendered:</strong> 2026-05-20 08:06 UTC</span>
+    
+  </div>
+</header>
+
+<h2 id="0-tldr-cheat-sheet">§0 TL;DR Cheat Sheet</h2>
+<div class="callout callout-info"><div class="callout-title">8 句话搞定 π 系列</div><p>Physical Intelligence 从 2024-10 到 2026-04 走完了 VLA 从 "能跑" 到 "可调速、可组合、专家级" 的整条主线。</p></div>
+<ol><li><strong>π0（2024-10）</strong>：第一代 VLA。<code>PaliGemma-3B</code> + <code>300M flow-matching action expert</code>，<strong>chunk H=50, 50Hz</strong>，10 步 ODE 推理。训练数据 ≈ <strong>10,000 小时</strong> 跨 7 种本体 + 9.1% OXE 混入。</li><li><strong>π0-FAST（2025-01）</strong>：把动作离散化为 token 喂 LLM。<code>FAST = DCT + 量化 + BPE</code>，1 秒动作压成 <strong>30–60 个 token</strong>，纯自回归，训练 <strong>5× 加速</strong>。</li><li><strong>Hi Robot（2025-02, ICML'25）</strong>：分层。<strong>System 2</strong> 用一份 PaliGemma 做高层 subtask 规划与 "inner monologue"，<strong>System 1</strong> 用 π0 执行；instruction following 比 flat VLA 高 <strong>30–40 个点</strong>。</li><li><strong>π0.5（2025-04）</strong>：开放世界。两阶段（FAST 预训练 → flow 后训练）+ 五路异质 co-training（MM/ME/CE/HL/WD）；<strong>3 个未见家庭 OOD success ≈ 94%</strong>，但 in-domain MM 数据只占 ≈ 2.4%。</li><li><strong>KI（2025-05）</strong>：训练 recipe。同时学 <code>FAST next-token</code>（给 backbone 灌运动语义）+ <code>flow matching</code>（推理只用 flow），<strong>stop-grad 隔离</strong> action expert 对 VLM 的梯度污染，训练步数 <strong>少 7.5×</strong>。</li><li><strong>RTC（2025-06）</strong>："Thinking while moving"。新 chunk 还在算的时候老 chunk 继续执行，<strong>inpainting</strong> 锁住已执行步并约束重叠步；移动机器人端到端延迟 <strong>≈ 139 ms</strong>，可容忍 +200 ms 注入延迟。</li><li>**π0.6 + π\*0.6（2025-11）<strong>：Backbone 升级到 <code>Gemma 3 4B + SigLIP 400M</code>，action expert </strong>860M<strong>，总 ≈ </strong>5B<strong>。</strong>RECAP<strong>（离线 RL 预训练 → demo SFT → on-robot RL）+ </strong>advantage-conditioning<strong>：espresso success </strong>40% → ≥90%**，30 杯/小时连开 13 小时不停。</li><li><strong>π0.7（2026-04, arXiv 2604.15483）</strong>：<strong>Steerable generalist</strong>。Prompt 从单语言扩成 <em>diverse context</em>（subtask 文本 + subgoal 图像 + speed/quality/mistake metadata）；首次出现 <strong>compositional generalization</strong>——bimanual UR5e shirt folding <strong>零训练样本</strong> 进度 <strong>85.6%</strong>，几乎追平 teleop 专家。</li></ol>
+<div class="callout callout-good"><div class="callout-title">快速记忆口诀</div><p>一行总结。</p></div>
+<ul><li>π0 = <strong>VLA + Flow Matching</strong> 模板</li><li>π0-FAST = 把动作变 token 让 LLM 直接吐</li><li>Hi Robot = 慢思考 + 快执行</li><li>π0.5 = 用 web/HL/CE 数据 <strong>泛化到未见家庭</strong></li><li>KI = 训练 recipe <strong>stop-grad + 双目标</strong></li><li>RTC = <strong>异步推理</strong>消化网络/算力延迟</li><li>π0.6/π\*0.6 = <strong>强化学习上线</strong>，专家级</li><li>MEM = 短时 ViT + 长时语言总结</li><li>RLT = 用 token 桥接 VLA 与小 actor/critic，<strong>15 分钟在线 RL</strong></li><li>π0.7 = <strong>可调速、可组合</strong>的通用基础策略</li></ul>
+<h2 id="1-直觉与定位">§1 直觉与定位</h2>
+<h3 id="11-vla-是什么-在哪一格">1.1 VLA 是什么？π 在哪一格？</h3>
+<p><strong>VLA = Vision-Language-Action</strong>：吃 <em>多视角图像 + 自然语言指令 + 本体感知</em>，输出 <em>机器人动作</em>。VLA 的核心范式分歧在 <strong>动作怎么生成</strong>：</p>
+<ul><li><strong>离散 token AR</strong>（RT-2 / OpenVLA / π0-FAST）：把动作切 bin 或压成 token，复用 LLM 的训练 / 推理 infra；优点是工程友好，缺点是采样不平滑、long-horizon 难。</li><li><strong>Diffusion / Flow matching</strong>（Diffusion Policy / RDT-1B / <strong>π0</strong> / <strong>π0.5</strong> / <strong>π0.6</strong> / <strong>π0.7</strong>）：连续动作的 generative model，对多模态分布天然 robust；π0 选 <strong>flow matching</strong> 而非 DDPM，关键是 <strong>10 步 ODE 就够，比 DP 的几十步快 5–10×</strong>。</li></ul>
+<div class="callout callout-info"><div class="callout-title">一个 PI 哲学</div><p><em>"机器人需要互联网级别规模的数据，但互联网上没有机器人数据，所以我们必须把所有别的数据（web/video/cross-embodiment）也用上"</em>。π0.5 / π0.7 的异质 co-training 是这一哲学的工程兑现。</p></div>
+<h3 id="12-为什么是-flow-matching-而不是-diffusion">1.2 为什么是 Flow Matching 而不是 Diffusion？</h3>
+<p>四个原因：</p>
+<ol><li><strong>推理步少</strong>：ODE 比 SDE 平均少一个数量级（10 vs 100 步）；机器人控制环对延迟极敏感。</li><li><strong>目标更简单</strong>：flow matching 学的是 <strong>速度场</strong> $v(x, \tau)$，不需要 noise schedule 设计；DDPM 的 $\bar\alpha_t$ schedule 是个超参雷区。</li><li><strong>连续多模态分布友好</strong>：和 diffusion 一样不会像 MSE 那样把双峰平均。</li><li><strong>训练稳定</strong>：flow matching loss 是简单的 L2，没有 noise prediction 的 reparameterization 漂移。</li></ol>
+<h3 id="13-谱系一张图按时间排序">1.3 谱系一张图（按时间排序）</h3>
+<pre class="diagram"><code>2024-10  π0       ──┐  (flow base)
+2025-01  π0-FAST  ──┤  (discrete token)
+2025-02  Hi Robot ──┤  (S2/S1)
+2025-04  π0.5     ──┤  (open-world)
+2025-05  KI       ──┤  (training recipe)
+2025-06  RTC      ──┤  (real-time inference)
+2025-11  π0.6     ──┤  (Gemma 3 4B backbone)
+2025-11  π*0.6    ──┤  (RECAP RL)
+2026-03  MEM      ──┤  (long/short-term memory)
+2026-03  RLT      ──┤  (online RL token)
+2026-04  π0.7     ──┘  (steerable + compositional)</code></pre>
+<h2 id="2-0--第一代旗舰-vla-flow-model">§2 π0 — 第一代旗舰 VLA Flow Model</h2>
+<blockquote><p>📌 <strong>论文</strong>：Black, Brown, Driess, Finn, Levine et al., <em>"π0: A Vision-Language-Action Flow Model for General Robot Control"</em>, arXiv <strong>2410.24164</strong>, 2024-10-31.</p></blockquote>
+<h3 id="21-架构总览">2.1 架构总览</h3>
+<pre class="diagram"><code>┌──────────────────────────────────────────────────────────┐
+│  PaliGemma 3B (frozen-ish VLM backbone)                  │
+│  ├─ vision tokens (multi-view images)                    │
+│  ├─ text tokens   (language instruction)                 │
+│  └─ proprio token (joint angles, EE pose)                │
+│       │                                                  │
+│       ▼   cross-attention (shared KV cache)              │
+│  ┌────────────────────────────────────────────┐          │
+│  │  Action Expert 300M (from scratch)         │          │
+│  │  ─ input:  noisy chunk A^τ  + time τ       │          │
+│  │  ─ output: velocity v_θ(A^τ, c, τ)         │          │
+│  └────────────────────────────────────────────┘          │
+└──────────────────────────────────────────────────────────┘</code></pre>
+<ul><li><strong>VLM backbone</strong>：PaliGemma 3B，3B 参数</li><li><strong>Action expert</strong>：300M，from-scratch（不复用 LM head），与 VLM 通过 <strong>cross-attention</strong> 共享 KV cache</li><li><strong>总参数</strong> ≈ 3.3B</li><li><strong>Action chunk</strong> $H = 50$，最高控制频率 <strong>50 Hz</strong>（即 1 个 chunk 覆盖 1 秒）</li></ul>
+<h3 id="22-核心公式flow-matching-训练--推理">2.2 核心公式：Flow Matching 训练 / 推理</h3>
+<p><strong>Linear-Gaussian path</strong>：定义从噪声 $\varepsilon \sim \mathcal{N}(0, I)$ 到真实动作 chunk $A$ 的线性插值</p>
+<p>$$A^\tau = \tau A + (1-\tau)\,\varepsilon, \qquad \tau \in [0, 1]$$</p>
+<p>由于 $\varepsilon \sim \mathcal{N}(0, I)$，条件分布 $q(A^\tau \mid A) = \mathcal{N}(\tau A, (1-\tau)^2 I)$（方差是 $(1-\tau)^2$ 而非 $(1-\tau)$——这是 linear-Gaussian path 的标准形式，对应的速度场就是下式右端）。<strong>速度场目标</strong>：</p>
+<p>$$\frac{dA^\tau}{d\tau} = A - \varepsilon$$</p>
+<p><strong>训练 loss</strong>（conditional flow matching）：</p>
+<p>$$\boxed{\;\mathcal{L}_{\text{CFM}} = \mathbb{E}_{\tau \sim \mathcal{U}[0,1],\, A, \varepsilon} \bigl\| v_\theta(A^\tau, c, \tau) - (A - \varepsilon) \bigr\|^2\;}$$</p>
+<p>其中 $c$ 是 VLM 给出的条件向量（vision + language + proprio token 经过 cross-attention 聚合）。</p>
+<p><strong>推理（10 步 Euler ODE）</strong>：从 $A^0 = \varepsilon \sim \mathcal{N}(0, I)$ 出发，</p>
+<p>$$A^{\tau + \delta} = A^\tau + \delta \cdot v_\theta(A^\tau, c, \tau), \qquad \delta = 0.1,\; \tau = 0, 0.1, ..., 0.9$$</p>
+<p>得到 $A^1 \approx A$。<strong>没有 CFG</strong>——条件 $c$ 通过 cross-attention 注入，不需要 classifier-free guidance。</p>
+<div class="callout callout-warn"><div class="callout-title">常见误区</div><p>π0 的 flow matching <strong>不是 DDPM</strong>：DDPM 学 noise prediction $\varepsilon_\theta$，需要预定义 noise schedule $\bar\alpha_t$；flow matching 直接学速度场，schedule-free。</p></div>
+<h3 id="23-训练数据跨本体大锅炖">2.3 训练数据：跨本体大锅炖</h3>
+<p>π0 训练混合 (training mixture)：</p>
+<table><thead><tr><th>数据来源</th><th>占比</th><th>备注</th></tr></thead><tbody><tr><td>PI 自家 903M timesteps</td><td>90.9%</td><td>7 robot configs, 68 tasks</td></tr><tr><td>Open-X-Embodiment (OXE)</td><td>9.1%</td><td>70+ 公开机器人数据集</td></tr><tr><td><strong>总时长</strong></td><td><strong>≈ 10,000 小时</strong></td><td></td></tr></tbody></table>
+<p><strong>7 个本体</strong>及最大维度 17：</p>
+<ul><li>UR5e（7-D）</li><li>双臂 UR5e（14-D）</li><li>Franka（8-D）</li><li>双臂 Trossen（14-D）</li><li>双臂 ARX / AgileX（14–16-D）</li><li>Mobile Trossen / ARX（14–16-D）</li><li>Mobile Fibocom（17-D）</li></ul>
+<p><strong>对齐方式</strong>：所有动作 zero-padding 到 17-18 维；每条样本带一个 "robot type" embedding token 指示本体。</p>
+<h3 id="24-关键-benchmark">2.4 关键 benchmark</h3>
+<table><thead><tr><th>任务</th><th>π0 success</th><th>π0-small</th><th>OpenVLA</th></tr></thead><tbody><tr><td>Bussing easy</td><td>0.971</td><td>0.875</td><td>—</td></tr><tr><td>Bussing hard</td><td>0.875</td><td>0.500</td><td>—</td></tr><tr><td>Shirt folding</td><td>1.000</td><td>0.583</td><td>—</td></tr><tr><td>Grocery bagging</td><td>0.786</td><td>0.286</td><td>—</td></tr><tr><td>Toast</td><td>0.750</td><td>0.250</td><td>—</td></tr></tbody></table>
+<div class="callout callout-good"><div class="callout-title">开源</div><p>base 权重 + DROID / ALOHA 任务专家 ckpt 全部在 <code>gs://openpi-assets</code>，<strong>Apache-2.0</strong> 协议，<strong>允许商用</strong>。</p></div>
+<h2 id="3-0-fast--离散动作-token-ar">§3 π0-FAST — 离散动作 Token AR</h2>
+<blockquote><p>📌 <strong>论文</strong>：Pertsch, Stachowicz, Ichter, Driess, Nair, Vuong, Mees, Finn, Levine, <em>"FAST: Efficient Action Tokenization for Vision-Language-Action Models"</em>, arXiv <strong>2501.09747</strong>, 2025-01-16.</p></blockquote>
+<h3 id="31-动机">3.1 动机</h3>
+<p>π0 的 flow matching 训练慢——每个 sample 要 forward action expert 一次算 loss，跨 GPU sync 多。能不能复用 <strong>LLM 的纯 next-token AR</strong> 训练 infra？</p>
+<p>直接量化（discretize）每一维成 256 bin 的 OpenVLA 风格的做法在 dexterous 任务上塌：因为动作是 <em>连续高频</em> 信号，独立 binning 把强相关性丢了。</p>
+<h3 id="32-fast三步压缩">3.2 FAST：三步压缩</h3>
+<pre class="diagram"><code>原始 chunk A ∈ R^{H × D}   (H=50, D≤17)
+   │
+   │  ① DCT（Discrete Cosine Transform，沿时间维）
+   ▼
+DCT 系数（低频集中能量）
+   │
+   │  ② 量化（scale ×10, round）
+   ▼
+整数张量
+   │
+   │  ③ flatten（低频在前）+ BPE（vocab=1024）
+   ▼
+30–60 个离散 token</code></pre>
+<p><strong>类比 JPEG/MP3</strong>：DCT 把时序信号能量压到低频，量化丢掉肉眼/手感不敏感的高频细节，BPE 把高频共现的 token 序列合并。</p>
+<h3 id="33-fast-通用-tokenizer">3.3 FAST+ 通用 tokenizer</h3>
+<p>PI 还训了一个 <strong>通用版</strong> FAST+：</p>
+<ul><li>训练数据：<strong>100 万</strong> 1 秒动作序列</li><li>覆盖：单臂 / 双臂 / 移动；joint / EE-world / EE-cam 三种动作空间</li><li>padding 到 32 维</li></ul>
+<p><strong>意义</strong>：一个 tokenizer 适配所有 manipulation 数据，下游 VLA 直接 plug-and-play。</p>
+<h3 id="34-0-fast-架构--训练">3.4 π0-FAST 架构 &amp; 训练</h3>
+<p>把 FAST 输出的 BPE token <strong>覆写到 PaliGemma vocab 中最少使用的 token 位置上</strong>（无需扩 vocab）。然后纯 next-token 预测：</p>
+<p>$$\mathcal{L} = -\sum_{t} \log p_\theta(a_t \mid a_{<t}, c)$$</p>
+<p><strong>训练速度</strong>：在同样 10k h 跨本体数据上，<strong>5× faster</strong> than flow π0。</p>
+<h3 id="35-性能-trade-off">3.5 性能 trade-off</h3>
+<table><thead><tr><th>维度</th><th>π0 (flow)</th><th>π0-FAST</th></tr></thead><tbody><tr><td>训练速度</td><td>1×</td><td><strong>5× faster</strong></td></tr><tr><td>推理速度</td><td><strong>10 ODE step，并行解码</strong></td><td>autoregressive，慢（30–60 token 串行）</td></tr><tr><td>灵巧动作平滑度</td><td><strong>更平滑</strong></td><td>OK，略 jerky</td></tr><tr><td>DROID 零样本评测</td><td>—</td><td><strong>第一个通用 manipulation 策略</strong></td></tr><tr><td>开源</td><td>base + experts</td><td>base + DROID expert</td></tr></tbody></table>
+<div class="callout callout-warn"><div class="callout-title">面试常考</div><p>"如果 π0-FAST 训练这么快，π0 还有什么用？" 答案：<strong>推理速度</strong>。机器人控制环 50 Hz 要求 <strong>每个 control step ≈ 20 ms</strong>（一个 chunk 含 50 步 ≈ 1 秒）；flow 的 10 步 ODE 并行解码一个 chunk，远比 30–60 个 AR token 串行解码快，更适合实时控制。</p></div>
+<h2 id="4-hi-robot--system-1--system-2-分层">§4 Hi Robot — System 1 / System 2 分层</h2>
+<blockquote><p>📌 <strong>论文</strong>：Lucy X. Shi (一作), Ichter, Equi, Ke, Pertsch, Vuong, Tanner, Driess, Groom, Levine, Finn, <em>"Hi Robot: Open-Ended Instruction Following with Hierarchical Vision-Language-Action Models"</em>, arXiv <strong>2502.19417</strong>, ICML 2025.</p></blockquote>
+<h3 id="41-直觉kahneman-thinking-fast-and-slow">4.1 直觉：Kahneman Thinking, Fast and Slow</h3>
+<p>复杂指令（"把桌上不是我喜欢颜色的杯子收掉，再去取一杯咖啡"）要求 <em>先理解 + 拆解 + 再执行</em>。flat VLA 一个网络把这些全做了，长程任务上崩塌。</p>
+<p><strong>Hi Robot</strong> 仿照人类双系统：</p>
+<table><thead><tr><th>系统</th><th>角色</th><th>模型</th><th>频率</th><th>输出</th></tr></thead><tbody><tr><td><strong>System 2</strong>（慢/推理）</td><td>高层规划 + inner monologue</td><td>PaliGemma-3B（微调）</td><td>≈ 1 Hz</td><td>语言子任务</td></tr><tr><td><strong>System 1</strong>（快/反应）</td><td>低层执行</td><td>π0</td><td>50 Hz</td><td>连续动作 chunk</td></tr></tbody></table>
+<h3 id="42-训练数据三元组">4.2 训练数据三元组</h3>
+<ul><li><strong>𝒟_labeled</strong>：人工把长 demo 切段并打 skill 标签（"pick mug", "place in tray"）</li><li><strong>𝒟_syn</strong>：用一个大 VLM <strong>合成</strong> prompt-response 对（"user 说 X，模型应该说 Y"），扩 instruction diversity</li><li><strong>𝒟_demo</strong>：teleop 演示（多种本体）</li></ul>
+<h3 id="43-instruction-accuracy-数字">4.3 Instruction Accuracy 数字</h3>
+<table><thead><tr><th>任务</th><th>Hi Robot</th><th>flat VLA</th><th>GPT-4o</th></tr></thead><tbody><tr><td>Table bussing</td><td><strong>74%</strong></td><td>36%</td><td>~30%</td></tr><tr><td>Sandwich making</td><td><strong>83%</strong></td><td>34%</td><td>~40%</td></tr><tr><td>Grocery shopping</td><td><strong>72%</strong></td><td>39%</td><td>~30%</td></tr></tbody></table>
+<p>平均比 GPT-4o <strong>高 40+ 个点</strong>——说明 <em>机器人控制能力不能靠 zero-shot prompt 大模型解决，必须有专门的 low-level policy</em>。</p>
+<h2 id="5-05--开放世界泛化">§5 π0.5 — 开放世界泛化</h2>
+<blockquote><p>📌 <strong>论文</strong>：Physical Intelligence et al., <em>"π0.5: a Vision-Language-Action Model with Open-World Generalization"</em>, arXiv <strong>2504.16054</strong>, 2025-04-22.</p></blockquote>
+<h3 id="51-目标让机器人进-未见过的家庭">5.1 目标：让机器人进 <em>未见过的家庭</em></h3>
+<p>π0 / π0-FAST 在见过的家庭里很强，但换厨房就崩。π0.5 的目标：<strong>3 个未见厨房 + 3 个未见卧室</strong>，每个任务 2–5 分钟、多阶段，能否 ≥ 80% 完成？</p>
+<h3 id="52-两阶段训练-recipe">5.2 两阶段训练 recipe</h3>
+<p><strong>Stage 1 — Pretrain（280k steps）</strong>：</p>
+<ul><li>统一 transformer</li><li><strong>离散动作</strong>（FAST tokenizer）</li><li>数据：<strong>MM + ME + CE + HL + WD</strong>（即不含 VI；CE 在此阶段保留以学跨本体语义）</li></ul>
+<p><strong>Stage 2 — Posttrain（80k steps）</strong>：</p>
+<ul><li>加上 <strong>flow matching action expert（300M）</strong></li><li>数据：<strong>MM + ME + HL + WD + VI</strong>（即引入口头指令 VI，移除 CE 让模型聚焦目标域）</li><li><p>双通路推理：</p>
+<ul><li><strong>高层</strong>：自回归解码语言子任务（如 "pick up the dish"）</li><li><strong>低层</strong>：在子任务条件下用 flow 生成动作 chunk（H=50, 1 秒）</li></ul></li></ul>
+<h3 id="53-训练数据五路--web">5.3 训练数据五路 + Web</h3>
+<table><thead><tr><th>标签</th><th>含义</th><th>量级</th></tr></thead><tbody><tr><td><strong>MM</strong></td><td>Mobile Manipulation（≈ 100 个家庭）</td><td>≈ <strong>400 小时</strong></td></tr><tr><td><strong>ME</strong></td><td>Multi-Environment 固定臂</td><td>大量</td></tr><tr><td><strong>CE</strong></td><td>Cross-Embodiment 桌面（含 OXE）</td><td>大量</td></tr><tr><td><strong>HL</strong></td><td>High-Level 语义子任务（人工标注）</td><td>中</td></tr><tr><td><strong>WD</strong></td><td>Web Data（caption / VQA / object detection）</td><td>巨大</td></tr><tr><td><strong>VI</strong></td><td>Verbal Instructions（post-train 时加）</td><td>小</td></tr></tbody></table>
+<div class="callout callout-warn"><div class="callout-title">反直觉但关键</div><p><strong>97.6% 训练样本不是 MM 数据</strong>。in-domain MM 只占 ≈ 2.4%。<strong>泛化能力来自异质 co-training</strong>，不是 in-domain 堆量。</p></div>
+<h3 id="54-关键消融">5.4 关键消融</h3>
+<table><thead><tr><th>移除</th><th>OOD success drop</th></tr></thead><tbody><tr><td>去掉 ME 数据</td><td>≈ −20 pt</td></tr><tr><td>去掉 CE 数据</td><td>≈ −15 pt</td></tr><tr><td>去掉 WD 数据</td><td>≈ −30 pt on unseen objects</td></tr></tbody></table>
+<h3 id="55-unseen-homes-benchmark">5.5 Unseen Homes Benchmark</h3>
+<table><thead><tr><th>指标</th><th>In-distribution</th><th>OOD（unseen 家庭）</th></tr></thead><tbody><tr><td>Instruction following</td><td>86%</td><td><strong>94%</strong></td></tr><tr><td>Task success</td><td>83%</td><td><strong>94%</strong></td></tr></tbody></table>
+<div class="callout callout-good"><div class="callout-title">意义</div><p>这是 <strong>VLA 走出实验室</strong> 的标志性数字。π0.5 base + LIBERO / DROID expert 权重在 openpi 开源。</p></div>
+<h2 id="6-knowledge-insulation-ki--05--06-的训练-recipe">§6 Knowledge Insulation (KI) — π0.5 → π0.6 的训练 recipe</h2>
+<blockquote><p>📌 <strong>论文</strong>：<em>"Knowledge Insulating Vision-Language-Action Models: Train Fast, Run Fast, Generalize Better"</em>, arXiv <strong>2505.23705</strong>, 2025-05-28.</p></blockquote>
+<h3 id="61-痛点">6.1 痛点</h3>
+<p>π0.5 同时学 <em>flow matching action</em> 和 <em>FAST next-token</em>，但 action expert 的梯度会反向传到 VLM backbone，<strong>污染 PaliGemma 已经学好的多模态知识</strong>。结果是：</p>
+<ul><li>post-train 后 backbone 在 VQA / captioning 上掉点</li><li>continual learning 时灾难性遗忘</li></ul>
+<h3 id="62-解法stop-grad-隔离--三目标">6.2 解法：stop-grad 隔离 + 三目标</h3>
+<pre class="diagram"><code>┌─────────────────────────────────────────────────┐
+│ VLM backbone (PaliGemma)                        │
+│  ├─ Loss A: web 多模态  (caption/VQA)           │
+│  └─ Loss B: FAST next-token AR (动作 token)    │  ← 学运动语义
+│       │                                         │
+│       ▼  stop-grad ⛔                            │
+│ ┌──────────────────────────────────────────┐    │
+│ │ Action expert (300M, flow)               │    │
+│ │  └─ Loss C: flow matching CFM            │    │  ← 推理只用这条
+│ └──────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────┘</code></pre>
+<p><strong>关键三步</strong>：</p>
+<ol><li><strong>Loss A</strong>：保持 backbone web 知识不掉点</li><li><strong>Loss B</strong>：让 backbone 通过 FAST next-token 任务 <em>学到运动语义</em>（不需要真的用 AR 推理）</li><li><strong>Loss C</strong>：action expert 的梯度 <strong>被 stop-grad 截断</strong>，不污染 backbone</li></ol>
+<p>推理时只用 Loss C 的路径（flow matching action expert），快。</p>
+<h3 id="63-数字">6.3 数字</h3>
+<ul><li><strong>训练步数 ≈ 7.5× fewer than π0</strong> to reach same performance</li><li>Bussing 执行时间：≈ <strong>400 s</strong>（vs π0-FAST 800 s）</li><li>LIBERO-90 / LIBERO-Spatial SOTA</li></ul>
+<p>KI 是后续 π0.6 / π\*0.6 / π0.7 训练 recipe 的主干。</p>
+<h2 id="7-real-time-chunking-rtc--thinking-while-moving">§7 Real-Time Chunking (RTC) — Thinking While Moving</h2>
+<blockquote><p>📌 <strong>Research note</strong>：<code>pi.website/research/real_time_chunking</code>, 2025-06-09.</p></blockquote>
+<h3 id="71-问题推理延迟会卡死机器人">7.1 问题：推理延迟会卡死机器人</h3>
+<p>机器人控制环 50 Hz 要求 20 ms / step。一个 chunk 1 秒（50 步），但 VLA 推理 ≈ 100 ms。如果<strong>同步</strong>执行——执行完一个 chunk 才请求下一个——会有 100 ms 的空窗，肉眼可见的"卡顿"。</p>
+<h3 id="72-异步-chunk--inpainting">7.2 异步 chunk + Inpainting</h3>
+<pre class="diagram"><code>时间轴 ──────────────────────────────────────────────►
+chunk_0: [a_0, a_1, ..., a_49]            执行
+                          ▲
+                          │
+chunk_1 请求 ─────────────┘────────► 推理 100 ms
+                                ▲
+chunk_1: [a_50, ..., a_99]      │  到达，开始执行
+                                │
+                                ▼
+重叠部分约束：chunk_1 的前 N 步与 chunk_0 后 N 步**对齐**</code></pre>
+<p><strong>Inpainting 机制</strong>：</p>
+<ol><li>已经物理执行的步骤（chunk_0 的前 K 步）<strong>冻结</strong>——chunk_1 不能改它们</li><li>重叠区域用 partial attention：chunk_1 生成时把 chunk_0 在重叠位置的动作作为 <em>已知部分</em>，新生成的是 <em>缺失部分</em>（"inpainting"）</li><li>这样保证 chunk 边界 <strong>连续</strong>，不会跳变</li></ol>
+<h3 id="73-延迟数字">7.3 延迟数字</h3>
+<table><thead><tr><th>平台</th><th>端到端延迟</th><th>容忍注入延迟</th></tr></thead><tbody><tr><td>Mobile robot</td><td><strong>139 ms</strong> (推理 97 + 网络 21 + 其他 21)</td><td>+200 ms</td></tr><tr><td>Static robot</td><td><strong>108 ms</strong></td><td>+200 ms</td></tr></tbody></table>
+<div class="callout callout-info"><div class="callout-title">工程意义</div><p>即使把推理放云端（增加几十 ms 网络往返），RTC 让机器人<strong>感觉不到延迟</strong>。这是把 VLA 从 lab demo 推向产品的关键技术。</p></div>
+<h2 id="8-06--06--recap-强化学习上线">§8 π0.6 + π\*0.6 — RECAP 强化学习上线</h2>
+<blockquote><p>📌 <strong>论文</strong>：<em>"π\</em>0.6: a VLA That Learns From Experience"*, arXiv <strong>2511.14759</strong>, 2025-11-17.</p></blockquote>
+<h3 id="81-backbone-升级06-base">8.1 Backbone 升级（π0.6 base）</h3>
+<table><thead><tr><th>组件</th><th>π0</th><th>π0.5</th><th><strong>π0.6</strong></th></tr></thead><tbody><tr><td>VLM</td><td>PaliGemma 3B</td><td>PaliGemma 3B + KI</td><td><strong>Gemma 3 4B</strong></td></tr><tr><td>Vision encoder</td><td>(PaliGemma 内置)</td><td>同左</td><td><strong>+ SigLIP 400M</strong></td></tr><tr><td>Action expert</td><td>300M</td><td>300M</td><td><strong>860M</strong>（与 backbone 同层数）</td></tr><tr><td><strong>总参数</strong></td><td>3.3B</td><td>3.3B</td><td><strong>≈ 5B</strong></td></tr></tbody></table>
+<p>π0.6 base 已经能可靠折叠 laundry，但 box assembly 仍只 ~20%。要做到专家级，需要 <strong>RL fine-tune</strong>——这就是 π\*0.6。</p>
+<h3 id="82-recap-三阶段">8.2 RECAP 三阶段</h3>
+<blockquote><p><strong>R</strong>L with <strong>E</strong>xperience and <strong>C</strong>orrections via <strong>A</strong>dvantage-conditioned <strong>P</strong>olicies</p></blockquote>
+<pre class="diagram"><code>Stage 1 — Offline RL Pretrain
+   ▶ 在大规模 offline 数据上同时训 V(s) 与 advantage-conditioned policy π(a|s, A)
+   ▶ V 学到&quot;哪种 state 更接近 success&quot;的判断
+   ▶ Policy 学到&quot;在给定 advantage 信号下应该输出什么动作&quot;
+                  │
+                  ▼
+Stage 2 — Demo SFT (任务级)
+   ▶ 在目标任务的 teleop demo 上 SFT
+                  │
+                  ▼
+Stage 3 — On-robot RL with Interventions
+   ▶ 部署到真机，专家随时介入（人按手柄接管）
+   ▶ 介入 = high advantage，自主失败 = low advantage
+   ▶ 持续 fine-tune V 与 policy</code></pre>
+<h3 id="83-advantage-conditioned-policy">8.3 Advantage-Conditioned Policy</h3>
+<p><strong>关键洞察</strong>：传统 RL 把 advantage 用作 loss 权重（AWR）；RECAP 把 advantage 作为 <strong>prompt token 喂给 VLA</strong>。</p>
+<p>$$\pi(a \mid s, A_t), \qquad A_t \;=\; \mathbb{E}\Bigl[\sum_{k=0}^{N-1} r_{t+k}\Bigr] + V(s_{t+N}) - V(s_t)$$</p>
+<p>（一般 n-step advantage；在 sparse-reward 机器人任务中常退化为 $A_t \approx V(s_{t+N}) - V(s_t)$ 的一步/n-步 V-差简化）。</p>
+<ul><li>训练时：<strong>所有数据都用</strong>（好的标 advantage=+，差的标 advantage=−）</li><li>推理时：<strong>始终 condition on 高 advantage</strong></li></ul>
+<div class="callout callout-warn"><div class="callout-title">vs Decision Transformer</div><p>DT 是 return-to-go 条件化；RECAP 是 advantage（V 差）条件化，<strong>更适合长程任务</strong>，因为 return-to-go 在 sparse reward 下信噪比低。</p></div>
+<h3 id="84-9-个任务的专家级数字">8.4 9 个任务的专家级数字</h3>
+<table><thead><tr><th>任务</th><th>base (π0.6, 模仿) success</th><th>π\*0.6 (RECAP) success</th><th>throughput</th></tr></thead><tbody><tr><td>Espresso</td><td>~40%</td><td><strong>≥ 90%</strong></td><td><strong>30 杯/小时</strong>，连续 13 小时</td></tr><tr><td>Box assembly</td><td>~20%</td><td><strong>~95%</strong></td><td>14 个/小时</td></tr><tr><td>Laundry</td><td>—</td><td><strong>~95%</strong></td><td>65 件/小时（50 件未见衣物）</td></tr><tr><td>Bed making</td><td>—</td><td>高</td><td>—</td></tr><tr><td>Candle lighting</td><td>—</td><td>高</td><td>—</td></tr><tr><td>Litter box</td><td>—</td><td>高</td><td>—</td></tr><tr><td>Light bulb replacement</td><td>—</td><td>高</td><td>—</td></tr><tr><td>Table bussing</td><td>—</td><td>高</td><td>—</td></tr><tr><td>Kitchen cleaning</td><td>—</td><td>高</td><td>—</td></tr></tbody></table>
+<div class="callout callout-good"><div class="callout-title">OK</div><p><strong>整体：throughput 翻倍以上，failure rate ≥ 2× 下降</strong>。这是首次把 VLA 推到 <em>能商用</em> 的可靠性。</p></div>
+<p>社区复现：<code>huggingface.co/exla-ai/openpie-0.6</code>，Apache-2.0。</p>
+<h3 id="85-robot-olympics2025-12">8.5 Robot Olympics（2025-12）</h3>
+<p>PI 用 π0.6 在 5 项 Moravec 式难任务上做了一次"奥运评测"：</p>
+<table><thead><tr><th>项目</th><th>子任务</th><th>π0.6 + finetune</th><th>baseline VLM</th></tr></thead><tbody><tr><td>全身</td><td>自闭合门</td><td>silver</td><td>≈ 0%</td></tr><tr><td>洗衣</td><td>袜子翻面 + T 恤折叠</td><td><strong>gold</strong></td><td>≈ 0%</td></tr><tr><td>基础工具</td><td>钥匙 / PB 三明治 / 擦窗</td><td><strong>gold</strong></td><td>≈ 0%</td></tr><tr><td>指尖</td><td>狗粪袋 / 橘皮</td><td>silver</td><td>≈ 0%</td></tr><tr><td>湿滑</td><td>油锅 / 手指 PB / 台面</td><td><strong>gold</strong></td><td>≈ 0%</td></tr></tbody></table>
+<p><strong>3 金 2 银，平均 ≈ 52%</strong>，每个任务只需 <strong>&lt; 9 小时</strong> 微调数据；baseline VLM 几乎全 0。</p>
+<div class="callout callout-info"><div class="callout-title">Take-away</div><p>"large-scale robot pre-training is essential"。如果不预训练 π0.6 base，任务再多 fine-tune 数据也救不回来。</p></div>
+<h2 id="9-mem--rlt--长程记忆与在线-rl-token">§9 MEM + RLT — 长程记忆与在线 RL Token</h2>
+<h3 id="91-mem2026-03-03双时间尺度记忆">9.1 MEM（2026-03-03）：双时间尺度记忆</h3>
+<p>VLA 默认只看当前 frame，做 ≥ 1 分钟任务就崩。MEM 给 VLA 加两套记忆：</p>
+<table><thead><tr><th>记忆类型</th><th>表示</th><th>写入策略</th><th>读取策略</th></tr></thead><tbody><tr><td><strong>短期</strong></td><td>时序 ViT token</td><td>interleaved spatial-temporal，<strong>上层丢弃旧 token</strong></td><td>cross-attention</td></tr><tr><td><strong>长期</strong></td><td><strong>自然语言</strong> 摘要</td><td>模型用 CoT <em>自选</em> 写什么</td><td>把摘要拼到 prompt 里</td></tr></tbody></table>
+<p><strong>为什么长期用自然语言而不是 KV cache</strong>：</p>
+<ul><li>自然语言可 <strong>抽象</strong>（"我刚刚把红杯子放进了上层柜"）→ 节约 context</li><li>模型可 <strong>选择性</strong> 记录（CoT decides what to remember）</li><li>可 <strong>解释</strong>——人能直接读懂机器人的"日记"</li><li>KV cache 长视频太贵（O(L²)）</li></ul>
+<p><strong>任务长度</strong>：MEM-augmented π0.6 可做 <strong>≤ 15 分钟</strong> 长任务：</p>
+<ul><li>Grilled cheese 定时（要等面包变金黄才翻面）</li><li>Recipe 取料（按食谱逐项找）</li><li>厨房清理（多房间记忆）</li></ul>
+<h3 id="92-rlt2026-03-19把-vla-接到在线-rl">9.2 RLT（2026-03-19）：把 VLA 接到在线 RL</h3>
+<p><strong>痛点</strong>：on-robot RL 慢（更新一次梯度要几秒），VLA 模型大没法直接训。</p>
+<p><strong>RLT 解法</strong>：</p>
+<pre class="diagram"><code>VLA  ──→  special token  ──→  encoder-decoder ──→  compact RL token
+                                                          │
+                                                          ▼
+                                                ┌─────────────────┐
+                                                │ 小 actor / critic │  100+ update/s
+                                                │ 在 token 上跑     │
+                                                └─────────────────┘
+                                                          │
+                                                          ▼
+                                         action edit:  Δa  ──→ chunk + Δa</code></pre>
+<p><strong>关键设计</strong>：</p>
+<ul><li>actor 学的是 <strong>edit</strong> VLA 预测的 chunk（Δa），不是替换；保留预训练知识</li><li>KL-style 正则：限制 Δa 大小，防 <em>off-policy 漂移</em></li><li>compact RL token 是 <em>信息瓶颈</em>：只让任务相关信号通过</li></ul>
+<p><strong>数字</strong>：</p>
+<table><thead><tr><th>任务</th><th>base (no RLT)</th><th>RLT 后</th></tr></thead><tbody><tr><td>Ethernet 插入</td><td>~100 / 10 min</td><td><strong>~350 / 10 min</strong></td></tr><tr><td>Power cord 插入</td><td>~100+</td><td><strong>500+</strong></td></tr></tbody></table>
+<p><strong>关键时间</strong>：</p>
+<ul><li><strong>15 分钟数据</strong> 就能起效</li><li>Ethernet 任务 <strong>2 小时</strong> 达峰</li><li>50% trial <strong>比人 teleop 还快</strong>（66 vs 146 timestep）</li></ul>
+<h2 id="10-07--steerable-generalist-with-emergent-capabilities">§10 π0.7 — Steerable Generalist with Emergent Capabilities</h2>
+<blockquote><p>📌 <strong>论文</strong>：Physical Intelligence et al. (Pertsch submitting, <strong>87 co-authors</strong>), <em>"π0.7: a Steerable Generalist Robotic Foundation Model with Emergent Capabilities"</em>, arXiv <strong>2604.15483</strong>, 2026-04-16.</p></blockquote>
+<h3 id="101-范式跃迁从-language-conditioned-到-diverse-context-conditioned">10.1 范式跃迁：从 "language conditioned" 到 "diverse context conditioned"</h3>
+<p>π0 ～ π0.6 都是 <strong>language conditioned</strong>——prompt 主要是一句话指令。π0.7 把 prompt 扩成 <strong>diverse multimodal context</strong>：</p>
+<pre class="diagram"><code>┌──────────────────────────────────────────────────────────┐
+│  Prompt Context                                          │
+│  ├─ Language instruction:  &quot;fold the shirt&quot;              │
+│  ├─ Subtask instruction:   &quot;first align the sleeves&quot;     │
+│  ├─ Subgoal image:         [target visual state]         │
+│  ├─ Episode metadata:                                    │
+│  │    ├─ speed:    fast / slow                           │
+│  │    ├─ quality:  1–5 评分                              │
+│  │    ├─ mistake:  label                                 │
+│  │    └─ control:  joint / EE / cartesian                │
+│  └─ Memory context (MEM 风格短时视频)                    │
+└──────────────────────────────────────────────────────────┘</code></pre>
+<h3 id="102-架构06--ki--mem">10.2 架构：π0.6 + KI + MEM</h3>
+<ul><li>VLM backbone = <strong>Gemma 3 4B</strong></li><li>Vision encoder = <strong>SigLIP 400M</strong></li><li>Action expert = <strong>860M</strong></li><li>总参数 ≈ <strong>5B</strong></li><li>训练 recipe：KI（stop-grad 隔离）</li><li>短时记忆：MEM 风格 ViT</li><li>输出方式：flow matching（沿用 π0.6 model card 披露的 <strong>5 步 ODE 推理</strong>，KI recipe）</li></ul>
+<h3 id="103-训练数据pi-未精确披露量级比-06-更大且更异质">10.3 训练数据（PI 未精确披露量级，<strong>比 π0.6 更大且更异质</strong>）</h3>
+<table><thead><tr><th>来源</th><th>备注</th></tr></thead><tbody><tr><td>多平台机器人 demo</td><td>至少覆盖 π0.6 的 7 种本体 + 新增双臂 UR5e</td></tr><tr><td><strong>自主 policy rollouts</strong>（含失败！）</td><td>失败样本是 advantage 信号的来源</td></tr><tr><td>人工 intervention 数据</td><td>RECAP 风格</td></tr><tr><td><strong>第一人称 egocentric 人类视频</strong></td><td>让模型学到非机器人本体的 manipulation 先验</td></tr><tr><td>开源数据集</td><td>OXE + DROID + RLBench 等</td></tr><tr><td>Web data</td><td>caption / VQA / detection</td></tr></tbody></table>
+<h3 id="104-关键-benchmark">10.4 关键 benchmark</h3>
+<p><strong>Espresso &amp; Box assembly</strong>（专家级长任务）：</p>
+<ul><li>单 π0.7 模型 <strong>≥</strong> RL-finetuned π\*0.6 specialist</li><li>即：<strong>通用模型追平了专家模型</strong></li></ul>
+<p><strong>Shirt folding on bimanual UR5e（零训练样本）</strong>：</p>
+<ul><li>π0.7 任务进度：<strong>85.6%</strong></li><li>π0.7 success rate：<strong>80%</strong></li><li>人类 teleop 专家进度：90.9% / success 80.6%</li><li>→ <strong>几乎追平人类</strong>，且模型从未在该本体训过</li></ul>
+<p><strong>Unseen 场景</strong>：</p>
+<ul><li>4 个未见厨房 + 2 个未见卧室：instruction following 高</li><li>与 π0.5 相比 OOD success +10 pt 以上</li></ul>
+<h3 id="105-compositional-generalization首次出现">10.5 Compositional Generalization（首次出现）</h3>
+<p>π0.7 <strong>首次</strong> 在 VLA 里展示了 <em>把已学技能重组解决新任务</em> 的能力。例如：</p>
+<ul><li>训练时学过 "pick up cup"、"place in tray"、"wipe table"</li><li>测试时给一个<strong>没训练过的组合</strong>："use the cup to wipe the table"</li><li>π0.7 能成功执行（虽然成功率比 in-distribution 低）</li></ul>
+<p><strong>为什么会出现 compositionality</strong>：</p>
+<ol><li><strong>Diverse multimodal prompts</strong> 把 <em>做什么</em> 和 <em>怎么做</em> 解耦——metadata 标 "speed=slow, quality=5" 让模型学到 <em>manner-invariant skill</em> 表征</li><li><strong>Cross-embodiment 大规模训练</strong> 强制学到 <em>body-invariant abstractions</em>——技能不绑死到某个机器人</li><li><strong>Subgoal images</strong> 提供视觉的目标空间，让模型从"目标导向"而非"模仿导向"学习</li></ol>
+<div class="callout callout-good"><div class="callout-title">意义</div><p>这是 VLA 走向 <em>foundation model</em> 的转折点：以前每个任务要 fine-tune，现在 zero-shot 可组合。</p></div>
+<h3 id="106-steerability">10.6 Steerability</h3>
+<p>Prompt 中的 metadata 可在 deploy 时显式调整：</p>
+<table><thead><tr><th>metadata 设置</th><th>行为变化</th></tr></thead><tbody><tr><td><code>speed: fast</code></td><td>动作更快但精度略降</td></tr><tr><td><code>quality: 5</code></td><td>慢但精细</td></tr><tr><td><code>quality: 1</code></td><td>快糙</td></tr><tr><td><code>mistake: avoid</code></td><td>偏保守</td></tr><tr><td><code>control: joint</code></td><td>输出关节空间</td></tr><tr><td><code>control: EE_cartesian</code></td><td>输出末端笛卡尔空间</td></tr></tbody></table>
+<p>这让产品经理可以<strong>按场景调速</strong>——同一个模型，"咖啡店忙时" 设 fast，"医院" 设 quality=5。</p>
+<div class="callout callout-warn"><div class="callout-title">License 注意</div><p>arXiv 论文采用 arXiv non-exclusive distribution license（默认）；权重截至 2026-05-20 <strong>尚未</strong> 进 openpi 正式发布，使用前请查 PI 官方公告。</p></div>
+<h2 id="11-从零实现flow-matching-action-headpytorch">§11 从零实现：Flow Matching Action Head（PyTorch）</h2>
+<p>下面是一份 <strong>能跑</strong> 的简化 π0 action expert，专注 flow matching 训练 / 推理逻辑。条件向量 $c$ 用一个 simple MLP encoder 代替真实的 PaliGemma backbone。</p>
+<pre><code class="language-python">&quot;&quot;&quot;pi_flow_action_head.py — minimal flow-matching action head (π0 style).
+
+Demonstrates: linear-Gaussian path, CFM loss, 10-step Euler ODE inference.
+NOT a real PaliGemma + π0 — backbone is a tiny MLP for clarity.
+&quot;&quot;&quot;
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+
+class TinyConditionEncoder(nn.Module):
+    &quot;&quot;&quot;Stand-in for PaliGemma 3B: turns (image_feat, lang_feat, proprio) into c.&quot;&quot;&quot;
+
+    def __init__(self, img_dim=512, lang_dim=512, proprio_dim=18, c_dim=256):
+        super().__init__()
+        self.proj = nn.Linear(img_dim + lang_dim + proprio_dim, c_dim)
+
+    def forward(self, img, lang, proprio):
+        x = torch.cat([img, lang, proprio], dim=-1)  # [B, img+lang+proprio]
+        return self.proj(x)                          # [B, c_dim]
+
+
+class FlowActionExpert(nn.Module):
+    &quot;&quot;&quot;Predicts the velocity field v_θ(A^τ, c, τ) for a chunk of actions.&quot;&quot;&quot;
+
+    def __init__(self, action_dim=18, chunk_len=50, c_dim=256, hidden=512):
+        super().__init__()
+        self.action_dim = action_dim
+        self.chunk_len = chunk_len
+        flat_a = action_dim * chunk_len
+        # input: [flat A^τ | c | τ-embedding]
+        self.tau_embed = nn.Linear(1, 64)
+        self.net = nn.Sequential(
+            nn.Linear(flat_a + c_dim + 64, hidden),
+            nn.SiLU(),
+            nn.Linear(hidden, hidden),
+            nn.SiLU(),
+            nn.Linear(hidden, flat_a),
+        )
+
+    def forward(self, A_tau, c, tau):
+        &quot;&quot;&quot;A_tau: [B, H, D]  c: [B, c_dim]  tau: [B, 1]&quot;&quot;&quot;
+        B = A_tau.size(0)
+        flat = A_tau.reshape(B, -1)                  # [B, H*D]
+        tau_e = self.tau_embed(tau)                  # [B, 64]
+        x = torch.cat([flat, c, tau_e], dim=-1)
+        v = self.net(x).reshape(B, self.chunk_len, self.action_dim)
+        return v
+
+
+def cfm_loss(expert, encoder, batch):
+    &quot;&quot;&quot;Conditional flow matching loss (π0-style).
+
+    batch keys: img, lang, proprio, action_chunk (target A).
+    &quot;&quot;&quot;
+    img, lang, proprio, A = batch[&quot;img&quot;], batch[&quot;lang&quot;], batch[&quot;proprio&quot;], batch[&quot;action_chunk&quot;]
+    B = A.size(0)
+    device = A.device
+
+    c = encoder(img, lang, proprio)                  # [B, c_dim]
+
+    eps = torch.randn_like(A)                        # noise [B, H, D]
+    tau = torch.rand(B, 1, device=device)            # τ ~ U[0, 1]
+    tau_expanded = tau.unsqueeze(-1)                 # [B, 1, 1] for broadcast
+
+    A_tau = tau_expanded * A + (1.0 - tau_expanded) * eps  # linear-Gaussian path
+    target_v = A - eps                                      # dA^τ / dτ = A − ε
+    pred_v = expert(A_tau, c, tau)
+    return F.mse_loss(pred_v, target_v)
+
+
+@torch.no_grad()
+def sample_chunk(expert, encoder, batch, n_steps=10):
+    &quot;&quot;&quot;10-step Euler ODE inference: ε → A.&quot;&quot;&quot;
+    img, lang, proprio = batch[&quot;img&quot;], batch[&quot;lang&quot;], batch[&quot;proprio&quot;]
+    B = img.size(0)
+    device = img.device
+
+    c = encoder(img, lang, proprio)
+    A_tau = torch.randn(B, expert.chunk_len, expert.action_dim, device=device)
+
+    delta = 1.0 / n_steps
+    for k in range(n_steps):
+        tau = torch.full((B, 1), k * delta, device=device)
+        v = expert(A_tau, c, tau)
+        A_tau = A_tau + delta * v                    # Euler step
+    return A_tau                                     # ≈ A
+
+
+# ─────────────── Sanity check ───────────────
+if __name__ == &quot;__main__&quot;:
+    torch.manual_seed(0)
+    B, H, D = 4, 50, 18
+    enc = TinyConditionEncoder()
+    expert = FlowActionExpert(action_dim=D, chunk_len=H)
+    optim = torch.optim.AdamW(
+        list(enc.parameters()) + list(expert.parameters()), lr=1e-3
+    )
+
+    # 假数据：让模型记住一个 &quot;目标 chunk&quot;
+    target_action = torch.sin(torch.linspace(0, 6.28, H)).unsqueeze(-1).repeat(1, D)
+    batch = {
+        &quot;img&quot;: torch.randn(B, 512),
+        &quot;lang&quot;: torch.randn(B, 512),
+        &quot;proprio&quot;: torch.randn(B, 18),
+        &quot;action_chunk&quot;: target_action.unsqueeze(0).repeat(B, 1, 1),
+    }
+
+    for step in range(2000):
+        loss = cfm_loss(expert, enc, batch)
+        optim.zero_grad()
+        loss.backward()
+        optim.step()
+        if step % 500 == 0:
+            print(f&quot;step {step:5d}  cfm_loss={loss.item():.4f}&quot;)
+
+    # 推理 → 与 target 对比
+    pred = sample_chunk(expert, enc, batch, n_steps=10)
+    rmse = (pred - batch[&quot;action_chunk&quot;]).pow(2).mean().sqrt().item()
+    print(f&quot;\n10-step ODE inference RMSE vs target: {rmse:.4f}  (should be small)&quot;)</code></pre>
+<p><strong>预期输出</strong>（CPU 几秒钟，GPU 不到 1 秒）：</p>
+<pre><code>step     0  cfm_loss=2.0143
+step   500  cfm_loss=0.0421
+step  1000  cfm_loss=0.0098
+step  1500  cfm_loss=0.0044
+
+10-step ODE inference RMSE vs target: 0.0517  (should be small)</code></pre>
+<p>（注：循环 <code>range(2000)</code> 迭代 0..1999，所以 step 2000 不会打印；最后一次打印是 step 1500。）</p>
+<div class="callout callout-good"><div class="callout-title">学习要点</div><p>这份 80 行代码包含了 π0 的所有核心数学：linear-Gaussian path、CFM L2 loss、10 步 Euler ODE 推理。换成 PaliGemma backbone + 真实机器人数据，就是 openpi 的简化骨架。</p></div>
+<h2 id="12-复杂度--资源">§12 复杂度 &amp; 资源</h2>
+<h3 id="121-模型大小演进">12.1 模型大小演进</h3>
+<table><thead><tr><th>模型</th><th>VLM</th><th>Vision Enc</th><th>Action Expert</th><th><strong>Total</strong></th></tr></thead><tbody><tr><td>π0 / π0-FAST</td><td>PaliGemma 3B</td><td>(内置)</td><td>300M</td><td><strong>≈ 3.3B</strong></td></tr><tr><td>Hi Robot</td><td>PaliGemma 3B (S2) + π0 (S1)</td><td>—</td><td>—</td><td><strong>≈ 6.6B</strong>（两份）</td></tr><tr><td>π0.5</td><td>PaliGemma 3B + KI</td><td>(内置)</td><td>300M</td><td><strong>≈ 3.3B</strong></td></tr><tr><td>π0.6 / π\*0.6 / π0.7</td><td><strong>Gemma 3 4B</strong></td><td><strong>SigLIP 400M</strong></td><td><strong>860M</strong></td><td><strong>≈ 5B</strong></td></tr></tbody></table>
+<h3 id="122-训练--推理时间复杂度">12.2 训练 / 推理时间复杂度</h3>
+<p>设 $f$ = 单次 5B 模型 forward 时延（在 H100 上 $f \approx$ 数十毫秒，取决于实现）。</p>
+<table><thead><tr><th>操作</th><th>复杂度（以 $f$ 为单位）</th><th>备注</th></tr></thead><tbody><tr><td>单次 forward（5B 模型）</td><td>$1 \cdot f$</td><td>决定所有推理的基准延迟</td></tr><tr><td>Flow matching 训练（per sample）</td><td>$f + b$（forward + backward）</td><td>$b$ 通常约 $1.5\,$–$\,2 f$</td></tr><tr><td><strong>Flow matching 推理（π0 / π0.5）</strong></td><td>$10 \cdot f$</td><td>10 步 Euler ODE</td></tr><tr><td>**Flow matching 推理（π0.6 / π\*0.6 / π0.7）**</td><td>$5 \cdot f$</td><td>KI recipe 把推理步数减半</td></tr><tr><td><strong>π0-FAST 推理</strong>（注意：与 flow 路线不同）</td><td>$30 \cdot f \;\text{–}\; 60 \cdot f$</td><td>autoregressive，串行解 30–60 个 BPE token</td></tr></tbody></table>
+<h3 id="123-训练资源公开信息粗估">12.3 训练资源（公开信息粗估）</h3>
+<ul><li>π0 训练数据 ≈ 10,000 h</li><li>训练时长：<strong>数周</strong> on H100 集群（具体规模 PI 未披露）</li><li>π0.6 / π0.7 backbone 升级 + 数据增加，预计 <strong>数月</strong> on H100 集群</li></ul>
+<h2 id="13-与其他-vla-横向对比">§13 与其他 VLA 横向对比</h2>
+<table><thead><tr><th>模型</th><th>主干 VLM</th><th>动作生成</th><th>训练数据</th><th>跨本体</th><th>开源</th></tr></thead><tbody><tr><td><strong>RT-2</strong> (Google, 2023)</td><td>PaLI-X / PaLM-E (5–55B)</td><td>离散 action token, AR</td><td>内部，未细披露</td><td>部分</td><td>无</td></tr><tr><td><strong>OpenVLA</strong> (Stanford, 2024)</td><td>Prismatic-7B (Llama2-7B + DINOv2 + SigLIP)</td><td>256-bin/dim 离散 AR</td><td>OXE 970k traj</td><td>是</td><td><strong>Apache-2.0</strong></td></tr><tr><td><strong>RDT-1B</strong> (Tsinghua, 2024)</td><td>T5-XXL text + Transformer</td><td><strong>Diffusion (DDPM)</strong> 多步</td><td>46 数据集, 1M+ episodes; 6k ALOHA</td><td>统一动作空间</td><td><strong>MIT</strong></td></tr><tr><td><strong>π0</strong></td><td>PaliGemma 3B</td><td><strong>Flow matching</strong> 10 步</td><td>10k h, 7 robots + 9.1% OXE</td><td>内部 7 + OXE</td><td><strong>Apache-2.0</strong></td></tr><tr><td><strong>π0-FAST</strong></td><td>PaliGemma 3B</td><td>FAST 离散 token AR</td><td>同 π0</td><td>同 π0</td><td>Apache-2.0</td></tr><tr><td><strong>π0.5</strong></td><td>PaliGemma 3B + KI</td><td>FAST + Flow 双通路</td><td>π0 + 400h MM + WD + HL</td><td>同 π0</td><td>Apache-2.0</td></tr><tr><td><strong>Hi Robot</strong></td><td>PaliGemma 3B (S2) + π0 (S1)</td><td>π0 的 flow</td><td>π0 base + 合成 prompt</td><td>同 π0</td><td>论文 + 部分代码</td></tr><tr><td><strong>π0.6</strong></td><td>Gemma 3 4B + SigLIP 400M</td><td>Flow (860M expert)</td><td>更大 + 异质 prompt</td><td>同 π0.5+</td><td>模型卡公开</td></tr><tr><td>**π\*0.6**</td><td>π0.6 + RL fine-tune</td><td>RECAP + advantage cond</td><td>+ on-robot RL</td><td>同 π0.6</td><td>社区 (exla-ai) Apache-2.0</td></tr><tr><td><strong>π0.7</strong></td><td>Gemma 3 4B + SigLIP 400M + MEM</td><td>Flow (860M)</td><td>更大 + subgoal images + metadata</td><td><strong>零样本</strong> UR5e 跨本体</td><td>论文，权重 TBD</td></tr></tbody></table>
+<div class="callout callout-info"><div class="callout-title">结构性差异</div><p>π0 系列 vs OpenVLA 的核心区别：<strong>π 是 flow expert + cross-attn</strong>（小 action head，大 VLM），<strong>OpenVLA 是把动作 token 拍回 LM head</strong>（一锅炖）。π 的设计让 backbone 可以保持 web 知识不掉点，OpenVLA 一旦 post-train 就会损伤 VLM 能力。</p></div>
+<h2 id="14-25-道高频面试题">§14 25 道高频面试题</h2>
+<h3 id="l1--必会10-题">L1 — 必会（10 题）</h3>
+<details>
+<summary><strong>1. π0 的 VLM 主干和 action expert 各多大？总参数多少？</strong></summary>
+<p>PaliGemma 3B + 300M flow-matching action expert，总参数约 <strong>3.3B</strong>。Action expert 通过 cross-attention 共享 VLM 的 KV cache，不是 stacked 在 VLM 顶上。</p>
+</details>
+<details>
+<summary><strong>2. π0 的动作 chunk 长度 H 和最高控制频率？为什么用 chunk 而不是 single-step？</strong></summary>
+<p>H = 50，最高 50 Hz（即 1 个 chunk = 1 秒）。Chunk 的好处：① 模型一次看一段连贯动作，避免 single-step 的 jitter；② 推理频率可以低于控制频率（推理 10 Hz，控制 50 Hz），节省算力；③ 与 RTC 异步推理天然兼容。</p>
+</details>
+<details>
+<summary><strong>3. π0 推理时 flow matching 跑几步 ODE？步长 δ 多少？</strong></summary>
+<p>10 步 Euler，δ = 0.1。从 τ=0（噪声 ε ~ N(0, I)）走到 τ=1（≈ ground truth chunk）。每步是 $A^{\tau+\delta} = A^\tau + \delta \cdot v_\theta(A^\tau, c, \tau)$。</p>
+</details>
+<details>
+<summary><strong>4. π0 的 flow matching 与 Diffusion Policy (DDPM) 在数学上的核心区别？</strong></summary>
+<ul><li><strong>DDPM</strong>: 学 noise prediction $\varepsilon_\theta$ 或 score $\nabla \log p_t$，用 SDE 反向采样，几十~百步</li><li><strong>π0 (flow matching)</strong>: 学速度场 $v_\theta(x, \tau) \approx dx/d\tau$，用 ODE 反向，10 步就够</li><li>数学上等价（都是 stochastic interpolant 的特例），但 flow 推理快得多</li></ul>
+</details>
+<details>
+<summary><strong>5. FAST tokenizer 的三步压缩是什么？</strong></summary>
+<p>① <strong>DCT</strong>（Discrete Cosine Transform）沿时间维做频域变换，把动作能量集中到低频；② <strong>量化</strong>（scale × 10，round）丢掉高频细节；③ <strong>BPE</strong>（vocab=1024）把高频共现 token 合并。50 步 × 18 维的 chunk 压成 <strong>30–60 个 token</strong>，类比 JPEG/MP3。</p>
+</details>
+<details>
+<summary><strong>6. π0-FAST 比 π0 训练快 5×，为什么？推理也更快吗？</strong></summary>
+<p><strong>训练快</strong>：纯 next-token AR，可以复用 LLM 的 dense batched 训练 infra，省掉 flow matching 的 per-sample expert forward。</p>
+<p><strong>推理慢</strong>：30–60 个 token 必须 <strong>串行</strong> AR 解码，每个 token 一次 forward。而 π0 flow 的 10 步 ODE 整个 chunk 可以并行解。生产部署还是用 π0 / π0.5 / π0.7 的 flow 路径。</p>
+</details>
+<details>
+<summary><strong>7. π0.5 怎么实现未见家庭 94% 成功率？In-domain 数据占多少？</strong></summary>
+<p>异质 co-training：MM（移动操作，400 h）+ ME（多环境固定臂）+ CE（跨本体）+ HL（高层语义子任务）+ WD（web 数据）。<strong>97.6% 训练样本不是目标 MM 任务</strong>——in-domain 只占 ≈ 2.4%。泛化能力来自<strong>异质性</strong>，不是 in-domain 堆量。</p>
+</details>
+<details>
+<summary><strong>8. Hi Robot 的 System 1 和 System 2 各是什么模型？输出粒度？</strong></summary>
+<ul><li><strong>System 2</strong> = PaliGemma-3B 微调，≈ 1 Hz，输出<strong>语言子任务</strong> + "inner monologue"</li><li><strong>System 1</strong> = π0，50 Hz，输出<strong>连续动作 chunk</strong></li><li>S2 给 S1 喂语言子任务作为 prompt</li></ul>
+</details>
+<details>
+<summary><strong>9. openpi 的开源协议？商用允许吗？</strong></summary>
+<p><strong>Apache-2.0</strong>，<strong>允许商用</strong>、修改、再分发，只需保留版权声明。这是 π 系列在工业界扩散的关键因素之一——很多公司因为协议宽松直接拿来用。</p>
+</details>
+<details>
+<summary><strong>10. π 系列的 cross-embodiment 怎么对齐不同维度？OXE 占比？</strong></summary>
+<p>所有动作 zero-padding 到最大维度（17–18 D，π0.6/FAST+ 提升到 32 D）；每条样本带一个 "robot type" embedding token 指示本体。OXE 占 π0 训练混合的 <strong>9.1%</strong>。π0.5 消融显示：<strong>去掉 web data (WD)</strong> 在未见物体上掉 ≈ 30 pt；去掉 ME 数据掉 ≈ 20 pt；去掉 CE 数据掉 ≈ 15 pt——多源异质数据各有不可替代的贡献。</p>
+</details>
+<h3 id="l2--进阶10-题">L2 — 进阶（10 题）</h3>
+<details>
+<summary><strong>11. Knowledge Insulation 解决的核心问题？stop-grad 在哪？</strong></summary>
+<p><strong>问题</strong>：action expert 的梯度反向传到 VLM backbone，<strong>污染</strong> PaliGemma 的多模态知识（VQA / caption 掉点）。</p>
+<p><strong>解法</strong>：① 在 VLM backbone 上加 FAST next-token AR loss（学运动语义）+ web loss（保多模态）；② action expert 的 flow matching loss 在喂回 backbone 前 <strong>stop-grad</strong>——backbone 不知道 expert 长什么样。</p>
+<p><strong>效果</strong>：训练步数 7.5× fewer，backbone web 能力不掉点。</p>
+</details>
+<details>
+<summary><strong>12. RECAP 的三阶段？解决什么问题？</strong></summary>
+<p><strong>问题</strong>：纯模仿学习的 VLA 到不了专家级（espresso ≈ 40%，box ≈ 20%）。</p>
+<p><strong>三阶段</strong>：① <strong>离线 RL 预训练</strong> 同时学 V 函数 <em>和</em> advantage-conditioned policy（<strong>不仅是 V</strong>）；② <strong>任务级 demo SFT</strong>；③ <strong>on-robot RL with interventions</strong>（专家随时接管 = high advantage，自主失败 = low advantage）。</p>
+<p><strong>结果</strong>：espresso 40% → ≥ 90%；30 杯/小时连开 13 小时。</p>
+</details>
+<details>
+<summary><strong>13. Advantage-conditioned policy 怎么把 bad data 也用上？与 AWR 区别？</strong></summary>
+<p><strong>AWR</strong>（Advantage-Weighted Regression）：把 advantage 当 <strong>loss 权重</strong>，$\exp(A/\beta)$ 偏向好动作。</p>
+<p><strong>RECAP</strong>：把 advantage 当 <strong>prompt token 喂给 VLA</strong>。训练时全用（好的标 advantage=+，差的标 −），推理时始终 condition 在 high advantage。</p>
+<p><strong>优点</strong>：① 不丢任何数据；② 更接近 Decision Transformer 的 in-context conditioning，但用 V 差代替 return-to-go，<strong>长程任务信噪比更好</strong>。</p>
+</details>
+<details>
+<summary><strong>14. Real-Time Chunking 怎么解决推理延迟？inpainting 做了什么？</strong></summary>
+<p><strong>异步</strong>：新 chunk 还在推理时老 chunk 继续执行，没空窗。</p>
+<p><strong>Inpainting</strong>：① 已经物理执行的 K 步<strong>冻结</strong>——新 chunk 不能改它们；② 重叠区域用 partial attention：把老 chunk 在重叠位置的动作当作 <em>已知</em>，新 chunk 生成 <em>缺失部分</em>。</p>
+<p><strong>效果</strong>：移动机器人端到端延迟 139 ms，容忍 +200 ms 注入延迟，云端部署可行。</p>
+</details>
+<details>
+<summary><strong>15. π0.7 最大的范式升级是什么？</strong></summary>
+<p><strong>Prompt 从单语言扩成 diverse multimodal context</strong>：</p>
+<ul><li>subtask 文本</li><li>subgoal <strong>图像</strong></li><li>episode metadata（speed / quality / mistake / control mode）</li></ul>
+<p>这让模型学到 <strong>manner-invariant skill 表征</strong>（怎么做 vs 做什么解耦），从而出现 <strong>compositional generalization</strong>。</p>
+</details>
+<details>
+<summary><strong>16. π0.7 在 bimanual UR5e 上 shirt folding 怎么做到零样本 80%？</strong></summary>
+<p>三个因素：① <strong>Cross-embodiment 大规模训练</strong> 让 backbone 学到 body-invariant manipulation 表征；② <strong>Diverse multimodal prompt</strong>（含 subgoal image）让模型把 "fold" 这个 skill 抽象成视觉目标转换；③ <strong>MEM 风格短时记忆</strong> 让多步骤任务有 context。</p>
+<p><strong>任务进度 85.6% / success 80%</strong>，几乎追平人类 teleop 专家（90.9% / 80.6%）。</p>
+</details>
+<details>
+<summary><strong>17. RLT 怎么把 VLA 接到在线 RL？为什么不直接训 VLA？</strong></summary>
+<p><strong>不直接训 VLA</strong>：5B 模型，单次更新几秒，on-robot RL 一天最多几百次更新，收敛不了。</p>
+<p><strong>RLT 解法</strong>：VLA 输出加 special token → encoder-decoder 压成 compact <strong>RL token</strong>（信息瓶颈）；小 actor / critic 在 token 上跑（100+ update/s）。actor 学的是 <strong>edit</strong> VLA chunk（Δa），不是替换；KL 正则限制 Δa。</p>
+<p><strong>数字</strong>：15 分钟数据起效，Ethernet 任务 2 小时达峰，50% trial 比人 teleop 还快。</p>
+</details>
+<details>
+<summary><strong>18. π0 vs OpenVLA 在动作表示上的关键差异？哪个对 backbone 更友好？</strong></summary>
+<ul><li><strong>OpenVLA</strong>: 256-bin per-dim 离散 AR，把动作 token 直接拍回 LM head——<strong>post-train 会损伤 VLM 能力</strong>（caption / VQA 掉点）。</li><li><strong>π0</strong>（原版）：独立的 flow expert + cross-attention 共享 KV cache。<strong>结构上 expert 与 LM head 分离</strong>，但因为 expert 梯度仍能经 cross-attention 反传到 VLM backbone，<strong>没有 KI 时 backbone 也会被污染</strong>——这正是 π0.5/π0.6/π0.7 引入 <strong>KI stop-grad</strong> 的动机。</li><li><strong>π0 + KI</strong>（π0.5 之后）：在 cross-attention 上加 stop-grad，<strong>才真正实现 backbone 不被 expert 污染</strong>。</li></ul>
+<p>工程上 π 系列 + KI 比 OpenVLA 更适合 <em>base + N 个任务 expert</em> 的多任务部署，因为 backbone 多模态能力可保。</p>
+</details>
+<details>
+<summary><strong>19. π0.5 的两阶段训练具体怎么切？为什么不一步到位？</strong></summary>
+<p><strong>Stage 1（pretrain, 280k 步）</strong>：FAST 离散 token + 异质 co-training <strong>MM/ME/CE/HL/WD</strong>（不含 VI）。让 backbone 学到跨本体的 manipulation 运动语义。</p>
+<p><strong>Stage 2（posttrain, 80k 步）</strong>：加 flow matching action expert（300M）做精细动作输出；<strong>数据切换为 MM/ME/HL/WD/VI</strong>（引入口头指令 VI，移除 CE 聚焦目标域）；双通路推理（高层 AR 子任务 + 低层 flow chunk）。</p>
+<p><strong>为什么不一步到位</strong>：① FAST 阶段允许超大 batch 训 backbone；② Flow 阶段才需要 expert 收敛；两阶段在 wall-clock 上更省。</p>
+</details>
+<details>
+<summary><strong>20. MEM 的长时记忆为什么用自然语言而不用 KV cache？</strong></summary>
+<p>四个原因：</p>
+<ol><li><strong>抽象</strong>：自然语言可以总结（"红杯子已放上层柜"），KV cache 是 raw token，O(L²) attention 太贵</li><li><strong>选择性</strong>：模型用 CoT <em>自选</em> 写什么，KV cache 是被动堆积</li><li><strong>可解释</strong>：人能直接读懂机器人的"日记"，便于 debug</li><li><strong>可压缩</strong>：15 分钟视频原始 KV 几十万 token，自然语言总结几百 token</li></ol>
+</details>
+<h3 id="l3--顶级-lab5-题">L3 — 顶级 lab（5 题）</h3>
+<details>
+<summary><strong>21. 如果让你重新设计 Flow Matching 的 loss，怎么处理 multi-modal action distribution？</strong></summary>
+<p>默认 flow matching 已对 multi-modal 鲁棒（学速度场，不像 MSE 平均掉双峰），但仍可改进：</p>
+<ol><li><strong>Mixture-of-experts flow head</strong>：不同 expert 学不同 mode，gate network 选 expert</li><li><strong>Mixture-Gaussian endpoint</strong>：把 path 的终点 $A$ 改成 mixture-Gaussian，每个模式一个 path</li><li><strong>Stochastic Interpolants 风格 noise schedule</strong>：在路径上加可控噪声，模式之间更清晰</li><li><strong>Latent flow</strong>：先用 VQ-VAE 把动作离散成 mode index + residual，flow 学 residual</li></ol>
+<p>PI 实际生产可能用了 (1) 或 (3) 的变种，但论文没披露细节。</p>
+</details>
+<details>
+<summary><strong>22. π0.7 出现的 "compositional generalization" 你认为来源是什么？什么数据/objective 触发？</strong></summary>
+<p>我的猜测三条：</p>
+<ol><li><strong>Diverse multimodal prompts</strong>——subgoal image + metadata 把 <em>做什么</em> 和 <em>怎么做</em> 解耦，backbone 被迫学到 manner-invariant skill 表征</li><li><strong>Cross-embodiment 大规模训练</strong>——同一个 skill 在多种机器人上学过，必然抽象成 body-invariant primitives</li><li><strong>第一人称人类视频</strong>——给了非机器人本体的 manipulation 先验，进一步推动 abstraction</li></ol>
+<p><strong>触发 objective</strong>：不是单一 loss，而是 <em>多模态 prompt + 多本体 + 多目标（FAST AR + flow CFM）</em> 联合学习的涌现现象。类似 LLM 在足够大模型 + 足够多任务 prompting 下涌现 in-context learning。</p>
+</details>
+<details>
+<summary><strong>23. 在 humanoid 上 fine-tune π0.7 会遇到哪些 challenge？</strong></summary>
+<p>四个主要 challenge：</p>
+<ol><li><strong>动作维度爆炸</strong>：humanoid 全身 50+ DoF，π0 padding 到 17–18 D 不够；需要重设 action expert 维度，可能要重新 pretrain</li><li><strong>控制频率不够</strong>：50 Hz 对腿部 PD 控制不够（要 200+ Hz），需要重设计 chunk 颗粒度 + RTC 异步分层（高层 50 Hz / 低层 200 Hz）</li><li><strong>Proprio 通道结构差异</strong>：humanoid 有 IMU、关节扭矩、足底力，π 系列没有这些通道的预训练经验</li><li><strong>数据稀缺</strong>：没有 humanoid 级的 OXE，需要自建大规模数据集（参考 1X 的 NEO Beta、Tesla Optimus 内部）</li></ol>
+<p>务实路径：把 π0.7 当 <em>vision-language backbone</em>，<strong>重新训练 action expert</strong>，保留 KI 风格 stop-grad 不污染 backbone。</p>
+</details>
+<details>
+<summary><strong>24. PI 的 advantage-conditioned policy 与 Decision Transformer / RvS 区别在哪？为什么 PI 选 advantage 而不是 return-to-go？</strong></summary>
+<p><strong>Decision Transformer / RvS</strong>：用 <strong>return-to-go (RTG)</strong> 作为 prompt token——"接下来还要拿多少 reward"。在 dense reward 任务（Atari、MuJoCo）有效。</p>
+<p><strong>RECAP</strong>：用 <strong>advantage</strong> $A_t = \mathbb{E}[\sum_{k=0}^{N-1} r_{t+k}] + V(s_{t+N}) - V(s_t)$（n-step；与 §8.3 一致）作为 prompt token。在机器人 sparse-reward 设定下，常退化为 $A_t \approx V(s_{t+N}) - V(s_t)$ 的简化形式。</p>
+<p><strong>为什么 PI 选 advantage</strong>：</p>
+<ol><li>真实机器人任务 <strong>reward 极 sparse</strong>（要么成功要么失败），RTG 信噪比低，advantage 用 V 差距能在每一步给信号</li><li>Advantage 是 <strong>基线扣减后的相对量</strong>——告诉模型"这一步好不好"，比"还要拿多少"更接近 <em>operative knowledge</em></li><li>训练数据天然含 expert intervention，intervention = high advantage，failure = low advantage，标注成本零</li><li>长 horizon、长部署任务（espresso 单店连续运营 ≈ 13 小时不间断，单杯 ≈ 1–2 分钟）下，return-to-go 量级跨尺度差几个数量级，量化与 normalize 都困难；advantage 是 <em>局部</em> 量，天然解决这个尺度问题</li></ol>
+</details>
+<details>
+<summary><strong>25. 预测 PI 2026 下半年到 2027 可能发布的功能/版本，并给出技术理由。</strong></summary>
+<p>合理推测四条：</p>
+<ol><li><strong>π1</strong>：把 RLT 风格的在线 RL + RECAP 整合进 base 训练 recipe，让 "deploy-time self-improvement" 成默认能力；预计 backbone 升级到 Gemma 4 / 7B</li><li><strong>World-model conditioned flow</strong>：用 video diffusion / Genie 风格的 world model 给高层 subgoal（生成"未来 5 秒应该长这样"的图像 sequence），π 用这个作为 subgoal image prompt</li><li><strong>触觉 / 力反馈通道纳入 prompt context</strong>：现有 π0.7 是 vision + language + proprio + metadata，下一步加 force/torque token，继续 diverse-context 路线</li><li><strong>跨日 persistent memory</strong>：MEM 现在是 episode 内 15 分钟，下一步是 <strong>跨任务、跨日</strong>记忆（VLA 知道"昨天我修过这台咖啡机的某个零件松了"）</li></ol>
+<p>技术驱动因素：① 真实部署反馈数据成为 PI 的护城河；② foundation model 范式逼着 VLA 也走 "一个模型搞定所有" 路线。</p>
+</details>
+<h2 id="a-附录参考资料">§A 附录：参考资料</h2>
+<h3 id="论文--技术报告">论文 / 技术报告</h3>
+<ul><li><strong>π0</strong>：<a href="https://arxiv.org/abs/2410.24164">arXiv 2410.24164</a> · <a href="https://www.physicalintelligence.company/blog/pi0">blog</a></li><li><strong>π0-FAST</strong>：<a href="https://arxiv.org/abs/2501.09747">arXiv 2501.09747</a> · <a href="https://www.physicalintelligence.company/research/fast">research/fast</a></li><li><strong>Hi Robot</strong>：<a href="https://arxiv.org/abs/2502.19417">arXiv 2502.19417</a> · <a href="https://www.physicalintelligence.company/research/hirobot">research/hirobot</a></li><li><strong>π0.5</strong>：<a href="https://arxiv.org/abs/2504.16054">arXiv 2504.16054</a> · <a href="https://www.physicalintelligence.company/blog/pi05">blog</a></li><li><strong>Knowledge Insulation</strong>：<a href="https://arxiv.org/abs/2505.23705">arXiv 2505.23705</a> · <a href="https://www.physicalintelligence.company/research/knowledge_insulation">research</a></li><li><strong>Real-Time Chunking</strong>：<a href="https://www.physicalintelligence.company/research/real_time_chunking">research/real_time_chunking</a></li><li><strong>π0.6 model card</strong>：<a href="https://website.pi-asset.com/pi06star/PI06_model_card.pdf">PDF</a></li><li>**π\*0.6**：<a href="https://arxiv.org/abs/2511.14759">arXiv 2511.14759</a> · <a href="https://www.physicalintelligence.company/blog/pistar06">blog/pistar06</a></li><li><strong>Robot Olympics</strong>：<a href="https://www.physicalintelligence.company/blog/olympics">blog/olympics</a></li><li><strong>MEM</strong>：<a href="https://www.physicalintelligence.company/research/memory">research/memory</a></li><li><strong>RLT</strong>：<a href="https://www.physicalintelligence.company/research/rlt">research/rlt</a></li><li><strong>π0.7</strong>：<a href="https://arxiv.org/abs/2604.15483">arXiv 2604.15483</a> · <a href="https://www.physicalintelligence.company/blog/pi07">blog/pi07</a></li></ul>
+<h3 id="代码">代码</h3>
+<ul><li><strong>openpi</strong>（官方）：&lt;https://github.com/Physical-Intelligence/openpi&gt; — Apache-2.0</li><li><strong>exla-ai/openpie-0.6</strong>（社区复现 π\*0.6）：&lt;https://huggingface.co/exla-ai/openpie-0.6&gt;</li><li><strong>open-pi-zero</strong>（社区第三方再实现）：注意非官方</li></ul>
+<h3 id="相关-vla">相关 VLA</h3>
+<ul><li><strong>RT-2 / RT-X</strong>：Google DeepMind 系列</li><li><strong>OpenVLA</strong>：Stanford, <a href="https://openvla.github.io/">openvla.github.io</a></li><li><strong>RDT-1B</strong>：Tsinghua, <a href="https://arxiv.org/abs/2410.07864">arXiv 2410.07864</a></li></ul>
+<h3 id="关键人物pi-核心团队">关键人物（PI 核心团队）</h3>
+<ul><li><strong>Sergey Levine</strong>（co-founder，UC Berkeley 教授）</li><li><strong>Chelsea Finn</strong>（co-founder，Stanford 教授）</li><li><strong>Karol Hausman</strong>（co-founder，前 Google Robotics）</li><li><strong>Brian Ichter</strong>（co-founder）</li><li><strong>Karl Pertsch</strong>（多篇一作 / 通讯）</li><li><strong>Kevin Black</strong>（π0 一作）</li><li><strong>Danny Driess</strong>（π0 / Hi Robot / π0.5 主要作者）</li><li><strong>Lucy X. Shi</strong>（Hi Robot 一作）</li></ul>
+<div class="callout callout-info"><div class="callout-title">小八卦</div><p>Sergey Levine + Chelsea Finn + Karol Hausman 这三人在 PI 之前都在 Google Robotics（RT-1 / RT-2 / SayCan 主力）。PI 可以看成是 <em>Google Robotics 体系的延续</em>，加上 flow matching 作为新核心。</p></div>
+<h3 id="中文社区资源">中文社区资源</h3>
+<ul><li>HuggingFace 中文 blog：搜 "π0 flow matching" / "openpi 中文"</li><li>B 站：搜 "π0 机器人" / "physical intelligence VLA"</li><li>知乎：搜 "VLA π0" / "flow matching 机器人"</li></ul>
+
+<footer class="aris-footer">
+  Generated by <a href="https://github.com/wanshuiyin/Auto-claude-code-research-in-sleep/blob/main/skills/render-html/SKILL.md">ARIS <code>/render-html</code></a> ·
+  source path <code>docs/tutorials/pi_series_tutorial.md</code> ·
+  SHA256 <code>943f5003cc19</code> ·
+  generated at 2026-05-20 08:06 UTC.
+  This is a generated view — edit the source Markdown, then re-render.
+</footer>
+</main>
+
+</div>
+</body>
+</html>

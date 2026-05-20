@@ -1,0 +1,115 @@
+{
+  "skill": "interview-cheatsheet",
+  "source": "docs/tutorials/pi_series_tutorial.md",
+  "source_sha256_prefix": "943f5003cc19",
+  "output": "docs/tutorials/pi_series_tutorial.html",
+  "topic": "Physical Intelligence π Series (π0 / π0-FAST / Hi Robot / π0.5 / KI / RTC / π0.6 / π*0.6 / Robot Olympics / MEM / RLT / π0.7)",
+  "effort": "max",
+  "byline": "WinstonJQ",
+  "lines": 1092,
+  "bytes_md": 54453,
+  "bytes_html": 70204,
+  "toc_entries": 66,
+  "math_code_review": {
+    "verdict": "PASS",
+    "rounds": [
+      {
+        "run": 1,
+        "verdict": "FAIL",
+        "thread_id": "019e4443-5eda-7943-92aa-988dd0943cbe",
+        "issues": [
+          "Flow path variance described as '(1-τ)I equivalent to (1-τ)²I' which is mathematically wrong",
+          "Advantage formula written as V(s_{t+1})-V(s_t) without n-step form",
+          "RECAP Stage 1 described as 'just V function' but should include advantage-conditioned policy"
+        ],
+        "fixes": [
+          "Removed misleading 'v1 equivalent' claim; kept canonical (1-τ)²I and noted standard linear-Gaussian path",
+          "Replaced with n-step advantage A_t = E[Σr] + V(s_{t+N}) − V(s_t)",
+          "Stage 1 now states 'V *and* advantage-conditioned policy'"
+        ]
+      },
+      {
+        "run": 2,
+        "verdict": "FAIL",
+        "thread_id": "019e444d-8002-77b0-bf58-a2c62145991d",
+        "issues": [
+          "§12.2 complexity table still showed only 10-step inference; π0.6 model card uses 5 steps",
+          "Q18 said π0 backbone is not polluted by expert gradients (only true after KI stop-grad)",
+          "Q24 described espresso as 18-hour task horizon (actually ~13h continuous operation)"
+        ],
+        "fixes": [
+          "Split complexity table: π0/π0.5 = 10 ODE steps; π0.6/π*0.6/π0.7 (KI recipe) = 5 ODE steps",
+          "Q18 now: π0 structurally separates expert from LM head, but backbone IS still polluted without KI; KI adds stop-grad",
+          "Q24 changed to 'espresso 单店连续运营 ≈ 13 小时不间断'"
+        ]
+      },
+      {
+        "run": 3,
+        "verdict": "FAIL",
+        "thread_id": "019e4455-3d43-75b3-8293-cfe6be94c1aa",
+        "issues": [
+          "§12.2 incorrectly listed π0-FAST under flow matching inference row",
+          "§12.2 'single forward ≈80ms' contradicted '5×forward ≈40ms'",
+          "§3.5 said 50Hz = 20ms/chunk (should be 20ms/step; chunk is 1 second)",
+          "§8.1 says box assembly base ≈20% but §8.4 table shows ≈95% (contradiction)",
+          "Q10 attributed +30% unseen-object gain to OXE; §5.4 ablation says WD (web data) is responsible",
+          "Q24 advantage formula reverted to single-step V(s_{t+1})-V(s_t)"
+        ],
+        "fixes": [
+          "Redesigned §12.2 table using $f$ (single forward time) as unit; π0-FAST moved to autoregressive row",
+          "§3.5 corrected to 50Hz = 20ms per control step; chunk = 50 steps ≈ 1s",
+          "§8.4 box assembly base = 20% (matches §8.1 and π*0.6 paper)",
+          "Q10 now correctly attributes +30% unseen-object gain to WD removal; lists ME/CE/WD ablation pts together",
+          "Q24 formula now references §8.3 n-step form explicitly"
+        ]
+      },
+      {
+        "run": 4,
+        "verdict": "FAIL",
+        "thread_id": "019e445e-8398-7f70-8607-0f57ab9bf327",
+        "issues": [
+          "π0.5 Stage 1 listed VI data but paper says VI is post-training; CE is omitted in post-training",
+          "π0.7 license claimed CC-BY-4.0 but arXiv default is non-exclusive distribution"
+        ],
+        "fixes": [
+          "Stage 1 = MM+ME+CE+HL+WD (no VI); Stage 2 = MM+ME+HL+WD+VI (no CE); fixed both §5.2 and Q19",
+          "Changed §10.6 license note to 'arXiv non-exclusive distribution license (默认)'"
+        ]
+      },
+      {
+        "run": 5,
+        "verdict": "PASS",
+        "thread_id": "019e4466-0050-7bc3-8e45-f9f94d7d2f9d",
+        "issues": [],
+        "fixes": [],
+        "note": "All 10 checks pass: formula, code, Q1-Q25, citations, table-pipe, callout-list, headings, completeness, length (1092 lines), no personal info leak."
+      }
+    ]
+  },
+  "render_review": {
+    "verdict": "PASS",
+    "rounds": [
+      {
+        "run": 1,
+        "verdict": "PASS",
+        "note": "render_html.py wrote 70204 bytes, 66 TOC entries; sha256 prefix 943f5003cc19; no errors or warnings."
+      }
+    ]
+  },
+  "summary": "5-round math/code review + 1-round render at PASS. 14 substantive fixes across rounds: (1) flow variance derivation; (2) n-step advantage formula; (3) RECAP Stage 1 includes V + advantage-conditioned policy; (4) π0.7 5-step ODE; (5) code expected output truncated at step 1500; (6) Q18 KI insulation clarification; (7) Q12 RECAP Stage 1 includes policy; (8) §12.2 complexity table split π0=10/π0.6+=5 steps; (9) §3.5 50Hz unit; (10) §8.4 box assembly base 20%; (11) Q10 WD attribution; (12) Q24 advantage n-step; (13) π0.5 VI stage placement (Stage 2 not Stage 1); (14) π0.7 arXiv license correction.",
+  "rendered_at": "2026-05-20",
+  "topics_covered": [
+    "π0 (2024-10, arXiv 2410.24164)",
+    "π0-FAST (2025-01, arXiv 2501.09747)",
+    "Hi Robot (2025-02, arXiv 2502.19417, ICML 2025)",
+    "π0.5 (2025-04, arXiv 2504.16054)",
+    "Knowledge Insulation (2025-05, arXiv 2505.23705)",
+    "Real-Time Chunking (2025-06)",
+    "π0.6 base (2025-11, model card)",
+    "π*0.6 RECAP (2025-11, arXiv 2511.14759)",
+    "Robot Olympics (2025-12)",
+    "MEM long/short-term memory (2026-03)",
+    "RLT online RL token (2026-03)",
+    "π0.7 steerable generalist (2026-04, arXiv 2604.15483)"
+  ]
+}
