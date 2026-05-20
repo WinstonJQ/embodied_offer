@@ -120,10 +120,10 @@ footer a { color: var(--accent); text-decoration: none; }
 <div class="card-desc">MDP → Bellman → DP → MC/TD → <b>on/off-policy + importance sampling（独立章节）</b> → Q-learning vs SARSA → DQN 三件套 → DDQN/Dueling/PER → 策略梯度定理 → A2C → 探索；939 行 + from-scratch DQN/REINFORCE 代码 + 25 道 L1/L2/L3 高频题；跨模型审查 4 轮 PASS。</div>
 </a>
 
-<div class="card todo">
-<div class="card-title">V2 · 策略优化与连续控制（ppo_sac） <span class="badge todo">TODO</span></div>
-<div class="card-desc">TRPO → PPO-Clip → GAE → DDPG → TD3 → SAC + PG 家族关系图 + PPO in RLHF 的 KL to reference 独立节。</div>
-</div>
+<a class="card" href="tutorials/ppo_sac_tutorial.html">
+<div class="card-title">V2 · 策略优化与连续控制（ppo_sac） <span class="badge">DONE</span></div>
+<div class="card-desc">TRPO → PPO-Clip → GAE → DDPG → TD3 → SAC + PG 家族关系图 + <b>PPO in RLHF 的 KL to reference 独立节</b>。1224 行 + PPO/SAC from-scratch on Pendulum + 25 道 L1/L2/L3；写作风格调整为"先建直觉再上公式 + VAE 类比 + 6 象限 PPO clip 表"；跨模型审查 3 轮 PASS（含 CPI 常数修正 / SAC auto-α 对偶下降订正）。</div>
+</a>
 
 <div class="card todo">
 <div class="card-title">V3 · 离线 RL + 模仿 + LLM Post-Training（post_training_rl） <span class="badge todo">TODO</span></div>

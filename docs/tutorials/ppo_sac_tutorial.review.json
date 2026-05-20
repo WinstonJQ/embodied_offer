@@ -1,0 +1,84 @@
+{
+  "skill": "interview-cheatsheet",
+  "source": "docs/tutorials/ppo_sac_tutorial.md",
+  "output": "docs/tutorials/ppo_sac_tutorial.html",
+  "topic": "Policy Optimization & Continuous Control — TRPO → PPO → GAE → DDPG → TD3 → SAC + PPO in RLHF (KL to reference model)",
+  "effort": "max+ (~1220 lines; +30% over V1 due to newcomer-friendly prose ramp-up)",
+  "byline": "WinstonJQ",
+  "lines": 1224,
+  "outline_variant": "V2 of 3-volume RL series (V1=rl_foundations DONE, V2=ppo_sac, V3=post_training_rl pending)",
+  "writing_style_change": "Per user feedback 2026-05-20 ('V1 太密了，V2 要稍微易懂一点'), V2 ramps up with motivation/story BEFORE formulas, uses analogies (VAE reparameterization, '学生作业不能跳级'), splits callouts to 1 concept each, more ASCII diagrams. Math depth + L3 questions remain full strength. Memory saved at feedback_cheatsheet_writing_style.md.",
+  "user_feedback_history": [
+    "Outline approved with detailed revisions: PG family tree + PPO in RLHF KL独立节 + DDPG降权 + DPG/GAE/TRPO对照",
+    "V2 must be more newcomer-friendly than V1 while keeping audit-grade math"
+  ],
+  "topics_covered_v2": [
+    "§0 TL;DR (6-key-people anchor + memory mnemonic)",
+    "§1 PG family relationship diagram (REINFORCE → A2C → TRPO → PPO) + 'PPO 是组装' framing",
+    "§2 Trust region motivation (step-size paradox + Kakade-Langford CPI bound with correct C = 4γε/(1-γ)^2)",
+    "§3 TRPO concept (KL constraint + natural gradient + CG, not deep-dived; 'TRPO 的思想活在每个现代 PG' section)",
+    "§4 PPO-Clip derivation + 6-quadrant geometric table + why min not just clip + KLPen alternative",
+    "§5 GAE derivation with full telescoping proof + recursive form + γ vs λ separation",
+    "§6 PPO engineering 10 essentials (Engstrom 2020 + Huang 2022 37 details)",
+    "§7 ★ PPO in RLHF: KL to π_ref (3 things it does, NOT IS, β controller, modern alternatives forward-ref to V3)",
+    "§8 DDPG (single section, DPG theorem + 2 failure modes)",
+    "§9 TD3 Twin/Delayed/Smoothed mnemonic + correct target action clipping",
+    "§10 SAC max-ent + soft Bellman + reparameterization (VAE analogy) + tanh Jacobian (numerically stable form) + auto-α via dual descent (not ascent)",
+    "§11 SAC vs PPO selection table + decision tree + common failure modes",
+    "§12 25 interview questions (L1×10 + L2×10 + L3×5 with rigorous proofs)",
+    "§A PPO + SAC from-scratch on Pendulum (~300 lines code)",
+    "§B 17-entry references with arXiv IDs / DOIs"
+  ],
+  "math_code_review": {
+    "verdict": "PASS",
+    "rounds": [
+      {
+        "run": 1,
+        "verdict": "FAIL",
+        "thread_id": "019e4554-e79a-7df2-b6b1-27f572b48c4c",
+        "blocking_issues": [
+          "L116 CPI constant: 2γε/(1-γ)^2 should be 4γε/(1-γ)^2 for max-KL form (TRPO 2015 Thm 1 via TV^2 ≤ KL)",
+          "L479 TD3 target smoothing: omits outer clip to action bounds",
+          "L601 SAC auto-α: described as 'dual ascent' with wrong sign mapping (should be dual descent)",
+          "L873 Q22: same SAC auto-α sign error",
+          "L895 Q23: incorrectly framed distributional RL as max-bias fix (V1 round 3 lesson)"
+        ],
+        "warnings": [
+          "A.1 PPO action clip/log-prob mismatch",
+          "A.1 Gymnasium truncation handling conflates terminated/truncated",
+          "L499 callout continuation lacks emoji prefix"
+        ],
+        "fixes_count": 8
+      },
+      {
+        "run": 2,
+        "verdict": "WARN",
+        "thread_id": "019e455e-2c34-71a1-b967-e09d2d4e7bda",
+        "blocking_issues": [],
+        "warnings": [
+          "L514 callout with inline ①②③ list",
+          "L1003 truncation comment claims bootstrap separation but code still treats as terminal",
+          "L1170 SAC code comment still says 'dual ascent'"
+        ],
+        "fixes_count": 3
+      },
+      {
+        "run": 3,
+        "verdict": "PASS",
+        "thread_id": "019e4563-73bb-7a83-b822-4342b213a7b3",
+        "blocking_issues": [],
+        "warnings": [],
+        "note": "All 10 checks PASS"
+      }
+    ]
+  },
+  "rendered_at": "2026-05-20",
+  "summary": "V2 of 3-volume RL series. 3-round cross-model audit (Claude writer / GPT-5.5 xhigh reviewer, fresh thread per round). 11 total fixes across 3 rounds. Key precision saves: (1) CPI constant 2→4 via TRPO 2015 Thm 1 derivation; (2) SAC auto-α correctly framed as dual descent with proper sign mapping; (3) TD3 target action clipping back to bounds; (4) distributional RL flagged as orthogonal to max-bias fix (carryover from V1 lesson). Writing style ramped up with motivation-first / analogy-heavy / split-callout pattern per user feedback that V1 was too dense — math depth fully preserved.",
+  "writing_style_notes_for_v3": [
+    "Continue motivation-before-formula pattern",
+    "Continue VAE/analogy-anchoring for hard concepts (DPO will need 'Bradley-Terry → 监督式直接学' analogy)",
+    "Continue ASCII diagrams (RLHF SFT→RM→PPO loop, GRPO group structure, RLVR verifier loop)",
+    "Continue splitting callouts to 1 concept each",
+    "V3 will need extra care: more 2025-2026 algorithms (GRPO, RLVR, RLOO, DPO, IPO, KTO, PRM/ORM, CQL/IQL/AWAC), some without textbook treatments yet — verify each claim against primary papers"
+  ]
+}
