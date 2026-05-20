@@ -1,34 +1,23 @@
 ## §0 TL;DR Cheat Sheet
 
-> 💡 **8 句话搞定 π 系列** — Physical Intelligence 从 2024-10 到 2026-04 走完了 VLA 从 "能跑" 到 "可调速、可组合、专家级" 的整条主线。
+> 💡 **5 句话搞定 π 系列学习路线** — Physical Intelligence 的旗舰 VLA 主线：`π0 → π0-FAST → π0.5 → π*0.6 → π0.7`。
 
 1. **π0（2024-10）**：第一代 VLA。`PaliGemma-3B` + `300M flow-matching action expert`，**chunk H=50, 50Hz**，10 步 ODE 推理。训练数据 ≈ **10,000 小时** 跨 7 种本体 + 9.1% OXE 混入。
 
-2. **π0-FAST（2025-01）**：把动作离散化为 token 喂 LLM。`FAST = DCT + 量化 + BPE`，1 秒动作压成 **30–60 个 token**，纯自回归，训练 **5× 加速**。
+2. **π0-FAST（2025-01）**：把动作离散化为 token 喂 LLM。`FAST = DCT + 量化 + BPE`，1 秒动作压成 **30–60 个 token**，纯自回归，训练 **5× 加速**；推理慢（AR 串行）。
 
-3. **Hi Robot（2025-02, ICML'25）**：分层。**System 2** 用一份 PaliGemma 做高层 subtask 规划与 "inner monologue"，**System 1** 用 π0 执行；instruction following 比 flat VLA 高 **30–40 个点**。
+3. **π0.5（2025-04）**：开放世界。两阶段（FAST 预训练 → flow 后训练）+ 五路异质 co-training（MM/ME/CE/HL/WD）；**3 个未见家庭 OOD success ≈ 94%**，但 in-domain MM 数据只占 ≈ 2.4%。同时引入 **Knowledge Insulation (KI)** 训练 recipe（stop-grad 隔离 + 双目标），训练步数 **少 7.5×**。
 
-4. **π0.5（2025-04）**：开放世界。两阶段（FAST 预训练 → flow 后训练）+ 五路异质 co-training（MM/ME/CE/HL/WD）；**3 个未见家庭 OOD success ≈ 94%**，但 in-domain MM 数据只占 ≈ 2.4%。
+4. **π\*0.6（2025-11）**：Backbone 升级到 `Gemma 3 4B + SigLIP 400M`，action expert **860M**，总 ≈ **5B**。**RECAP**（离线 RL 预训练 → demo SFT → on-robot RL）+ **advantage-conditioning**：espresso success **40% → ≥90%**，30 杯/小时连开 13 小时不停。
 
-5. **KI（2025-05）**：训练 recipe。同时学 `FAST next-token`（给 backbone 灌运动语义）+ `flow matching`（推理只用 flow），**stop-grad 隔离** action expert 对 VLM 的梯度污染，训练步数 **少 7.5×**。
+5. **π0.7（2026-04, arXiv 2604.15483）**：**Steerable generalist**。Prompt 从单语言扩成 *diverse context*（subtask 文本 + subgoal 图像 + speed/quality/mistake metadata）；首次出现 **compositional generalization**——bimanual UR5e shirt folding **零训练样本** 进度 **85.6%**，几乎追平 teleop 专家。
 
-6. **RTC（2025-06）**："Thinking while moving"。新 chunk 还在算的时候老 chunk 继续执行，**inpainting** 锁住已执行步并约束重叠步；移动机器人端到端延迟 **≈ 139 ms**，可容忍 +200 ms 注入延迟。
+> ✅ **快速记忆口诀** — 每代解决一个问题。
 
-7. **π0.6 + π\*0.6（2025-11）**：Backbone 升级到 `Gemma 3 4B + SigLIP 400M`，action expert **860M**，总 ≈ **5B**。**RECAP**（离线 RL 预训练 → demo SFT → on-robot RL）+ **advantage-conditioning**：espresso success **40% → ≥90%**，30 杯/小时连开 13 小时不停。
-
-8. **π0.7（2026-04, arXiv 2604.15483）**：**Steerable generalist**。Prompt 从单语言扩成 *diverse context*（subtask 文本 + subgoal 图像 + speed/quality/mistake metadata）；首次出现 **compositional generalization**——bimanual UR5e shirt folding **零训练样本** 进度 **85.6%**，几乎追平 teleop 专家。
-
-> ✅ **快速记忆口诀** — 一行总结。
-
-- π0 = **VLA + Flow Matching** 模板
-- π0-FAST = 把动作变 token 让 LLM 直接吐
-- Hi Robot = 慢思考 + 快执行
-- π0.5 = 用 web/HL/CE 数据 **泛化到未见家庭**
-- KI = 训练 recipe **stop-grad + 双目标**
-- RTC = **异步推理**消化网络/算力延迟
-- π0.6/π\*0.6 = **强化学习上线**，专家级
-- MEM = 短时 ViT + 长时语言总结
-- RLT = 用 token 桥接 VLA 与小 actor/critic，**15 分钟在线 RL**
+- π0 = **VLA + Flow Matching** 的开山之作
+- π0-FAST = 把动作变 token，**训练 5× 提速**
+- π0.5 = **泛化到未见家庭**（异质 co-training + KI recipe）
+- π\*0.6 = **强化学习上线**，推到专家级
 - π0.7 = **可调速、可组合**的通用基础策略
 
 ## §1 直觉与定位
@@ -38,7 +27,7 @@
 **VLA = Vision-Language-Action**：吃 *多视角图像 + 自然语言指令 + 本体感知*，输出 *机器人动作*。VLA 的核心范式分歧在 **动作怎么生成**：
 
 - **离散 token AR**（RT-2 / OpenVLA / π0-FAST）：把动作切 bin 或压成 token，复用 LLM 的训练 / 推理 infra；优点是工程友好，缺点是采样不平滑、long-horizon 难。
-- **Diffusion / Flow matching**（Diffusion Policy / RDT-1B / **π0** / **π0.5** / **π0.6** / **π0.7**）：连续动作的 generative model，对多模态分布天然 robust；π0 选 **flow matching** 而非 DDPM，关键是 **10 步 ODE 就够，比 DP 的几十步快 5–10×**。
+- **Diffusion / Flow matching**（Diffusion Policy / RDT-1B / **π0** / **π0.5** / **π\*0.6** / **π0.7**）：连续动作的 generative model，对多模态分布天然 robust；π0 选 **flow matching** 而非 DDPM，关键是 **10 步 ODE 就够，比 DP 的几十步快 5–10×**。
 
 > 💡 **一个 PI 哲学** — *"机器人需要互联网级别规模的数据，但互联网上没有机器人数据，所以我们必须把所有别的数据（web/video/cross-embodiment）也用上"*。π0.5 / π0.7 的异质 co-training 是这一哲学的工程兑现。
 
@@ -51,21 +40,17 @@
 3. **连续多模态分布友好**：和 diffusion 一样不会像 MSE 那样把双峰平均。
 4. **训练稳定**：flow matching loss 是简单的 L2，没有 noise prediction 的 reparameterization 漂移。
 
-### 1.3 谱系一张图（按时间排序）
+### 1.3 学习路线一张图
 
 ```
-2024-10  π0       ──┐  (flow base)
-2025-01  π0-FAST  ──┤  (discrete token)
-2025-02  Hi Robot ──┤  (S2/S1)
-2025-04  π0.5     ──┤  (open-world)
-2025-05  KI       ──┤  (training recipe)
-2025-06  RTC      ──┤  (real-time inference)
-2025-11  π0.6     ──┤  (Gemma 3 4B backbone)
-2025-11  π*0.6    ──┤  (RECAP RL)
-2026-03  MEM      ──┤  (long/short-term memory)
-2026-03  RLT      ──┤  (online RL token)
-2026-04  π0.7     ──┘  (steerable + compositional)
+2024-10  π0       ──┐  flow base：VLA + flow matching 模板
+2025-01  π0-FAST  ──┤  动作 token 化，训练 5× 提速
+2025-04  π0.5     ──┤  开放世界泛化 + KI 训练 recipe
+2025-11  π*0.6    ──┤  Gemma 3 4B backbone + RECAP 强化学习
+2026-04  π0.7     ──┘  steerable + compositional 涌现
 ```
+
+> ⚠️ **本文严格沿这 5 个版本主线讲解** — PI 还有若干支撑性研究（分层规划、异步推理、长程记忆、在线 RL 等）作为工程技术存在，但不在 *学习路线* 的核心节点上，本文不展开。
 
 ## §2 π0 — 第一代旗舰 VLA Flow Model
 
@@ -75,7 +60,7 @@
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│  PaliGemma 3B (frozen-ish VLM backbone)                  │
+│  PaliGemma 3B (VLM backbone)                             │
 │  ├─ vision tokens (multi-view images)                    │
 │  ├─ text tokens   (language instruction)                 │
 │  └─ proprio token (joint angles, EE pose)                │
@@ -128,17 +113,16 @@ $$A^{\tau + \delta} = A^\tau + \delta \cdot v_\theta(A^\tau, c, \tau), \qquad \d
 | Open-X-Embodiment (OXE) | 9.1% | 70+ 公开机器人数据集 |
 | **总时长** | **≈ 10,000 小时** | |
 
-**7 个本体**及最大维度 17：
+**7 个本体**（最大动作维度 17–18）：
 
-- UR5e（7-D）
-- 双臂 UR5e（14-D）
+- UR5e（7-D） / 双臂 UR5e（14-D）
 - Franka（8-D）
 - 双臂 Trossen（14-D）
 - 双臂 ARX / AgileX（14–16-D）
 - Mobile Trossen / ARX（14–16-D）
 - Mobile Fibocom（17-D）
 
-**对齐方式**：所有动作 zero-padding 到 17-18 维；每条样本带一个 "robot type" embedding token 指示本体。
+**对齐方式**：所有动作 zero-padding 到 17–18 维；每条样本带一个 "robot type" embedding token 指示本体。
 
 ### 2.4 关键 benchmark
 
@@ -212,46 +196,15 @@ $$\mathcal{L} = -\sum_{t} \log p_\theta(a_t \mid a_{<t}, c)$$
 
 > ⚠️ **面试常考** — "如果 π0-FAST 训练这么快，π0 还有什么用？" 答案：**推理速度**。机器人控制环 50 Hz 要求 **每个 control step ≈ 20 ms**（一个 chunk 含 50 步 ≈ 1 秒）；flow 的 10 步 ODE 并行解码一个 chunk，远比 30–60 个 AR token 串行解码快，更适合实时控制。
 
-## §4 Hi Robot — System 1 / System 2 分层
-
-> 📌 **论文**：Lucy X. Shi (一作), Ichter, Equi, Ke, Pertsch, Vuong, Tanner, Driess, Groom, Levine, Finn, *"Hi Robot: Open-Ended Instruction Following with Hierarchical Vision-Language-Action Models"*, arXiv **2502.19417**, ICML 2025.
-
-### 4.1 直觉：Kahneman Thinking, Fast and Slow
-
-复杂指令（"把桌上不是我喜欢颜色的杯子收掉，再去取一杯咖啡"）要求 *先理解 + 拆解 + 再执行*。flat VLA 一个网络把这些全做了，长程任务上崩塌。
-
-**Hi Robot** 仿照人类双系统：
-
-| 系统 | 角色 | 模型 | 频率 | 输出 |
-|---|---|---|---|---|
-| **System 2**（慢/推理） | 高层规划 + inner monologue | PaliGemma-3B（微调） | ≈ 1 Hz | 语言子任务 |
-| **System 1**（快/反应） | 低层执行 | π0 | 50 Hz | 连续动作 chunk |
-
-### 4.2 训练数据三元组
-
-- **𝒟_labeled**：人工把长 demo 切段并打 skill 标签（"pick mug", "place in tray"）
-- **𝒟_syn**：用一个大 VLM **合成** prompt-response 对（"user 说 X，模型应该说 Y"），扩 instruction diversity
-- **𝒟_demo**：teleop 演示（多种本体）
-
-### 4.3 Instruction Accuracy 数字
-
-| 任务 | Hi Robot | flat VLA | GPT-4o |
-|---|---|---|---|
-| Table bussing | **74%** | 36% | ~30% |
-| Sandwich making | **83%** | 34% | ~40% |
-| Grocery shopping | **72%** | 39% | ~30% |
-
-平均比 GPT-4o **高 40+ 个点**——说明 *机器人控制能力不能靠 zero-shot prompt 大模型解决，必须有专门的 low-level policy*。
-
-## §5 π0.5 — 开放世界泛化
+## §4 π0.5 — 开放世界泛化 + KI 训练 Recipe
 
 > 📌 **论文**：Physical Intelligence et al., *"π0.5: a Vision-Language-Action Model with Open-World Generalization"*, arXiv **2504.16054**, 2025-04-22.
 
-### 5.1 目标：让机器人进 *未见过的家庭*
+### 4.1 目标：让机器人进 *未见过的家庭*
 
 π0 / π0-FAST 在见过的家庭里很强，但换厨房就崩。π0.5 的目标：**3 个未见厨房 + 3 个未见卧室**，每个任务 2–5 分钟、多阶段，能否 ≥ 80% 完成？
 
-### 5.2 两阶段训练 recipe
+### 4.2 两阶段训练 recipe
 
 **Stage 1 — Pretrain（280k steps）**：
 
@@ -267,48 +220,13 @@ $$\mathcal{L} = -\sum_{t} \log p_\theta(a_t \mid a_{<t}, c)$$
   - **高层**：自回归解码语言子任务（如 "pick up the dish"）
   - **低层**：在子任务条件下用 flow 生成动作 chunk（H=50, 1 秒）
 
-### 5.3 训练数据五路 + Web
+### 4.3 « Knowledge Insulation (KI) » — 关键训练 recipe
 
-| 标签 | 含义 | 量级 |
-|---|---|---|
-| **MM** | Mobile Manipulation（≈ 100 个家庭） | ≈ **400 小时** |
-| **ME** | Multi-Environment 固定臂 | 大量 |
-| **CE** | Cross-Embodiment 桌面（含 OXE） | 大量 |
-| **HL** | High-Level 语义子任务（人工标注） | 中 |
-| **WD** | Web Data（caption / VQA / object detection） | 巨大 |
-| **VI** | Verbal Instructions（post-train 时加） | 小 |
+> 📌 **论文**：Physical Intelligence et al., *"Knowledge Insulating Vision-Language-Action Models: Train Fast, Run Fast, Generalize Better"*, arXiv **2505.23705**, 2025-05.
 
-> ⚠️ **反直觉但关键** — **97.6% 训练样本不是 MM 数据**。in-domain MM 只占 ≈ 2.4%。**泛化能力来自异质 co-training**，不是 in-domain 堆量。
+**痛点**：π0.5 同时学 *flow matching action* 和 *FAST next-token*，但 action expert 的梯度会反向传到 VLM backbone，**污染 PaliGemma 已经学好的多模态知识**——post-train 后 backbone 在 VQA / captioning 上掉点。
 
-### 5.4 关键消融
-
-| 移除 | OOD success drop |
-|---|---|
-| 去掉 ME 数据 | ≈ −20 pt |
-| 去掉 CE 数据 | ≈ −15 pt |
-| 去掉 WD 数据 | ≈ −30 pt on unseen objects |
-
-### 5.5 Unseen Homes Benchmark
-
-| 指标 | In-distribution | OOD（unseen 家庭） |
-|---|---|---|
-| Instruction following | 86% | **94%** |
-| Task success | 83% | **94%** |
-
-> ✅ **意义** — 这是 **VLA 走出实验室** 的标志性数字。π0.5 base + LIBERO / DROID expert 权重在 openpi 开源。
-
-## §6 Knowledge Insulation (KI) — π0.5 → π0.6 的训练 recipe
-
-> 📌 **论文**：*"Knowledge Insulating Vision-Language-Action Models: Train Fast, Run Fast, Generalize Better"*, arXiv **2505.23705**, 2025-05-28.
-
-### 6.1 痛点
-
-π0.5 同时学 *flow matching action* 和 *FAST next-token*，但 action expert 的梯度会反向传到 VLM backbone，**污染 PaliGemma 已经学好的多模态知识**。结果是：
-
-- post-train 后 backbone 在 VQA / captioning 上掉点
-- continual learning 时灾难性遗忘
-
-### 6.2 解法：stop-grad 隔离 + 三目标
+**KI 的双目标 + stop-grad 隔离**：
 
 ```
 ┌─────────────────────────────────────────────────┐
@@ -324,67 +242,57 @@ $$\mathcal{L} = -\sum_{t} \log p_\theta(a_t \mid a_{<t}, c)$$
 └─────────────────────────────────────────────────┘
 ```
 
-**关键三步**：
+**三个 loss**：
 
 1. **Loss A**：保持 backbone web 知识不掉点
 2. **Loss B**：让 backbone 通过 FAST next-token 任务 *学到运动语义*（不需要真的用 AR 推理）
 3. **Loss C**：action expert 的梯度 **被 stop-grad 截断**，不污染 backbone
 
-推理时只用 Loss C 的路径（flow matching action expert），快。
+**推理时只用 Loss C 的路径**（flow matching action expert），快。
 
-### 6.3 数字
+**KI 数字**：
 
-- **训练步数 ≈ 7.5× fewer than π0** to reach same performance
-- Bussing 执行时间：≈ **400 s**（vs π0-FAST 800 s）
+- **训练步数 ≈ 7.5× fewer** to reach same performance vs π0
 - LIBERO-90 / LIBERO-Spatial SOTA
+- KI 成为后续 π\*0.6 / π0.7 训练 recipe 的主干
 
-KI 是后续 π0.6 / π\*0.6 / π0.7 训练 recipe 的主干。
+### 4.4 训练数据五路 + Web
 
-## §7 Real-Time Chunking (RTC) — Thinking While Moving
-
-> 📌 **Research note**：`pi.website/research/real_time_chunking`, 2025-06-09.
-
-### 7.1 问题：推理延迟会卡死机器人
-
-机器人控制环 50 Hz 要求 20 ms / step。一个 chunk 1 秒（50 步），但 VLA 推理 ≈ 100 ms。如果**同步**执行——执行完一个 chunk 才请求下一个——会有 100 ms 的空窗，肉眼可见的"卡顿"。
-
-### 7.2 异步 chunk + Inpainting
-
-```
-时间轴 ──────────────────────────────────────────────►
-chunk_0: [a_0, a_1, ..., a_49]            执行
-                          ▲
-                          │
-chunk_1 请求 ─────────────┘────────► 推理 100 ms
-                                ▲
-chunk_1: [a_50, ..., a_99]      │  到达，开始执行
-                                │
-                                ▼
-重叠部分约束：chunk_1 的前 N 步与 chunk_0 后 N 步**对齐**
-```
-
-**Inpainting 机制**：
-
-1. 已经物理执行的步骤（chunk_0 的前 K 步）**冻结**——chunk_1 不能改它们
-2. 重叠区域用 partial attention：chunk_1 生成时把 chunk_0 在重叠位置的动作作为 *已知部分*，新生成的是 *缺失部分*（"inpainting"）
-3. 这样保证 chunk 边界 **连续**，不会跳变
-
-### 7.3 延迟数字
-
-| 平台 | 端到端延迟 | 容忍注入延迟 |
+| 标签 | 含义 | 量级 |
 |---|---|---|
-| Mobile robot | **139 ms** (推理 97 + 网络 21 + 其他 21) | +200 ms |
-| Static robot | **108 ms** | +200 ms |
+| **MM** | Mobile Manipulation（≈ 100 个家庭） | ≈ **400 小时** |
+| **ME** | Multi-Environment 固定臂 | 大量 |
+| **CE** | Cross-Embodiment 桌面（含 OXE） | 大量 |
+| **HL** | High-Level 语义子任务（人工标注） | 中 |
+| **WD** | Web Data（caption / VQA / object detection） | 巨大 |
+| **VI** | Verbal Instructions（post-training 时加） | 小 |
 
-> 💡 **工程意义** — 即使把推理放云端（增加几十 ms 网络往返），RTC 让机器人**感觉不到延迟**。这是把 VLA 从 lab demo 推向产品的关键技术。
+> ⚠️ **反直觉但关键** — **97.6% 训练样本不是 MM 数据**。in-domain MM 只占 ≈ 2.4%。**泛化能力来自异质 co-training**，不是 in-domain 堆量。
 
-## §8 π0.6 + π\*0.6 — RECAP 强化学习上线
+**关键消融**：
+
+| 移除 | OOD success drop |
+|---|---|
+| 去掉 ME 数据 | ≈ −20 pt |
+| 去掉 CE 数据 | ≈ −15 pt |
+| 去掉 WD 数据 | ≈ −30 pt on unseen objects |
+
+### 4.5 Unseen Homes Benchmark
+
+| 指标 | In-distribution | OOD（unseen 家庭） |
+|---|---|---|
+| Instruction following | 86% | **94%** |
+| Task success | 83% | **94%** |
+
+> ✅ **意义** — 这是 **VLA 走出实验室** 的标志性数字。π0.5 base + LIBERO / DROID expert 权重在 openpi 开源。
+
+## §5 π\*0.6 — RECAP 强化学习上线
 
 > 📌 **论文**：*"π\*0.6: a VLA That Learns From Experience"*, arXiv **2511.14759**, 2025-11-17.
 
-### 8.1 Backbone 升级（π0.6 base）
+### 5.1 Backbone 升级（π0.6 base）
 
-| 组件 | π0 | π0.5 | **π0.6** |
+| 组件 | π0 | π0.5 | **π0.6 / π\*0.6** |
 |---|---|---|---|
 | VLM | PaliGemma 3B | PaliGemma 3B + KI | **Gemma 3 4B** |
 | Vision encoder | (PaliGemma 内置) | 同左 | **+ SigLIP 400M** |
@@ -393,7 +301,7 @@ chunk_1: [a_50, ..., a_99]      │  到达，开始执行
 
 π0.6 base 已经能可靠折叠 laundry，但 box assembly 仍只 ~20%。要做到专家级，需要 **RL fine-tune**——这就是 π\*0.6。
 
-### 8.2 RECAP 三阶段
+### 5.2 RECAP 三阶段
 
 > **R**L with **E**xperience and **C**orrections via **A**dvantage-conditioned **P**olicies
 
@@ -414,7 +322,7 @@ Stage 3 — On-robot RL with Interventions
    ▶ 持续 fine-tune V 与 policy
 ```
 
-### 8.3 Advantage-Conditioned Policy
+### 5.3 Advantage-Conditioned Policy
 
 **关键洞察**：传统 RL 把 advantage 用作 loss 权重（AWR）；RECAP 把 advantage 作为 **prompt token 喂给 VLA**。
 
@@ -427,7 +335,7 @@ $$\pi(a \mid s, A_t), \qquad A_t \;=\; \mathbb{E}\Bigl[\sum_{k=0}^{N-1} r_{t+k}\
 
 > ⚠️ **vs Decision Transformer** — DT 是 return-to-go 条件化；RECAP 是 advantage（V 差）条件化，**更适合长程任务**，因为 return-to-go 在 sparse reward 下信噪比低。
 
-### 8.4 9 个任务的专家级数字
+### 5.4 9 个任务的专家级数字
 
 | 任务 | base (π0.6, 模仿) success | π\*0.6 (RECAP) success | throughput |
 |---|---|---|---|
@@ -445,91 +353,13 @@ $$\pi(a \mid s, A_t), \qquad A_t \;=\; \mathbb{E}\Bigl[\sum_{k=0}^{N-1} r_{t+k}\
 
 社区复现：`huggingface.co/exla-ai/openpie-0.6`，Apache-2.0。
 
-### 8.5 Robot Olympics（2025-12）
-
-PI 用 π0.6 在 5 项 Moravec 式难任务上做了一次"奥运评测"：
-
-| 项目 | 子任务 | π0.6 + finetune | baseline VLM |
-|---|---|---|---|
-| 全身 | 自闭合门 | silver | ≈ 0% |
-| 洗衣 | 袜子翻面 + T 恤折叠 | **gold** | ≈ 0% |
-| 基础工具 | 钥匙 / PB 三明治 / 擦窗 | **gold** | ≈ 0% |
-| 指尖 | 狗粪袋 / 橘皮 | silver | ≈ 0% |
-| 湿滑 | 油锅 / 手指 PB / 台面 | **gold** | ≈ 0% |
-
-**3 金 2 银，平均 ≈ 52%**，每个任务只需 **< 9 小时** 微调数据；baseline VLM 几乎全 0。
-
-> 💡 **Take-away** — "large-scale robot pre-training is essential"。如果不预训练 π0.6 base，任务再多 fine-tune 数据也救不回来。
-
-## §9 MEM + RLT — 长程记忆与在线 RL Token
-
-### 9.1 MEM（2026-03-03）：双时间尺度记忆
-
-VLA 默认只看当前 frame，做 ≥ 1 分钟任务就崩。MEM 给 VLA 加两套记忆：
-
-| 记忆类型 | 表示 | 写入策略 | 读取策略 |
-|---|---|---|---|
-| **短期** | 时序 ViT token | interleaved spatial-temporal，**上层丢弃旧 token** | cross-attention |
-| **长期** | **自然语言** 摘要 | 模型用 CoT *自选* 写什么 | 把摘要拼到 prompt 里 |
-
-**为什么长期用自然语言而不是 KV cache**：
-
-- 自然语言可 **抽象**（"我刚刚把红杯子放进了上层柜"）→ 节约 context
-- 模型可 **选择性** 记录（CoT decides what to remember）
-- 可 **解释**——人能直接读懂机器人的"日记"
-- KV cache 长视频太贵（O(L²)）
-
-**任务长度**：MEM-augmented π0.6 可做 **≤ 15 分钟** 长任务：
-
-- Grilled cheese 定时（要等面包变金黄才翻面）
-- Recipe 取料（按食谱逐项找）
-- 厨房清理（多房间记忆）
-
-### 9.2 RLT（2026-03-19）：把 VLA 接到在线 RL
-
-**痛点**：on-robot RL 慢（更新一次梯度要几秒），VLA 模型大没法直接训。
-
-**RLT 解法**：
-
-```
-VLA  ──→  special token  ──→  encoder-decoder ──→  compact RL token
-                                                          │
-                                                          ▼
-                                                ┌─────────────────┐
-                                                │ 小 actor / critic │  100+ update/s
-                                                │ 在 token 上跑     │
-                                                └─────────────────┘
-                                                          │
-                                                          ▼
-                                         action edit:  Δa  ──→ chunk + Δa
-```
-
-**关键设计**：
-
-- actor 学的是 **edit** VLA 预测的 chunk（Δa），不是替换；保留预训练知识
-- KL-style 正则：限制 Δa 大小，防 *off-policy 漂移*
-- compact RL token 是 *信息瓶颈*：只让任务相关信号通过
-
-**数字**：
-
-| 任务 | base (no RLT) | RLT 后 |
-|---|---|---|
-| Ethernet 插入 | ~100 / 10 min | **~350 / 10 min** |
-| Power cord 插入 | ~100+ | **500+** |
-
-**关键时间**：
-
-- **15 分钟数据** 就能起效
-- Ethernet 任务 **2 小时** 达峰
-- 50% trial **比人 teleop 还快**（66 vs 146 timestep）
-
-## §10 π0.7 — Steerable Generalist with Emergent Capabilities
+## §6 π0.7 — Steerable Generalist with Emergent Capabilities
 
 > 📌 **论文**：Physical Intelligence et al. (Pertsch submitting, **87 co-authors**), *"π0.7: a Steerable Generalist Robotic Foundation Model with Emergent Capabilities"*, arXiv **2604.15483**, 2026-04-16.
 
-### 10.1 范式跃迁：从 "language conditioned" 到 "diverse context conditioned"
+### 6.1 范式跃迁：从 "language conditioned" 到 "diverse context conditioned"
 
-π0 ～ π0.6 都是 **language conditioned**——prompt 主要是一句话指令。π0.7 把 prompt 扩成 **diverse multimodal context**：
+π0 ～ π\*0.6 都是 **language conditioned**——prompt 主要是一句话指令。π0.7 把 prompt 扩成 **diverse multimodal context**：
 
 ```
 ┌──────────────────────────────────────────────────────────┐
@@ -537,26 +367,24 @@ VLA  ──→  special token  ──→  encoder-decoder ──→  compact RL 
 │  ├─ Language instruction:  "fold the shirt"              │
 │  ├─ Subtask instruction:   "first align the sleeves"     │
 │  ├─ Subgoal image:         [target visual state]         │
-│  ├─ Episode metadata:                                    │
-│  │    ├─ speed:    fast / slow                           │
-│  │    ├─ quality:  1–5 评分                              │
-│  │    ├─ mistake:  label                                 │
-│  │    └─ control:  joint / EE / cartesian                │
-│  └─ Memory context (MEM 风格短时视频)                    │
+│  └─ Episode metadata:                                    │
+│       ├─ speed:    fast / slow                           │
+│       ├─ quality:  1–5 评分                              │
+│       ├─ mistake:  label                                 │
+│       └─ control:  joint / EE / cartesian                │
 └──────────────────────────────────────────────────────────┘
 ```
 
-### 10.2 架构：π0.6 + KI + MEM
+### 6.2 架构：π\*0.6 + KI 的延续
 
 - VLM backbone = **Gemma 3 4B**
 - Vision encoder = **SigLIP 400M**
 - Action expert = **860M**
 - 总参数 ≈ **5B**
 - 训练 recipe：KI（stop-grad 隔离）
-- 短时记忆：MEM 风格 ViT
 - 输出方式：flow matching（沿用 π0.6 model card 披露的 **5 步 ODE 推理**，KI recipe）
 
-### 10.3 训练数据（PI 未精确披露量级，**比 π0.6 更大且更异质**）
+### 6.3 训练数据（PI 未精确披露量级，**比 π\*0.6 更大且更异质**）
 
 | 来源 | 备注 |
 |---|---|
@@ -567,7 +395,7 @@ VLA  ──→  special token  ──→  encoder-decoder ──→  compact RL 
 | 开源数据集 | OXE + DROID + RLBench 等 |
 | Web data | caption / VQA / detection |
 
-### 10.4 关键 benchmark
+### 6.4 关键 benchmark
 
 **Espresso & Box assembly**（专家级长任务）：
 - 单 π0.7 模型 **≥** RL-finetuned π\*0.6 specialist
@@ -579,11 +407,9 @@ VLA  ──→  special token  ──→  encoder-decoder ──→  compact RL 
 - 人类 teleop 专家进度：90.9% / success 80.6%
 - → **几乎追平人类**，且模型从未在该本体训过
 
-**Unseen 场景**：
-- 4 个未见厨房 + 2 个未见卧室：instruction following 高
-- 与 π0.5 相比 OOD success +10 pt 以上
+**Unseen 场景**：4 个未见厨房 + 2 个未见卧室，instruction following 高；OOD success 比 π0.5 +10 pt 以上
 
-### 10.5 Compositional Generalization（首次出现）
+### 6.5 Compositional Generalization（首次出现）
 
 π0.7 **首次** 在 VLA 里展示了 *把已学技能重组解决新任务* 的能力。例如：
 
@@ -599,7 +425,7 @@ VLA  ──→  special token  ──→  encoder-decoder ──→  compact RL 
 
 > ✅ **意义** — 这是 VLA 走向 *foundation model* 的转折点：以前每个任务要 fine-tune，现在 zero-shot 可组合。
 
-### 10.6 Steerability
+### 6.6 Steerability
 
 Prompt 中的 metadata 可在 deploy 时显式调整：
 
@@ -616,7 +442,7 @@ Prompt 中的 metadata 可在 deploy 时显式调整：
 
 > ⚠️ **License 注意** — arXiv 论文采用 arXiv non-exclusive distribution license（默认）；权重截至 2026-05-20 **尚未** 进 openpi 正式发布，使用前请查 PI 官方公告。
 
-## §11 从零实现：Flow Matching Action Head（PyTorch）
+## §7 从零实现：Flow Matching Action Head（PyTorch）
 
 下面是一份 **能跑** 的简化 π0 action expert，专注 flow matching 训练 / 推理逻辑。条件向量 $c$ 用一个 simple MLP encoder 代替真实的 PaliGemma backbone。
 
@@ -758,18 +584,17 @@ step  1500  cfm_loss=0.0044
 
 > ✅ **学习要点** — 这份 80 行代码包含了 π0 的所有核心数学：linear-Gaussian path、CFM L2 loss、10 步 Euler ODE 推理。换成 PaliGemma backbone + 真实机器人数据，就是 openpi 的简化骨架。
 
-## §12 复杂度 & 资源
+## §8 复杂度 & 资源
 
-### 12.1 模型大小演进
+### 8.1 模型大小演进
 
 | 模型 | VLM | Vision Enc | Action Expert | **Total** |
 |---|---|---|---|---|
 | π0 / π0-FAST | PaliGemma 3B | (内置) | 300M | **≈ 3.3B** |
-| Hi Robot | PaliGemma 3B (S2) + π0 (S1) | — | — | **≈ 6.6B**（两份） |
 | π0.5 | PaliGemma 3B + KI | (内置) | 300M | **≈ 3.3B** |
-| π0.6 / π\*0.6 / π0.7 | **Gemma 3 4B** | **SigLIP 400M** | **860M** | **≈ 5B** |
+| π\*0.6 / π0.7 | **Gemma 3 4B** | **SigLIP 400M** | **860M** | **≈ 5B** |
 
-### 12.2 训练 / 推理时间复杂度
+### 8.2 训练 / 推理时间复杂度
 
 设 $f$ = 单次 5B 模型 forward 时延（在 H100 上 $f \approx$ 数十毫秒，取决于实现）。
 
@@ -778,16 +603,16 @@ step  1500  cfm_loss=0.0044
 | 单次 forward（5B 模型） | $1 \cdot f$ | 决定所有推理的基准延迟 |
 | Flow matching 训练（per sample） | $f + b$（forward + backward） | $b$ 通常约 $1.5\,$–$\,2 f$ |
 | **Flow matching 推理（π0 / π0.5）** | $10 \cdot f$ | 10 步 Euler ODE |
-| **Flow matching 推理（π0.6 / π\*0.6 / π0.7）** | $5 \cdot f$ | KI recipe 把推理步数减半 |
+| **Flow matching 推理（π\*0.6 / π0.7）** | $5 \cdot f$ | KI recipe 把推理步数减半 |
 | **π0-FAST 推理**（注意：与 flow 路线不同） | $30 \cdot f \;\text{–}\; 60 \cdot f$ | autoregressive，串行解 30–60 个 BPE token |
 
-### 12.3 训练资源（公开信息粗估）
+### 8.3 训练资源（公开信息粗估）
 
 - π0 训练数据 ≈ 10,000 h
 - 训练时长：**数周** on H100 集群（具体规模 PI 未披露）
-- π0.6 / π0.7 backbone 升级 + 数据增加，预计 **数月** on H100 集群
+- π\*0.6 / π0.7 backbone 升级 + 数据增加，预计 **数月** on H100 集群
 
-## §13 与其他 VLA 横向对比
+## §9 与其他 VLA 横向对比
 
 | 模型 | 主干 VLM | 动作生成 | 训练数据 | 跨本体 | 开源 |
 |---|---|---|---|---|---|
@@ -797,14 +622,14 @@ step  1500  cfm_loss=0.0044
 | **π0** | PaliGemma 3B | **Flow matching** 10 步 | 10k h, 7 robots + 9.1% OXE | 内部 7 + OXE | **Apache-2.0** |
 | **π0-FAST** | PaliGemma 3B | FAST 离散 token AR | 同 π0 | 同 π0 | Apache-2.0 |
 | **π0.5** | PaliGemma 3B + KI | FAST + Flow 双通路 | π0 + 400h MM + WD + HL | 同 π0 | Apache-2.0 |
-| **Hi Robot** | PaliGemma 3B (S2) + π0 (S1) | π0 的 flow | π0 base + 合成 prompt | 同 π0 | 论文 + 部分代码 |
-| **π0.6** | Gemma 3 4B + SigLIP 400M | Flow (860M expert) | 更大 + 异质 prompt | 同 π0.5+ | 模型卡公开 |
-| **π\*0.6** | π0.6 + RL fine-tune | RECAP + advantage cond | + on-robot RL | 同 π0.6 | 社区 (exla-ai) Apache-2.0 |
-| **π0.7** | Gemma 3 4B + SigLIP 400M + MEM | Flow (860M) | 更大 + subgoal images + metadata | **零样本** UR5e 跨本体 | 论文，权重 TBD |
+| **π\*0.6** | Gemma 3 4B + SigLIP 400M | Flow (860M expert) + RECAP RL | 更大 + 异质 prompt + on-robot RL | 同 π0.5+ | 模型卡公开；社区 (exla-ai) Apache-2.0 |
+| **π0.7** | Gemma 3 4B + SigLIP 400M | Flow (860M) + diverse context | 更大 + subgoal images + metadata | **零样本** UR5e 跨本体 | 论文，权重 TBD |
 
-> 💡 **结构性差异** — π0 系列 vs OpenVLA 的核心区别：**π 是 flow expert + cross-attn**（小 action head，大 VLM），**OpenVLA 是把动作 token 拍回 LM head**（一锅炖）。π 的设计让 backbone 可以保持 web 知识不掉点，OpenVLA 一旦 post-train 就会损伤 VLM 能力。
+> 💡 **结构性差异** — π 系列 vs OpenVLA 的核心区别：**π 是 flow expert + cross-attn**（小 action head，大 VLM），**OpenVLA 是把动作 token 拍回 LM head**（一锅炖）。π 的设计 + KI stop-grad 让 backbone 可以保持 web 知识不掉点，OpenVLA 一旦 post-train 就会损伤 VLM 能力。
 
-## §14 25 道高频面试题
+> 💡 **π 系列 vs RDT-1B** — 同为 generative 路线，但 RDT-1B 用 DDPM（几十~百步），π 用 flow matching（10 步 / KI 后 5 步），推理快 5–10×；RDT-1B 用 T5-XXL text encoder 做 conditioning，π 用统一的 PaliGemma/Gemma 3 VLM，多模态信息融合更紧。
+
+## §10 25 道高频面试题
 
 ### L1 — 必会（10 题）
 
@@ -817,13 +642,16 @@ PaliGemma 3B + 300M flow-matching action expert，总参数约 **3.3B**。Action
 <details>
 <summary><strong>2. π0 的动作 chunk 长度 H 和最高控制频率？为什么用 chunk 而不是 single-step？</strong></summary>
 
-H = 50，最高 50 Hz（即 1 个 chunk = 1 秒）。Chunk 的好处：① 模型一次看一段连贯动作，避免 single-step 的 jitter；② 推理频率可以低于控制频率（推理 10 Hz，控制 50 Hz），节省算力；③ 与 RTC 异步推理天然兼容。
+H = 50，最高 50 Hz（即 1 个 chunk = 1 秒）。Chunk 的好处：① 模型一次看一段连贯动作，避免 single-step 的 jitter；② 推理频率可以低于控制频率（推理 10 Hz，控制 50 Hz），节省算力；③ 与异步推理范式天然兼容（旧 chunk 执行时并行算新 chunk）。
 </details>
 
 <details>
-<summary><strong>3. π0 推理时 flow matching 跑几步 ODE？步长 δ 多少？</strong></summary>
+<summary><strong>3. π0 推理时 flow matching 跑几步 ODE？步长 δ 多少？π0.6/π0.7 呢？</strong></summary>
 
-10 步 Euler，δ = 0.1。从 τ=0（噪声 ε ~ N(0, I)）走到 τ=1（≈ ground truth chunk）。每步是 $A^{\tau+\delta} = A^\tau + \delta \cdot v_\theta(A^\tau, c, \tau)$。
+- **π0 / π0.5**：10 步 Euler，δ = 0.1
+- **π\*0.6 / π0.7**：5 步 Euler（KI recipe 让推理步数减半）
+
+每步是 $A^{\tau+\delta} = A^\tau + \delta \cdot v_\theta(A^\tau, c, \tau)$。
 </details>
 
 <details>
@@ -845,7 +673,7 @@ H = 50，最高 50 Hz（即 1 个 chunk = 1 秒）。Chunk 的好处：① 模�
 
 **训练快**：纯 next-token AR，可以复用 LLM 的 dense batched 训练 infra，省掉 flow matching 的 per-sample expert forward。
 
-**推理慢**：30–60 个 token 必须 **串行** AR 解码，每个 token 一次 forward。而 π0 flow 的 10 步 ODE 整个 chunk 可以并行解。生产部署还是用 π0 / π0.5 / π0.7 的 flow 路径。
+**推理慢**：30–60 个 token 必须 **串行** AR 解码，每个 token 一次 forward。而 π0 flow 的 10 步 ODE 整个 chunk 可以并行解。生产部署还是用 π0 / π0.5 / π\*0.6 / π0.7 的 flow 路径。
 </details>
 
 <details>
@@ -855,35 +683,55 @@ H = 50，最高 50 Hz（即 1 个 chunk = 1 秒）。Chunk 的好处：① 模�
 </details>
 
 <details>
-<summary><strong>8. Hi Robot 的 System 1 和 System 2 各是什么模型？输出粒度？</strong></summary>
+<summary><strong>8. Knowledge Insulation (KI) 的两个核心机制？解决什么问题？</strong></summary>
 
-- **System 2** = PaliGemma-3B 微调，≈ 1 Hz，输出**语言子任务** + "inner monologue"
-- **System 1** = π0，50 Hz，输出**连续动作 chunk**
-- S2 给 S1 喂语言子任务作为 prompt
+**问题**：action expert 的梯度反向传到 VLM backbone，**污染** PaliGemma 已学好的多模态知识（VQA / caption 掉点）。
+
+**两个核心机制**：
+1. **双目标**：① 在 backbone 上加 FAST next-token AR loss 学运动语义；② action expert 学 flow matching CFM loss
+2. **stop-grad**：action expert 梯度 **被截断**，不回传到 backbone
+
+**效果**：训练步数 ≈ 7.5× fewer，backbone web 能力不掉点；KI 是 π0.5 / π\*0.6 / π0.7 训练 recipe 的主干。
 </details>
 
 <details>
-<summary><strong>9. openpi 的开源协议？商用允许吗？</strong></summary>
+<summary><strong>9. openpi 的开源协议？商用允许吗？哪些版本权重开源了？</strong></summary>
 
-**Apache-2.0**，**允许商用**、修改、再分发，只需保留版权声明。这是 π 系列在工业界扩散的关键因素之一——很多公司因为协议宽松直接拿来用。
+官方 `openpi` 仓库为 **Apache-2.0，允许商用**。截至 2026-05-20 的开源状态分版本如下：
+
+**已在 openpi 官方仓库中**：
+- π0 base + DROID / ALOHA expert ckpt
+- π0-FAST base + DROID expert
+- π0.5 base + LIBERO / DROID expert
+
+**未在 openpi 中**：
+- **π\*0.6**：PI 公开模型卡（含架构 / 数据 / benchmark），权重未官方发布；社区复现 `exla-ai/openpie-0.6` Apache-2.0
+- **π0.7**：arXiv 论文公开（non-exclusive distribution），权重 TBD
 </details>
 
 <details>
-<summary><strong>10. π 系列的 cross-embodiment 怎么对齐不同维度？OXE 占比？</strong></summary>
+<summary><strong>10. π 系列的 cross-embodiment 怎么对齐不同维度？哪些数据消融贡献最大？</strong></summary>
 
-所有动作 zero-padding 到最大维度（17–18 D，π0.6/FAST+ 提升到 32 D）；每条样本带一个 "robot type" embedding token 指示本体。OXE 占 π0 训练混合的 **9.1%**。π0.5 消融显示：**去掉 web data (WD)** 在未见物体上掉 ≈ 30 pt；去掉 ME 数据掉 ≈ 20 pt；去掉 CE 数据掉 ≈ 15 pt——多源异质数据各有不可替代的贡献。
+所有动作 zero-padding 到最大维度（17–18 D；π\*0.6 / FAST+ 提升到 32 D）；每条样本带一个 "robot type" embedding token 指示本体。
+
+**π0.5 消融**：
+- 去 WD（web data）：unseen object −30 pt
+- 去 ME：−20 pt
+- 去 CE：−15 pt
+- 多源异质数据各有不可替代的贡献。
 </details>
 
 ### L2 — 进阶（10 题）
 
 <details>
-<summary><strong>11. Knowledge Insulation 解决的核心问题？stop-grad 在哪？</strong></summary>
+<summary><strong>11. KI 为什么能让训练步数减少 7.5×？</strong></summary>
 
-**问题**：action expert 的梯度反向传到 VLM backbone，**污染** PaliGemma 的多模态知识（VQA / caption 掉点）。
+三个原因叠加：
+1. backbone 在 FAST next-token 上学运动语义，**预训练阶段就有用**，避免 action expert 从零起步
+2. stop-grad 让 backbone 不被 expert 的高方差梯度污染，**收敛轨迹更稳**
+3. 推理只走 flow 一条路（5 步 ODE），**测试时延迟也减半**
 
-**解法**：① 在 VLM backbone 上加 FAST next-token AR loss（学运动语义）+ web loss（保多模态）；② action expert 的 flow matching loss 在喂回 backbone 前 **stop-grad**——backbone 不知道 expert 长什么样。
-
-**效果**：训练步数 7.5× fewer，backbone web 能力不掉点。
+实际数字：KI 版 π0.5 用 80k post-train 步达到原 π0 600k+ 步的效果。
 </details>
 
 <details>
@@ -907,13 +755,12 @@ H = 50，最高 50 Hz（即 1 个 chunk = 1 秒）。Chunk 的好处：① 模�
 </details>
 
 <details>
-<summary><strong>14. Real-Time Chunking 怎么解决推理延迟？inpainting 做了什么？</strong></summary>
+<summary><strong>14. π\*0.6 在 espresso 上的关键数字？为什么这个任务有意义？</strong></summary>
 
-**异步**：新 chunk 还在推理时老 chunk 继续执行，没空窗。
-
-**Inpainting**：① 已经物理执行的 K 步**冻结**——新 chunk 不能改它们；② 重叠区域用 partial attention：把老 chunk 在重叠位置的动作当作 *已知*，新 chunk 生成 *缺失部分*。
-
-**效果**：移动机器人端到端延迟 139 ms，容忍 +200 ms 注入延迟，云端部署可行。
+- base success ≈ 40% → π\*0.6 ≥ 90%
+- **throughput**：30 杯/小时
+- 连续运营 ≈ **13 小时不间断**
+- **意义**：espresso 是经典 long-horizon dexterous task（研磨 + 压粉 + 萃取 + 拉花），首次证明 VLA + RL 能达到**商用咖啡师的可靠性**。
 </details>
 
 <details>
@@ -930,49 +777,52 @@ H = 50，最高 50 Hz（即 1 个 chunk = 1 秒）。Chunk 的好处：① 模�
 <details>
 <summary><strong>16. π0.7 在 bimanual UR5e 上 shirt folding 怎么做到零样本 80%？</strong></summary>
 
-三个因素：① **Cross-embodiment 大规模训练** 让 backbone 学到 body-invariant manipulation 表征；② **Diverse multimodal prompt**（含 subgoal image）让模型把 "fold" 这个 skill 抽象成视觉目标转换；③ **MEM 风格短时记忆** 让多步骤任务有 context。
+三个因素：① **Cross-embodiment 大规模训练** 让 backbone 学到 body-invariant manipulation 表征；② **Diverse multimodal prompt**（含 subgoal image）让模型把 "fold" 这个 skill 抽象成视觉目标转换；③ 数据中含**第一人称人类视频**，给了非机器人本体的 manipulation 先验。
 
 **任务进度 85.6% / success 80%**，几乎追平人类 teleop 专家（90.9% / 80.6%）。
 </details>
 
 <details>
-<summary><strong>17. RLT 怎么把 VLA 接到在线 RL？为什么不直接训 VLA？</strong></summary>
-
-**不直接训 VLA**：5B 模型，单次更新几秒，on-robot RL 一天最多几百次更新，收敛不了。
-
-**RLT 解法**：VLA 输出加 special token → encoder-decoder 压成 compact **RL token**（信息瓶颈）；小 actor / critic 在 token 上跑（100+ update/s）。actor 学的是 **edit** VLA chunk（Δa），不是替换；KL 正则限制 Δa。
-
-**数字**：15 分钟数据起效，Ethernet 任务 2 小时达峰，50% trial 比人 teleop 还快。
-</details>
-
-<details>
-<summary><strong>18. π0 vs OpenVLA 在动作表示上的关键差异？哪个对 backbone 更友好？</strong></summary>
+<summary><strong>17. π0 vs OpenVLA 在动作表示上的关键差异？哪个对 backbone 更友好？</strong></summary>
 
 - **OpenVLA**: 256-bin per-dim 离散 AR，把动作 token 直接拍回 LM head——**post-train 会损伤 VLM 能力**（caption / VQA 掉点）。
-- **π0**（原版）：独立的 flow expert + cross-attention 共享 KV cache。**结构上 expert 与 LM head 分离**，但因为 expert 梯度仍能经 cross-attention 反传到 VLM backbone，**没有 KI 时 backbone 也会被污染**——这正是 π0.5/π0.6/π0.7 引入 **KI stop-grad** 的动机。
-- **π0 + KI**（π0.5 之后）：在 cross-attention 上加 stop-grad，**才真正实现 backbone 不被 expert 污染**。
+- **π0**（原版）: 独立的 flow expert + cross-attention 共享 KV cache，**结构上分离**，但 expert 梯度仍能经 cross-attn 反传到 backbone——**没有 KI 时也会污染**。
+- **π0 + KI**（π0.5 之后）: 加 stop-grad 才真正实现 backbone 不被污染。
 
-工程上 π 系列 + KI 比 OpenVLA 更适合 *base + N 个任务 expert* 的多任务部署，因为 backbone 多模态能力可保。
+工程上 π + KI 路线最适合 *base + N 个任务 expert* 的多任务部署。
 </details>
 
 <details>
-<summary><strong>19. π0.5 的两阶段训练具体怎么切？为什么不一步到位？</strong></summary>
+<summary><strong>18. π0.5 的两阶段训练具体怎么切？为什么不一步到位？数据组成有何区别？</strong></summary>
 
 **Stage 1（pretrain, 280k 步）**：FAST 离散 token + 异质 co-training **MM/ME/CE/HL/WD**（不含 VI）。让 backbone 学到跨本体的 manipulation 运动语义。
 
-**Stage 2（posttrain, 80k 步）**：加 flow matching action expert（300M）做精细动作输出；**数据切换为 MM/ME/HL/WD/VI**（引入口头指令 VI，移除 CE 聚焦目标域）；双通路推理（高层 AR 子任务 + 低层 flow chunk）。
+**Stage 2（posttrain, 80k 步）**：加 flow matching action expert（300M）做精细动作输出；**数据切换为 MM/ME/HL/WD/VI**（引入口头指令 VI，移除 CE 聚焦目标域）。
 
 **为什么不一步到位**：① FAST 阶段允许超大 batch 训 backbone；② Flow 阶段才需要 expert 收敛；两阶段在 wall-clock 上更省。
 </details>
 
 <details>
-<summary><strong>20. MEM 的长时记忆为什么用自然语言而不用 KV cache？</strong></summary>
+<summary><strong>19. π0 vs RDT-1B 在主干和动作生成上的关键差异？</strong></summary>
 
-四个原因：
-1. **抽象**：自然语言可以总结（"红杯子已放上层柜"），KV cache 是 raw token，O(L²) attention 太贵
-2. **选择性**：模型用 CoT *自选* 写什么，KV cache 是被动堆积
-3. **可解释**：人能直接读懂机器人的"日记"，便于 debug
-4. **可压缩**：15 分钟视频原始 KV 几十万 token，自然语言总结几百 token
+- **主干**：RDT-1B 用 **T5-XXL** text encoder + Transformer（专 text 编码器 + diffusion transformer）；π0 用 **PaliGemma 3B**（统一 VLM，图像+语言+本体一起编码）
+- **动作生成**：RDT-1B 用 **DDPM**（几十~百步采样）；π0 用 **flow matching**（10 步 / KI 后 5 步）
+- **跨本体**：RDT-1B 有 unified action space 设计；π0 用 max-dim padding + robot-type token
+- **推理速度**：π0 快 5–10× 于 RDT-1B（步数少 + 整 chunk 并行）
+
+两者都是 generative 路线（不像 OpenVLA / RT-2 的 AR token），但 π 更适合实时控制。
+</details>
+
+<details>
+<summary><strong>20. π 系列与 RT-2 路线的关键差异是什么？</strong></summary>
+
+- **主干规模**：RT-2 用超大 VLM（PaLI-X 55B / PaLM-E 5B+），π0 用 3B PaliGemma → π\*0.6 升到 5B Gemma 3 4B
+- **动作表示**：RT-2 把动作 token 直接拍回 VLM 的 LM head（"action as language"）；π0 用独立 flow expert + cross-attn 分离
+- **训练数据**：RT-2 大量 web data + 内部 demo；π 系列引入 cross-embodiment + OXE + 异质 co-training
+- **闭源 vs 开源**：RT-2 完全无开源；π 系列 **π0 / π0-FAST / π0.5 base+expert** 在官方 `openpi` 仓库 Apache-2.0，**π\*0.6** 模型卡 + 社区复现，**π0.7** 权重 TBD
+- **推理速度**：RT-2 因 backbone 巨大 + AR token，部署延迟高；π 系列优化推理速度（flow + KI 5 步）
+
+π 系列在**工程友好 + 实时控制**上明显领先 RT-2 路线。
 </details>
 
 ### L3 — 顶级 lab（5 题）
@@ -1008,7 +858,7 @@ PI 实际生产可能用了 (1) 或 (3) 的变种，但论文没披露细节。
 四个主要 challenge：
 
 1. **动作维度爆炸**：humanoid 全身 50+ DoF，π0 padding 到 17–18 D 不够；需要重设 action expert 维度，可能要重新 pretrain
-2. **控制频率不够**：50 Hz 对腿部 PD 控制不够（要 200+ Hz），需要重设计 chunk 颗粒度 + RTC 异步分层（高层 50 Hz / 低层 200 Hz）
+2. **控制频率不够**：50 Hz 对腿部 PD 控制不够（要 200+ Hz），需要重设计 chunk 颗粒度 + 异步推理分层（高层 50 Hz / 低层 200 Hz）
 3. **Proprio 通道结构差异**：humanoid 有 IMU、关节扭矩、足底力，π 系列没有这些通道的预训练经验
 4. **数据稀缺**：没有 humanoid 级的 OXE，需要自建大规模数据集（参考 1X 的 NEO Beta、Tesla Optimus 内部）
 
@@ -1020,7 +870,7 @@ PI 实际生产可能用了 (1) 或 (3) 的变种，但论文没披露细节。
 
 **Decision Transformer / RvS**：用 **return-to-go (RTG)** 作为 prompt token——"接下来还要拿多少 reward"。在 dense reward 任务（Atari、MuJoCo）有效。
 
-**RECAP**：用 **advantage** $A_t = \mathbb{E}[\sum_{k=0}^{N-1} r_{t+k}] + V(s_{t+N}) - V(s_t)$（n-step；与 §8.3 一致）作为 prompt token。在机器人 sparse-reward 设定下，常退化为 $A_t \approx V(s_{t+N}) - V(s_t)$ 的简化形式。
+**RECAP**：用 **advantage** $A_t = \mathbb{E}[\sum_{k=0}^{N-1} r_{t+k}] + V(s_{t+N}) - V(s_t)$（n-step；与 §5.3 一致）作为 prompt token。在机器人 sparse-reward 设定下，常退化为 $A_t \approx V(s_{t+N}) - V(s_t)$ 的简化形式。
 
 **为什么 PI 选 advantage**：
 
@@ -1035,38 +885,31 @@ PI 实际生产可能用了 (1) 或 (3) 的变种，但论文没披露细节。
 
 合理推测四条：
 
-1. **π1**：把 RLT 风格的在线 RL + RECAP 整合进 base 训练 recipe，让 "deploy-time self-improvement" 成默认能力；预计 backbone 升级到 Gemma 4 / 7B
+1. **π1**：把 on-robot RL 与 RECAP 整合进 base 训练 recipe，让 "deploy-time self-improvement" 成默认能力；预计 backbone 升级到 Gemma 4 / 7B
 2. **World-model conditioned flow**：用 video diffusion / Genie 风格的 world model 给高层 subgoal（生成"未来 5 秒应该长这样"的图像 sequence），π 用这个作为 subgoal image prompt
 3. **触觉 / 力反馈通道纳入 prompt context**：现有 π0.7 是 vision + language + proprio + metadata，下一步加 force/torque token，继续 diverse-context 路线
-4. **跨日 persistent memory**：MEM 现在是 episode 内 15 分钟，下一步是 **跨任务、跨日**记忆（VLA 知道"昨天我修过这台咖啡机的某个零件松了"）
+4. **跨日 persistent memory**：现有 episode 内记忆只覆盖任务时长，下一步是 **跨任务、跨日**记忆（VLA 知道"昨天我修过这台咖啡机的某个零件松了"）
 
 技术驱动因素：① 真实部署反馈数据成为 PI 的护城河；② foundation model 范式逼着 VLA 也走 "一个模型搞定所有" 路线。
 </details>
 
 ## §A 附录：参考资料
 
-### 论文 / 技术报告
+### 论文 / 技术报告（5 个版本主线）
 
 - **π0**：[arXiv 2410.24164](https://arxiv.org/abs/2410.24164) · [blog](https://www.physicalintelligence.company/blog/pi0)
 - **π0-FAST**：[arXiv 2501.09747](https://arxiv.org/abs/2501.09747) · [research/fast](https://www.physicalintelligence.company/research/fast)
-- **Hi Robot**：[arXiv 2502.19417](https://arxiv.org/abs/2502.19417) · [research/hirobot](https://www.physicalintelligence.company/research/hirobot)
 - **π0.5**：[arXiv 2504.16054](https://arxiv.org/abs/2504.16054) · [blog](https://www.physicalintelligence.company/blog/pi05)
-- **Knowledge Insulation**：[arXiv 2505.23705](https://arxiv.org/abs/2505.23705) · [research](https://www.physicalintelligence.company/research/knowledge_insulation)
-- **Real-Time Chunking**：[research/real_time_chunking](https://www.physicalintelligence.company/research/real_time_chunking)
-- **π0.6 model card**：[PDF](https://website.pi-asset.com/pi06star/PI06_model_card.pdf)
+- **Knowledge Insulation**（π0.5 的训练 recipe）：[arXiv 2505.23705](https://arxiv.org/abs/2505.23705) · [research](https://www.physicalintelligence.company/research/knowledge_insulation)
 - **π\*0.6**：[arXiv 2511.14759](https://arxiv.org/abs/2511.14759) · [blog/pistar06](https://www.physicalintelligence.company/blog/pistar06)
-- **Robot Olympics**：[blog/olympics](https://www.physicalintelligence.company/blog/olympics)
-- **MEM**：[research/memory](https://www.physicalintelligence.company/research/memory)
-- **RLT**：[research/rlt](https://www.physicalintelligence.company/research/rlt)
 - **π0.7**：[arXiv 2604.15483](https://arxiv.org/abs/2604.15483) · [blog/pi07](https://www.physicalintelligence.company/blog/pi07)
 
 ### 代码
 
 - **openpi**（官方）：<https://github.com/Physical-Intelligence/openpi> — Apache-2.0
 - **exla-ai/openpie-0.6**（社区复现 π\*0.6）：<https://huggingface.co/exla-ai/openpie-0.6>
-- **open-pi-zero**（社区第三方再实现）：注意非官方
 
-### 相关 VLA
+### 相关 VLA（横向比较用）
 
 - **RT-2 / RT-X**：Google DeepMind 系列
 - **OpenVLA**：Stanford, [openvla.github.io](https://openvla.github.io/)
@@ -1080,8 +923,7 @@ PI 实际生产可能用了 (1) 或 (3) 的变种，但论文没披露细节。
 - **Brian Ichter**（co-founder）
 - **Karl Pertsch**（多篇一作 / 通讯）
 - **Kevin Black**（π0 一作）
-- **Danny Driess**（π0 / Hi Robot / π0.5 主要作者）
-- **Lucy X. Shi**（Hi Robot 一作）
+- **Danny Driess**（π0 / π0.5 / π\*0.6 / π0.7 主要作者）
 
 > 💡 **小八卦** — Sergey Levine + Chelsea Finn + Karol Hausman 这三人在 PI 之前都在 Google Robotics（RT-1 / RT-2 / SayCan 主力）。PI 可以看成是 *Google Robotics 体系的延续*，加上 flow matching 作为新核心。
 

@@ -1,115 +1,80 @@
 {
   "skill": "interview-cheatsheet",
   "source": "docs/tutorials/pi_series_tutorial.md",
-  "source_sha256_prefix": "943f5003cc19",
+  "source_sha256_prefix": "ff7ce41df450",
   "output": "docs/tutorials/pi_series_tutorial.html",
-  "topic": "Physical Intelligence π Series (π0 / π0-FAST / Hi Robot / π0.5 / KI / RTC / π0.6 / π*0.6 / Robot Olympics / MEM / RLT / π0.7)",
-  "effort": "max",
+  "topic": "Physical Intelligence π Series — 5-node learning path: π0 → π0-FAST → π0.5 → π*0.6 → π0.7",
+  "effort": "balanced+ (~850 lines target)",
   "byline": "WinstonJQ",
-  "lines": 1092,
-  "bytes_md": 54453,
-  "bytes_html": 70204,
-  "toc_entries": 66,
-  "math_code_review": {
+  "lines": 934,
+  "bytes_md": 48879,
+  "bytes_html": 61049,
+  "toc_entries": 50,
+  "outline_variant": "Lean+ (5 core versions + KI as §4.3 sub-section)",
+  "user_feedback_history": [
+    "v1 (12-version exhaustive): Hi Robot inclusion not desired by user",
+    "v2 (5-version Lean+): user-confirmed outline via AskUserQuestion; KI kept as §4.3 sub-section because it's a recipe attached to π0.5"
+  ],
+  "deletions_from_v1": [
+    "§4 Hi Robot (whole section removed)",
+    "§6 Knowledge Insulation (moved to §4.3 sub-section under π0.5)",
+    "§7 Real-Time Chunking (whole section removed)",
+    "§8.5 Robot Olympics (sub-section removed)",
+    "§9 MEM + RLT (whole section removed)",
+    "Q14/Q17/Q20 (old): RTC / MEM / RLT-specific questions"
+  ],
+  "additions_in_v2": [
+    "Q19: π0 vs RDT-1B horizontal comparison (T5-XXL vs PaliGemma; DDPM vs flow matching)",
+    "Q20: π series vs RT-2 route (backbone size, action representation, open-source status)",
+    "§1.3 5-node learning path diagram (replaces 12-node timeline)",
+    "§9 horizontal comparison table: explicitly include RT-2 / OpenVLA / RDT-1B"
+  ],
+  "math_code_review_v2": {
     "verdict": "PASS",
     "rounds": [
       {
         "run": 1,
         "verdict": "FAIL",
-        "thread_id": "019e4443-5eda-7943-92aa-988dd0943cbe",
+        "thread_id": "019e44ac-d4c7-7883-8dc3-238928d0149e",
         "issues": [
-          "Flow path variance described as '(1-τ)I equivalent to (1-τ)²I' which is mathematically wrong",
-          "Advantage formula written as V(s_{t+1})-V(s_t) without n-step form",
-          "RECAP Stage 1 described as 'just V function' but should include advantage-conditioned policy"
+          "L53 still named Hi Robot/RTC/MEM/RLT as orphan proper-noun references",
+          "L645 Q2 still mentioned RTC by name",
+          "Q9 grouped π*0.6 under 'openpi contents' which is misleading",
+          "Q20 said 'π 全系列 Apache-2.0' which is incorrect for π*0.6 / π0.7"
         ],
         "fixes": [
-          "Removed misleading 'v1 equivalent' claim; kept canonical (1-τ)²I and noted standard linear-Gaussian path",
-          "Replaced with n-step advantage A_t = E[Σr] + V(s_{t+N}) − V(s_t)",
-          "Stage 1 now states 'V *and* advantage-conditioned policy'"
+          "L53: replaced proper-noun list with generic '分层规划/异步推理/长程记忆/在线 RL' descriptions",
+          "L645: replaced '(如 RTC)' with '异步推理范式'",
+          "Q9: split openpi list into 'in openpi' (π0/π0-FAST/π0.5) vs 'not in openpi' (π*0.6 / π0.7) groups",
+          "Q20: split licensing by version: π0/π0-FAST/π0.5=openpi Apache-2.0; π*0.6=model-card+community; π0.7=TBD"
         ]
       },
       {
         "run": 2,
-        "verdict": "FAIL",
-        "thread_id": "019e444d-8002-77b0-bf58-a2c62145991d",
-        "issues": [
-          "§12.2 complexity table still showed only 10-step inference; π0.6 model card uses 5 steps",
-          "Q18 said π0 backbone is not polluted by expert gradients (only true after KI stop-grad)",
-          "Q24 described espresso as 18-hour task horizon (actually ~13h continuous operation)"
-        ],
-        "fixes": [
-          "Split complexity table: π0/π0.5 = 10 ODE steps; π0.6/π*0.6/π0.7 (KI recipe) = 5 ODE steps",
-          "Q18 now: π0 structurally separates expert from LM head, but backbone IS still polluted without KI; KI adds stop-grad",
-          "Q24 changed to 'espresso 单店连续运营 ≈ 13 小时不间断'"
-        ]
-      },
-      {
-        "run": 3,
-        "verdict": "FAIL",
-        "thread_id": "019e4455-3d43-75b3-8293-cfe6be94c1aa",
-        "issues": [
-          "§12.2 incorrectly listed π0-FAST under flow matching inference row",
-          "§12.2 'single forward ≈80ms' contradicted '5×forward ≈40ms'",
-          "§3.5 said 50Hz = 20ms/chunk (should be 20ms/step; chunk is 1 second)",
-          "§8.1 says box assembly base ≈20% but §8.4 table shows ≈95% (contradiction)",
-          "Q10 attributed +30% unseen-object gain to OXE; §5.4 ablation says WD (web data) is responsible",
-          "Q24 advantage formula reverted to single-step V(s_{t+1})-V(s_t)"
-        ],
-        "fixes": [
-          "Redesigned §12.2 table using $f$ (single forward time) as unit; π0-FAST moved to autoregressive row",
-          "§3.5 corrected to 50Hz = 20ms per control step; chunk = 50 steps ≈ 1s",
-          "§8.4 box assembly base = 20% (matches §8.1 and π*0.6 paper)",
-          "Q10 now correctly attributes +30% unseen-object gain to WD removal; lists ME/CE/WD ablation pts together",
-          "Q24 formula now references §8.3 n-step form explicitly"
-        ]
-      },
-      {
-        "run": 4,
-        "verdict": "FAIL",
-        "thread_id": "019e445e-8398-7f70-8607-0f57ab9bf327",
-        "issues": [
-          "π0.5 Stage 1 listed VI data but paper says VI is post-training; CE is omitted in post-training",
-          "π0.7 license claimed CC-BY-4.0 but arXiv default is non-exclusive distribution"
-        ],
-        "fixes": [
-          "Stage 1 = MM+ME+CE+HL+WD (no VI); Stage 2 = MM+ME+HL+WD+VI (no CE); fixed both §5.2 and Q19",
-          "Changed §10.6 license note to 'arXiv non-exclusive distribution license (默认)'"
-        ]
-      },
-      {
-        "run": 5,
         "verdict": "PASS",
-        "thread_id": "019e4466-0050-7bc3-8e45-f9f94d7d2f9d",
+        "thread_id": "019e44b2-c530-7310-b5b6-7fc85c9a9dd3",
         "issues": [],
-        "fixes": [],
-        "note": "All 10 checks pass: formula, code, Q1-Q25, citations, table-pipe, callout-list, headings, completeness, length (1092 lines), no personal info leak."
+        "note": "All 10 checks pass; no orphan references; previous fixes verified."
       }
     ]
   },
-  "render_review": {
+  "render_review_v2": {
     "verdict": "PASS",
     "rounds": [
       {
         "run": 1,
         "verdict": "PASS",
-        "note": "render_html.py wrote 70204 bytes, 66 TOC entries; sha256 prefix 943f5003cc19; no errors or warnings."
+        "note": "render_html.py wrote 61049 bytes / 50 TOC entries; sha256 prefix ff7ce41df450; no errors."
       }
     ]
   },
-  "summary": "5-round math/code review + 1-round render at PASS. 14 substantive fixes across rounds: (1) flow variance derivation; (2) n-step advantage formula; (3) RECAP Stage 1 includes V + advantage-conditioned policy; (4) π0.7 5-step ODE; (5) code expected output truncated at step 1500; (6) Q18 KI insulation clarification; (7) Q12 RECAP Stage 1 includes policy; (8) §12.2 complexity table split π0=10/π0.6+=5 steps; (9) §3.5 50Hz unit; (10) §8.4 box assembly base 20%; (11) Q10 WD attribution; (12) Q24 advantage n-step; (13) π0.5 VI stage placement (Stage 2 not Stage 1); (14) π0.7 arXiv license correction.",
+  "summary": "Restructured to user-confirmed Lean+ outline (5 core versions + KI sub-section). 2-round math/code review at PASS, 4 substantive fixes: (1) L53 orphan proper-noun list → generic descriptions; (2) L645 Q2 RTC mention → 异步推理范式; (3) Q9 openpi contents grouping corrected; (4) Q20 license claim split by version. Render at PASS first try.",
   "rendered_at": "2026-05-20",
-  "topics_covered": [
-    "π0 (2024-10, arXiv 2410.24164)",
-    "π0-FAST (2025-01, arXiv 2501.09747)",
-    "Hi Robot (2025-02, arXiv 2502.19417, ICML 2025)",
-    "π0.5 (2025-04, arXiv 2504.16054)",
-    "Knowledge Insulation (2025-05, arXiv 2505.23705)",
-    "Real-Time Chunking (2025-06)",
-    "π0.6 base (2025-11, model card)",
-    "π*0.6 RECAP (2025-11, arXiv 2511.14759)",
-    "Robot Olympics (2025-12)",
-    "MEM long/short-term memory (2026-03)",
-    "RLT online RL token (2026-03)",
-    "π0.7 steerable generalist (2026-04, arXiv 2604.15483)"
+  "topics_covered_v2": [
+    "π0 (2024-10, arXiv 2410.24164) — first VLA flow model",
+    "π0-FAST (2025-01, arXiv 2501.09747) — discrete action token AR, 5× training speed",
+    "π0.5 (2025-04, arXiv 2504.16054) — open-world generalization + KI training recipe (KI = arXiv 2505.23705)",
+    "π*0.6 (2025-11, arXiv 2511.14759) — Gemma 3 4B backbone + RECAP online RL",
+    "π0.7 (2026-04, arXiv 2604.15483) — steerable generalist + compositional generalization"
   ]
 }

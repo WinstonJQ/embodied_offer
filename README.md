@@ -41,7 +41,7 @@ HTML 单文件自包含：MathJax + highlight.js 通过 CDN 加载（也可用 `
 
 | 主题 | Markdown | HTML | 审查轨迹 |
 |---|---|---|---|
-| **π 系列 (π0 → π0.7)** 面试 Cheat Sheet | [`pi_series_tutorial.md`](docs/tutorials/pi_series_tutorial.md) | [`pi_series_tutorial.html`](docs/tutorials/pi_series_tutorial.html) | [`.review.json`](docs/tutorials/pi_series_tutorial.review.json) (5 轮 / 14 fixes / PASS) |
+| **π 系列 (π0 → π0.7)** 面试 Cheat Sheet | [`pi_series_tutorial.md`](docs/tutorials/pi_series_tutorial.md) | [`pi_series_tutorial.html`](docs/tutorials/pi_series_tutorial.html) | [`.review.json`](docs/tutorials/pi_series_tutorial.review.json) — 5 节点路线 Lean+ 大纲（KI 作为 π0.5 子节），含 OpenVLA/RDT-1B/RT-2 横向比较 |
 
 ## 路线图（18 个主题）
 
