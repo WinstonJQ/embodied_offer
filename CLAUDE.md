@@ -228,28 +228,7 @@ git push origin master
 - 用 HTML 注释 `<!-- TODO §X 待补 -->` 做分批 Write 的 marker，**不要用裸字符串占位符**（会被后续 Edit 误匹配 / 造成内容重复）
 - **Anthropic auto-classifier 偶尔限流**——不是 rate limit，是后端 classifier 服务可用性问题，几分钟恢复，不用紧张
 
-### 11.4 具身智能领域固定避坑点（codex 审查 prompt 必带这一节）
-
-写新卷前，把以下事实纳入审查 prompt 的"已知避坑点"清单，让 codex 重点核对：
-
-- **OpenVLA 动作 = 7 维** `[Δx, Δy, Δz, Δroll, Δpitch, Δyaw, gripper]`（gripper 已含在 7 维里，不是 7-DoF+gripper=8）
-- **OXE = ~60 datasets / 22 embodiments / 1M+ trajectories**（不是 22 datasets）；OpenVLA 用 ~970K curated 子集
-- **DROID 不在 OXE 原始列表**（OXE 2023-10 早于 DROID 2024）；DROID = 564 scenes / 350h / 76K demos / ~86 tasks
-- **Franka/Panda = 7-DoF / UR5e = 6-DoF / Mobile ALOHA = 16 维**（14 双臂 + 2 base v/ω；易写反）
-- **π0.5 主体 = open-world generalization + co-training**；**KI 是 π0.5 框架的后续扩展工作**（不是 π0.5 核心）
-- **RECAP 全称 = "RL with Experience and Corrections via Advantage-conditioned Policies"**（不是 "Retrospective Conditioned Advantage Policy"）；属于 π\*0.6，2025-11，arXiv:2511.14759
-- **π0.7 = 2026-04** 发布（不是 2025）
-- **RT-2 视觉 = PaLI-X / PaLM-E 内置 ViT**（不能简化为 SigLIP；SigLIP+DINOv2 双路是 OpenVLA 才有）
-- **OpenVLA 推理 = 6 Hz**（4090 未优化，**不是 7 Hz**）
-- **OpenVLA-OFT 提速** = 论文报告 **~26× throughput / ~3× latency**（arXiv:2502.19645），不要瞎写"5-10×"
-- **FAST = DCT → scale → round → flatten → BPE 五步**（少一步都不对）
-- **π0 控制频率 50 Hz**，chunk **H=50 是覆盖时长 ≈1 秒**——不要混成"每秒重算一次 chunk"；重规划频率由 execution horizon / temporal ensemble / 异步调度决定
-- **跨 embodiment 动作对齐**：单臂用 **7D canonicalization**（IK 映射，不是截断）；**双臂/移动平台不能粗暴截断到 7D**，要 embodiment-specific head + padding mask
-- **Mobile ALOHA = 16 维**（14 双臂 + 2 base v/ω），不是 14
-- **DDIM 在 DP 早期 OOD 步表现差**——不是绝对不如 DDPM
-- **复合误差表述**：chunking 减少高层决策点数量 $T \to T/K$，**不能严格说"$O(\epsilon T^2) \to O(\epsilon T^2/K^2)$"**（chunk 内 open-loop 仍累积）
-
-### 11.5 题源调研（Phase 1）
+### 11.4 题源调研（Phase 1）
 
 - **小红书反爬严，且具身面经绝对数量也不大**——主流用户群（年轻女性 / 生活分享）与具身求职人群（理工科男性）重叠度低；卷三 30 分钟 8 种反爬策略最终只挖到 4 题。**不要假设"小红书是富矿"**
 - **跨平台转载（如品玩 AI 教授 AMA）是隐藏好题源**——顶级 lab 教授（许华哲 / 周博宇 / 高飞 / 梁俊卫等）在小红书答疑被科技媒体整理转载，可公开引用，等同高权威性题源
@@ -257,7 +236,7 @@ git push origin master
 - **真正的"具身 VLA 算法岗"面经数量仍偏少**（2025-2026 行业窗口期）——题目集中度高（OpenVLA vs RT-2 / DP / ACT 等几题占大半）；**频次 2 + 来源权威**可破例入选主表
 - 同义题合并 70% 相似 + 频次 ≥3 入主表 + 频次 1-2 入低频备选——这套规则实务有效
 
-### 11.6 Phase 0 / 用户审过
+### 11.5 Phase 0 / 用户审过
 
 - 题目清单给用户审时，**按节展开 + 频次降序**，每题一行（不要把 200 字答案也展示）；用户决策成本要低
 - 必须提供 ≤4 个明确决策点（如 "全收 / 严守阈值 / 跳过"），避免开放式问"你觉得呢"
