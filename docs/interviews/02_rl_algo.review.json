@@ -1,0 +1,116 @@
+{
+  "volume": "02_rl_algo",
+  "title": "卷二 · RL 算法",
+  "question_count": 43,
+  "main_table": 40,
+  "supplemental": 3,
+  "review_rounds": 4,
+  "final_verdict": "WARN",
+  "rounds": [
+    {
+      "round": 1,
+      "verdict": "FAIL",
+      "model": "gpt-5.5",
+      "reasoning_effort": "xhigh",
+      "fixes_applied": 0,
+      "blocking_issues": [
+        "Q21 HER 流程描述错误：'一路都拿到 +1'与逐 transition 重算奖励机制不符",
+        "Q20 Dueling DQN 归一化：应减均值不是最大值",
+        "Q36 势能函数实务建议：'success bonus 接近满足'不准确",
+        "N2 RLPD 核心机制错误：in-sample max 是 IQL 而非 RLPD 的做法",
+        "多题答案体超过 500 字（Q07/Q09/Q12/Q14/Q15/Q20/Q23/Q24/Q27/Q30/Q31/Q33/Q39）",
+        "页眉难度分布 L2=18/L3=8 与实际 L2=22/L3=7 不一致"
+      ]
+    },
+    {
+      "round": 2,
+      "verdict": "FAIL",
+      "model": "gpt-5.5",
+      "reasoning_effort": "xhigh",
+      "fixes_applied": 12,
+      "fixes_summary": [
+        "页眉难度分布改为 L1=14/L2=22/L3=7",
+        "Q21 HER：改为逐 transition 重计算奖励",
+        "Q20 Dueling：减均值公式修正",
+        "Q36 势能函数实务建议精确化",
+        "Q09/Q12/Q14/Q15/Q23/Q24/Q30/Q31 答案压缩",
+        "Q10 TRPO KL 方向修正为 D_KL(old||new)",
+        "Q31 GRPO loss 符号明确为最小化形式"
+      ],
+      "remaining_blocking": [
+        "N2 RLPD in-sample max 仍错误存在（Round 1 修复未完成）"
+      ]
+    },
+    {
+      "round": 3,
+      "verdict": "WARN",
+      "model": "gpt-5.5",
+      "reasoning_effort": "xhigh",
+      "fixes_applied": 7,
+      "fixes_summary": [
+        "N2 RLPD：删除 in-sample max，改为 symmetric sampling + LayerNorm + ensemble + 高 UTD",
+        "Q11 entropy bonus：更精确区分联合目标中的可选项",
+        "Q21 HER 易错：补充 strategy 类型说明",
+        "Q37：PPO/VLA 关系与 Q32 对齐"
+      ],
+      "remaining_warnings": [
+        "Q11/Q37 VLA/RLHF 标配表述残留",
+        "Q28 RLHF 介绍行残留'VLA 对齐'字样",
+        "Q20/Q21/Q28/Q34/Q36/Q40 答案略超 350 字（350-500 WARN 区间）"
+      ]
+    },
+    {
+      "round": 4,
+      "verdict": "WARN",
+      "model": "gpt-5.5",
+      "reasoning_effort": "xhigh",
+      "fixes_applied": 5,
+      "fixes_summary": [
+        "Q10 PPO 更流行原因：'与 LLM/VLA 对齐'改为'LLM RLHF'并注明 VLA 主流是 BC",
+        "Q28 RLHF intro：补充 VLA 微调主流仍是 BC/flow 说明",
+        "Q11 entropy bonus 最终版确认",
+        "Q21 HER 最终版确认",
+        "Q37 PPO 场景描述最终版确认"
+      ],
+      "blocking_issues": [],
+      "remaining_warnings": [
+        "Q20/Q21/Q28/Q34/Q36/Q40 在 350-500 字 WARN 区间（无 >500 字 FAIL）",
+        "AWAC 年份口径（arXiv 2020 vs 发表年 2021）轻微不一致"
+      ]
+    }
+  ],
+  "key_facts_verified": [
+    "PPO clip ε=0.2 甜区，Schulman 2017 实验结论 — https://arxiv.org/abs/1707.06347",
+    "SAC temperature α 自动调节（v2），目标熵 = 负动作维度 — https://arxiv.org/abs/1812.05905",
+    "TD3 三改进：双 Q + Actor 延迟 + Target Policy Smoothing，Fujimoto 2018 — https://arxiv.org/abs/1802.09477",
+    "CQL 保守下界理论保证，Kumar 2020 — https://arxiv.org/abs/2006.04779",
+    "IQL expectile 回归 + advantage-weighted 策略提取，Kostrikov 2021 — https://arxiv.org/abs/2110.06169",
+    "BCQ VAE 生成候选动作 + 扰动网络，Fujimoto 2019 — https://arxiv.org/abs/1812.02900",
+    "DQN：经验回放 + target 网络，Mnih 2015 — Nature 518(7540)",
+    "DPO：Bradley-Terry + RLHF 解析等价，Rafailov 2023 — https://arxiv.org/abs/2305.18290",
+    "GRPO：无 Critic + 组内相对 advantage，DeepSeekMath Shao et al. 2024 — https://arxiv.org/abs/2402.03300",
+    "HER：goal-conditioned 目标重标，strategy=future/final/episode，Andrychowicz 2017",
+    "RLPD：symmetric sampling 50/50 + LayerNorm + ensemble + UTD=20，Ball 2023 — https://arxiv.org/abs/2302.02948",
+    "GAE：λ=0.95, γ=0.99 实务甜区，Schulman 2015 — https://arxiv.org/abs/1506.02438",
+    "Potential-based Reward Shaping：F=γΦ(s')-Φ(s)，Ng et al. 1999 ICML"
+  ],
+  "sources_consulted": [
+    "牛客网 强化学习算法面试汇编",
+    "知乎 PPO/SAC/Offline RL 面试精选",
+    "CSDN 深度强化学习面试题汇总",
+    "GitHub tinkoff-ai/CORL (offline RL implementations)",
+    "arxiv.org/abs/1707.06347 (PPO)",
+    "arxiv.org/abs/1812.05905 (SAC v2)",
+    "arxiv.org/abs/1802.09477 (TD3)",
+    "arxiv.org/abs/2006.04779 (CQL)",
+    "arxiv.org/abs/2110.06169 (IQL)",
+    "arxiv.org/abs/2305.18290 (DPO)",
+    "arxiv.org/abs/2402.03300 (GRPO/DeepSeekMath)",
+    "arxiv.org/abs/2302.02948 (RLPD)"
+  ],
+  "unresolved_warnings": [
+    "部分答案在 350-500 字 WARN 区间（共 6 题），均未超过 500 字上限",
+    "AWAC 年份口径轻微不一致（无技术错误）"
+  ],
+  "max_rounds_reached": false
+}
