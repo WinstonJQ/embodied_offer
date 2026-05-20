@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>卷四 · 世界模型 / Sim2Real · 高频面试题</title>
+
+<meta name="generator" content="ARIS render-html (academic, v1)">
+<meta name="aris:source-path" content="docs/interviews/04_world_sim.md">
+<meta name="aris:source-sha256" content="015341242d19663a1d9b265daa7a3b0cba45c6f54f57275bbd83745fb983fb16">
+<meta name="aris:generated-at" content="2026-05-20 19:22 UTC">
+
+<!-- MathJax 3 -->
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']], processEscapes: true },
+  options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+
+<!-- highlight.js -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/atom-one-light.min.css">
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded', () => hljs.highlightAll());</script>
+
+
+<style>
+:root {
+  --bg: #fdfcf7;
+  --bg-soft: #f4f1ea;
+  --bg-code: #f8f5ec;
+  --ink: #1a1a1a;
+  --ink-soft: #4a4a4a;
+  --ink-muted: #6b6b6b;
+  --primary: #1a4a8c;
+  --primary-soft: #2d6cb8;
+  --accent: #b8390e;
+  --warn: #b45309;
+  --warn-bg: #fef3c7;
+  --info-bg: #dbeafe;
+  --good-bg: #d1fae5;
+  --good: #065f46;
+  --bad-bg: #fee2e2;
+  --bad: #991b1b;
+  --border: #d6d0c0;
+  --border-soft: #e8e3d5;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: "Source Serif Pro", "Source Serif 4", "Crimson Pro", "Georgia", "Songti SC", "STSong", serif;
+  line-height: 1.65;
+  color: var(--ink);
+  background: var(--bg);
+  margin: 0;
+  padding: 0;
+  font-size: 16px;
+}
+
+.layout {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 48px;
+  padding: 40px 32px;
+}
+
+nav.toc {
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  font-size: 13px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  border-right: 1px solid var(--border-soft);
+  padding-right: 16px;
+}
+nav.toc h3 {
+  margin: 0 0 12px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+  font-weight: 600;
+}
+nav.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+nav.toc ol li { margin: 5px 0; counter-increment: toc; }
+nav.toc ol li::before { content: counter(toc) ". "; color: var(--ink-muted); margin-right: 4px; }
+nav.toc a {
+  color: var(--ink-soft);
+  text-decoration: none;
+  border-bottom: 1px dotted transparent;
+}
+nav.toc a:hover { color: var(--primary); border-bottom-color: var(--primary); }
+nav.toc ul { list-style: none; padding-left: 14px; margin: 3px 0; font-size: 12px; }
+nav.toc ul li::before { content: "→ "; color: var(--border); }
+
+main { min-width: 0; }
+
+header.hero {
+  border-bottom: 3px double var(--primary);
+  padding-bottom: 24px;
+  margin-bottom: 32px;
+}
+header.hero .eyebrow {
+  color: var(--accent);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+header.hero h1 {
+  font-size: 32px;
+  line-height: 1.2;
+  margin: 0 0 12px;
+  color: var(--ink);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+header.hero .subtitle {
+  font-size: 16px;
+  color: var(--ink-soft);
+  margin: 0 0 8px;
+  font-style: italic;
+}
+header.hero .byline {
+  font-size: 14px;
+  color: var(--ink-soft);
+  margin: 0 0 20px;
+}
+header.hero .byline strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+header.hero .meta {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--ink-muted);
+  border-top: 1px solid var(--border-soft);
+  padding-top: 14px;
+}
+header.hero .meta span strong { color: var(--ink-soft); }
+header.hero .meta code {
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", "Consolas", monospace;
+  font-size: 11px;
+  background: var(--bg-soft);
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid var(--border-soft);
+}
+
+h2 {
+  font-size: 24px;
+  margin: 44px 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  color: var(--ink);
+  font-weight: 700;
+}
+h2 .num { color: var(--primary); font-weight: 600; margin-right: 8px; }
+h3 { font-size: 19px; margin: 28px 0 10px; color: var(--primary); font-weight: 600; }
+h4 { font-size: 16px; margin: 20px 0 8px; color: var(--ink); font-weight: 600; }
+
+p { margin: 10px 0; }
+ul, ol { padding-left: 22px; margin: 10px 0; }
+ul li, ol li { margin: 4px 0; }
+ul li::marker { color: var(--primary); }
+
+strong { color: var(--accent); font-weight: 600; }
+em { color: var(--ink-soft); }
+
+a { color: var(--primary); }
+a:hover { color: var(--accent); }
+
+code:not(.hljs) {
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", "Consolas", monospace;
+  font-size: 0.86em;
+  background: var(--bg-code);
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid var(--border-soft);
+  color: var(--accent);
+}
+
+pre {
+  background: #fafaf6;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  padding: 0;
+  overflow-x: auto;
+  border-radius: 4px;
+  margin: 14px 0;
+}
+pre code, pre code.hljs {
+  background: transparent !important;
+  display: block;
+  padding: 14px 18px !important;
+  font-size: 13px;
+  line-height: 1.55;
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", monospace;
+  color: var(--ink);
+}
+pre.diagram {
+  background: #f9f6ed;
+  border-left: 4px solid var(--accent);
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.callout {
+  margin: 16px 0;
+  padding: 12px 16px;
+  border-radius: 4px;
+  border-left: 4px solid;
+  font-size: 15px;
+}
+.callout-title {
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.callout-info { background: var(--info-bg); border-left-color: var(--primary); }
+.callout-info .callout-title { color: var(--primary); }
+.callout-warn { background: var(--warn-bg); border-left-color: var(--warn); }
+.callout-warn .callout-title { color: var(--warn); }
+.callout-good { background: var(--good-bg); border-left-color: var(--good); }
+.callout-good .callout-title { color: var(--good); }
+.callout-bad { background: var(--bad-bg); border-left-color: var(--bad); }
+.callout-bad .callout-title { color: var(--bad); }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 14px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+thead { background: var(--primary); color: white; }
+th, td {
+  text-align: left;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border-soft);
+  vertical-align: top;
+}
+th { font-weight: 600; font-size: 13px; letter-spacing: 0.02em; }
+tr:last-child td { border-bottom: none; }
+tbody tr:nth-child(even) { background: var(--bg-soft); }
+
+details.qa, details {
+  background: white;
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  margin: 10px 0;
+  padding: 0;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+details.qa { margin: 8px 0; }
+details.qa:hover { border-color: var(--primary-soft); box-shadow: 0 1px 4px rgba(26,74,140,0.06); }
+details summary {
+  cursor: pointer;
+  padding: 11px 14px;
+  font-weight: 600;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--ink);
+  list-style: none;
+  user-select: none;
+}
+details.qa summary { color: var(--ink); }
+details summary::-webkit-details-marker { display: none; }
+details summary::before {
+  content: "▸ ";
+  margin-right: 4px;
+  display: inline-block;
+  transition: transform 0.15s;
+  color: var(--primary);
+}
+details[open] summary::before { transform: rotate(90deg); }
+details[open] summary { border-bottom: 1px solid var(--border-soft); }
+details[open].qa { background: #fdfcf7; }
+details > :not(summary) { padding: 10px 16px; }
+details p:first-of-type { margin-top: 8px; }
+details p:last-of-type { margin-bottom: 10px; }
+
+/* difficulty pills: L1 green / L2 yellow / L3 red */
+.lv {
+  display: inline-block;
+  padding: 1px 7px;
+  margin-right: 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", monospace;
+  vertical-align: 1px;
+  line-height: 1.5;
+}
+.lv-l1 { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+.lv-l2 { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+.lv-l3 { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+
+/* frequency badge: 🔥×N */
+.freq {
+  display: inline-block;
+  padding: 1px 7px;
+  margin-right: 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--bg-soft);
+  color: var(--ink-soft);
+  border: 1px solid var(--border-soft);
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", monospace;
+  vertical-align: 1px;
+  line-height: 1.5;
+}
+.freq-hot { background: #fff1e6; color: #b8390e; border-color: #fcd9c0; }
+
+mjx-container[display="true"] { margin: 12px 0 !important; }
+
+footer.aris-footer {
+  margin-top: 60px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+footer.aris-footer a { color: var(--ink-muted); border-bottom: 1px dotted var(--border); }
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; gap: 20px; padding: 20px 16px; }
+  nav.toc {
+    position: static;
+    max-height: none;
+    border-right: none;
+    border-bottom: 1px solid var(--border-soft);
+    padding-right: 0;
+    padding-bottom: 14px;
+  }
+  header.hero h1 { font-size: 24px; }
+  h2 { font-size: 20px; }
+}
+@media print {
+  nav.toc { display: none; }
+  .layout { grid-template-columns: 1fr; padding: 0; }
+  body { background: white; }
+  header.hero { border-bottom-color: var(--ink); }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="toc">
+  <h3>Contents</h3>
+  <ol>
+<li><a href="#1-世界模型基础5-题">§1 世界模型基础（5 题）</a>
+</li>
+<li><a href="#2-dreamer-系列进化5-题">§2 Dreamer 系列进化（5 题）</a>
+</li>
+<li><a href="#3-sim2real-基础6-题">§3 Sim2Real 基础（6 题）</a>
+</li>
+<li><a href="#4-teacher-student--自适应方法4-题">§4 Teacher-Student / 自适应方法（4 题）</a>
+</li>
+<li><a href="#5-仿真器选型与工程6-题">§5 仿真器选型与工程（6 题）</a>
+</li>
+<li><a href="#6-具身-sim2real-实战5-题">§6 具身 Sim2Real 实战（5 题）</a>
+</li>
+<li><a href="#7-低频备选未入主表">§7 低频备选（未入主表）</a>
+</li>
+</ol>
+</nav>
+
+<main>
+<header class="hero">
+  
+  <h1>卷四 · 世界模型 / Sim2Real · 高频面试题</h1>
+  
+  
+  <div class="meta">
+    <span><strong>Source:</strong> <code>docs/interviews/04_world_sim.md</code></span>
+    <span><strong>SHA256:</strong> <code>015341242d19</code></span>
+    <span><strong>Rendered:</strong> 2026-05-20 19:22 UTC</span>
+    
+  </div>
+</header>
+
+<h1 id="卷四--世界模型--sim2real--高频面试题">卷四 · 世界模型 / Sim2Real · 高频面试题</h1>
+<blockquote><p>中文具身智能秋招高频面试题库 · <strong>第四卷</strong> 题源：牛客 / 知乎 / CSDN / GitHub 公开面经 / arxiv 论文讨论 / 具身智能算法岗面试汇编 同义题合并后 <strong>31 题</strong>（主表 31 题：频次 ≥3 + Q31 破例入选）</p></blockquote>
+<p><strong>难度分布</strong>：L1（必会） <strong>9</strong> · L2（进阶） <strong>18</strong> · L3（顶级难度） <strong>4</strong></p>
+<p><strong>使用方式</strong>：题目默认折叠，点开看答案。建议按 <strong>L1 → L2 → L3</strong> 顺序刷；同级内按频次从高到低。手机端原生支持。</p>
+<hr />
+<h2 id="1-世界模型基础5-题">§1 世界模型基础（5 题）</h2>
+<blockquote><p>从 PlaNet 到 Dreamer：RSSM 核心 + latent imagination + model-based RL 的 sample efficiency 优势。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×8</span> <b>Q01</b> · RSSM（循环状态空间模型）是什么？Dreamer 系列如何用它做"想象训练"？</summary>
+<p><strong>答</strong>：RSSM（Recurrent State-Space Model，Hafner 2019 PlaNet）包含两条路径：</p>
+<ul><li><strong>确定性路径</strong> $h_t$（GRU 递归记忆）：保留长序列的历史信息</li><li><strong>随机路径</strong> $z_t$（随机隐变量：V1 用 Gaussian，V2/V3 用 Categorical 离散）：表达单步不确定性</li></ul>
+<p>两路拼接得到 latent state $(h_t, z_t)$。在训练时，$z_t$ 从观测中后验推断；在"想象"时，$z_t$ 从 RSSM 的先验中直接采样，无需真实环境交互。</p>
+<p><strong>Dreamer 的想象训练</strong>：世界模型在 latent 空间中前向 rollout 若干步，actor-critic 从这些"想象轨迹"中通过 BPTT（截断梯度）更新策略——样本效率比 model-free 高 5-20 倍。</p>
+<p><strong>易错</strong>：RSSM 不是 VAE，它的 deterministic path（h_t）是必须的，使得模型能记忆历史；纯 VAE 缺少这条路径会导致长程记忆消失。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q02</b> · PlaNet 是什么？和 Dreamer 的核心区别？RSSM 中"确定性路径 + 随机路径"分别起什么作用？</summary>
+<p><strong>答</strong>：<strong>PlaNet</strong>（Hafner et al., 2019）是第一个用 RSSM 从像素做规划的模型。策略是<strong>基于模型的规划</strong>（CEM/随机射击搜索），在 latent 空间内采样动作序列、评估价值，选最优序列的第一步执行。</p>
+<p><strong>与 Dreamer 的区别</strong>：PlaNet 不学独立 actor，每步都要在线规划（慢）。Dreamer 额外学了 actor-critic，规划由 actor 网络"内化"，推理时直接前向过 actor，无需每步优化。</p>
+<p><strong>两路的作用</strong>：</p>
+<ul><li><strong>确定性路径 $h_t$</strong>（GRU）：跨步传递历史，提供给随机路径作上下文</li><li><strong>随机路径 $z_t$</strong>（随机隐变量，防止后验崩塌）：建模单步观测的随机性/不确定性</li></ul>
+<p><strong>易错</strong>：PlaNet 已经用 RSSM，但策略仍是 MPC 式在线规划，不是学习到的 actor；Dreamer 才是"梦中学 actor"。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q03</b> · 什么是 latent imagination？Dreamer 如何在隐空间里学策略而不需要真实交互？</summary>
+<p><strong>答</strong>：<strong>Latent imagination</strong>：在 RSSM 学好后，从任意 latent state 出发，纯在模型内部（latent 空间）前向模拟 H 步，得到"想象轨迹"。这些轨迹不需要渲染成图像、不需要真实物理引擎，只在低维隐向量间运算，极速高效。</p>
+<p><strong>Dreamer 的策略学习步骤</strong>：</p>
+<ol><li>用真实数据训练 RSSM（重建损失 + KL 正则）</li><li>从 replay buffer 中的已见 latent 出发，通过 RSSM 前向展开 H=15 步想象轨迹</li><li>actor（策略网络）用 BPTT 在这些想象轨迹上最大化折扣奖励</li><li>critic（价值网络）拟合回报，给 actor 提供低方差梯度</li></ol>
+<p><strong>优势</strong>：真实数据采集量少（用来训 RSSM），策略迭代在"梦中"完成，可做数百次 gradient step 对应一次真实 rollout。</p>
+<p><strong>易错</strong>：Dreamer 的 imagination 不是视频生成（不解码到像素），而是在 latent 向量空间中的前向传播；解码器只用于 RSSM 训练的重建损失。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×4</span> <b>Q04</b> · model-based RL（Dreamer 类）和 model-free RL（PPO/SAC 类）在 sample efficiency 上的对比？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th></th><th>Model-Free（PPO/SAC）</th><th>Model-Based（Dreamer/TD-MPC）</th></tr></thead><tbody><tr><td>环境步数需求</td><td>高（百万级）</td><td>低（十万级）</td></tr><tr><td>算法复杂度</td><td>低</td><td>高（需训世界模型）</td></tr><tr><td>计算成本/步</td><td>低</td><td>高（想象 rollout）</td></tr><tr><td>真机部署适合度</td><td>低（样本贵）</td><td>高（用数据想象学策略）</td></tr><tr><td>模型偏差风险</td><td>无</td><td>有（world model error 累积）</td></tr></tbody></table>
+<p><strong>实务选择</strong>：</p>
+<ul><li>真机直接训练（无仿真）→ <strong>model-based 首选</strong>，1 小时内学四足行走（DayDreamer）</li><li>大规模仿真 + GPU 并行 → model-free（PPO）足够，parallelism 弥补了样本效率劣势</li><li>数据稀缺的精细操作 → model-based + offline RL 混合</li></ul>
+<p><strong>易错</strong>：model-based 不等于更快收敛（wall-clock time），因为每步需要训世界模型并做想象 rollout；但<strong>环境交互次数</strong>（环境 step 数）确实减少。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>Q05</b> · MuZero 和 Dreamer 的核心区别？各自适合什么场景？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th></th><th>Dreamer / PlaNet</th><th>MuZero</th></tr></thead><tbody><tr><td>观测重建</td><td><strong>有</strong>（解码器重建图像/状态）</td><td><strong>无</strong>（decoder-free，隐式模型）</td></tr><tr><td>规划方式</td><td>想象 rollout + actor-critic</td><td>MCTS（树搜索）+ 动力学网络</td></tr><tr><td>动作空间</td><td>连续为主</td><td>离散为主（board games / Atari）</td></tr><tr><td>真机适用</td><td>强（连续控制，低采样数）</td><td>弱（MCTS 开销大，实时性差）</td></tr><tr><td>世界模型目标</td><td>最小化重建 + KL</td><td>最小化 value/policy/reward 预测误差（价值等价原则）</td></tr></tbody></table>
+<p><strong>关键差异</strong>：MuZero 的世界模型不需要还原真实观测，只需要能做价值等价的预测（Schrittwieser 2020）；Dreamer 用重建损失保证世界模型学到有意义的 latent。</p>
+<p><strong>适合场景</strong>：MuZero → 离散决策、棋类、Atari；Dreamer → 连续控制、视觉机器人、仿真和真机。</p>
+<p><strong>易错</strong>：MuZero 不是"更先进的 Dreamer"，两者是不同范式；MuZero 的规划开销在实时连续控制中通常无法接受。</p>
+</details>
+<hr />
+<h2 id="2-dreamer-系列进化5-题">§2 Dreamer 系列进化（5 题）</h2>
+<blockquote><p>DreamerV1 → V2 → V3 的三次跃升 + TD-MPC2 的 decoder-free 路线 + DayDreamer 真机验证。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×7</span> <b>Q06</b> · DreamerV3 相比 DreamerV1/V2 做了哪些改进？symlog 和 KL balancing 分别解决什么问题？</summary>
+<p><strong>答</strong>：</p>
+<ul><li><strong>V1</strong>（2020 ICLR）：RSSM + 连续 latent + actor-critic 想象训练，首次像素级机器人控制</li><li><strong>V2</strong>（2021 ICLR）：离散 latent（Categorical 分布）+ KL balancing（α=0.8 偏先验），Atari 超人类</li><li><strong>V3</strong>（2023 Hafner，Nature 2025）：symlog 归一化 + free bits + 固定超参，7 类 domain 无需调参</li></ul>
+<p><strong>symlog 解决什么</strong>：奖励尺度跨任务差异巨大，直接学习梯度不稳定。symlog(x) = sign(x)·ln(|x|+1) 压缩大值、线性化小值，稳定 reward/value 预测。</p>
+<p><strong>KL balancing（α=0.8）解决什么</strong>：若 posterior 和 prior 同等更新，prior 容易学得太简单。α=0.8 使更多梯度流向 prior，令其主动贴近 posterior，提升动力学预测质量。</p>
+<p><strong>易错</strong>：free bits（KL 低于阈值不惩罚）是 V1 就有的技巧，不是 V3 新增；V3 的创新是 symlog + percentage normalization + 规模化固定超参。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×3</span> <b>Q07</b> · DreamerV3 为什么能"一套超参跨 7 大 domain"？固定超参的背后是什么设计？</summary>
+<p><strong>答</strong>：DreamerV3 的"固定超参"核心在于消除了<strong>奖励尺度依赖</strong>和<strong>任务特定归一化</strong>：</p>
+<ol><li><strong>symlog 统一奖励尺度</strong>：不同任务奖励量级不一，symlog 压缩后 critic 和 actor 的学习率无需逐任务调整</li><li><strong>percentage-based value normalization</strong>：用百分位数（5th / 95th）归一化 advantage，消除绝对数值的影响</li><li><strong>固定 KL free bits = 1 nat</strong>：使 latent 既有足够信息量又不过度正则化，无需按任务调 β</li><li><strong>规模化鲁棒性</strong>：模型够大（200M 参数），容量充足以应对不同 domain 的复杂性</li></ol>
+<p><strong>跨越的 7 类 domain</strong>：Atari（离散）/ DMControl（连续）/ MineCraft（3D 探索）/ Crafter（多任务）/ DMLab（记忆） / BSuite（系统性测试）/ proprio state（低维）。</p>
+<p><strong>易错</strong>：固定超参不代表"不需要训练更多步"，不同任务环境步数仍有差异；固定的是<strong>算法超参</strong>，不是训练步数。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q08</b> · DayDreamer 实验说明了什么？世界模型是否能在真机上在线训练？</summary>
+<p><strong>答</strong>：<strong>DayDreamer</strong>（Wu et al., CoRL 2022，UC Berkeley）是 Dreamer 的真机版本，关键结论：</p>
+<ul><li><strong>四足行走从零学会</strong>：Unitree A1 四足机器人从随机初始化出发，在<strong>真机不重置</strong>的情况下，约 <strong>1 小时</strong>内学会站立和行走（无需仿真、无需演示）</li><li><strong>在线学习可行</strong>：世界模型实时更新（边交互边训），策略在 latent imagination 中迭代，真机数据需求比 model-free 少 5-10×</li><li><strong>真机 adaptation</strong>：学会走后 10 分钟内适应扰动（推动/地形变化）</li></ul>
+<p><strong>意义</strong>：证明世界模型在真机上在线训练是可行的，不是只适合仿真；为无需 sim2real 的真机模型学习路线提供了可行 baseline。</p>
+<p><strong>限制</strong>：四足行走任务相对简单（无精细操作），高维操作任务在真机上的实时世界模型学习仍是开放问题。</p>
+<p><strong>易错</strong>：DayDreamer 不是"不需要 sim2real"的方案，而是"不依赖仿真"的替代方向；两条路线（sim2real 和真机在线学习）各有适用场景。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q09</b> · TD-MPC2 的"隐式世界模型"是什么概念？它和 DreamerV3 的 RSSM 有什么区别？</summary>
+<p><strong>答</strong>：<strong>TD-MPC2</strong>（Hansen et al., ICLR 2024）的隐式世界模型（implicit world model）是 <strong>decoder-free</strong> 设计：</p>
+<table><thead><tr><th></th><th>DreamerV3</th><th>TD-MPC2</th></tr></thead><tbody><tr><td>世界模型类型</td><td>显式（explicit）：有解码器，重建观测</td><td>隐式（implicit）：无解码器，不还原观测</td></tr><tr><td>训练信号</td><td>重建损失 + KL + reward 预测</td><td>TD 误差 + reward + consistency loss</td></tr><tr><td>规划方式</td><td>actor-critic 想象（BPTT）</td><td>MPC + CEM/MPPI（latent 空间规划）</td></tr><tr><td>适用规模</td><td>较大模型（200M+）</td><td>较小模型（1M~317M，多任务单权重）</td></tr><tr><td>任务多样性</td><td>跨 7 大 domain</td><td>104 任务，单套超参，包含操作和运动</td></tr></tbody></table>
+<p><strong>隐式的好处</strong>：不需要重建观测，节省容量；用 SimNorm 归一化 latent，防止 latent 坍缩；decoder-free 使模型更轻量。</p>
+<p><strong>易错</strong>：TD-MPC2 的"world model"不学重建，所以无法"看"世界模型的想象；它的 latent 只对 value/reward 预测有意义，不是可解释的图像 latent。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q10</b> · 世界模型用于 planning（MCTS/CEM/MPPI）的思路？MuZero 怎么做 planning？</summary>
+<p><strong>答</strong>：<strong>世界模型 + Planning</strong>：在 latent 空间中搜索最优动作序列，而无需真实执行：</p>
+<ul><li><strong>CEM</strong>：采样动作序列，前向展开评估价值，选 top-k 迭代更新分布（TD-MPC 采用）</li><li><strong>MPPI</strong>：重要性采样加权多条 rollout，适合连续控制</li><li><strong>MCTS</strong>（MuZero）：树搜索 + 展开/模拟/回传，适合离散任务</li></ul>
+<p><strong>MuZero 的 Planning</strong>：① representation（obs → latent）② dynamics（latent + action → next latent + reward）③ prediction（latent → policy + value）。MCTS 在这三个网络构成的虚拟树中搜索，policy/value 指导方向，无需真实环境交互。</p>
+<p><strong>易错</strong>：CEM/MPPI 是无梯度采样优化；MCTS 开销大（每步数百次前向），在连续控制实时场景中通常太慢，不要认为 MuZero 也适合机器人控制。</p>
+</details>
+<hr />
+<h2 id="3-sim2real-基础6-题">§3 Sim2Real 基础（6 题）</h2>
+<blockquote><p>reality gap 来源 + Domain Randomization + ADR + Digital Twin + 迁移方式选择。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×8</span> <b>Q11</b> · Sim2Real 中的 reality gap 主要来源有哪些？如何系统性解决？</summary>
+<p><strong>答</strong>：<strong>Reality gap 的主要来源</strong>：</p>
+<ol><li><strong>物理参数不精确</strong>：摩擦系数、质量惯性张量、关节阻尼——仿真默认值与真机不符</li><li><strong>接触/碰撞模型误差</strong>：真实接触面非点接触，仿真的 point-contact / spring-damper 模型过于简化</li><li><strong>执行器（actuator）模型误差</strong>：电机动态、传动比、延迟、反向间隙（backlash）在仿真中通常被忽略</li><li><strong>传感器噪声差异</strong>：IMU 漂移、相机曝光变化、深度传感器噪声模式</li><li><strong>视觉外观差异</strong>：光照、纹理、材质反射率不同（渲染真实感不足）</li></ol>
+<p><strong>系统解决策略</strong>：</p>
+<ul><li><strong>物理 gap</strong> → Domain Randomization（DR）或 System Identification</li><li><strong>执行器 gap</strong> → actuator delay 建模 + torque/PD 控制 matching</li><li><strong>视觉 gap</strong> → Photo-realistic rendering + 视觉 DR（颜色/纹理/光照随机化）</li><li><strong>自适应</strong> → Teacher-Student + online adaptation（RMA）</li></ul>
+<p><strong>易错</strong>：并非所有 gap 都能靠 DR 覆盖；contact model 误差是"硬性"误差，DR 只是用分布包住，无法从根本消除接触力学的模拟误差。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×8</span> <b>Q12</b> · Domain Randomization（域随机化）是什么？为什么能缩小 reality gap？</summary>
+<p><strong>答</strong>：<strong>Domain Randomization（DR）</strong>：在仿真训练时，将物理参数（摩擦、质量、关节刚度）和视觉参数（纹理、光照、相机位置）在预设范围内<strong>随机采样</strong>，迫使策略对参数变化保持鲁棒。</p>
+<p><strong>为什么有效</strong>：若真实世界参数在训练时的随机化范围内（或接近），策略已见过该参数值，可直接 zero-shot 迁移。核心假设是"只要随机化范围足够宽，真实世界参数必然被覆盖"。</p>
+<p><strong>两类 DR</strong>：</p>
+<ul><li><strong>物理 DR</strong>：摩擦系数、关节阻尼、质量 → 应对动力学 gap</li><li><strong>视觉 DR</strong>：纹理贴图、光照强度、颜色扰动 → 应对渲染 gap（OpenAI dexterous hand 经典案例）</li></ul>
+<p><strong>关键超参</strong>：随机化范围需要调——太窄覆盖不了真实，太宽任务太难导致训练不收敛。</p>
+<p><strong>易错</strong>：DR 不等于"随机化越大越好"；过大的随机范围会使任务变得无法学习（policy 一直在应对极端情况），需要 curriculum 逐步扩大范围。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q13</b> · Automatic Domain Randomization（ADR）是什么？比手动 DR 好在哪里？</summary>
+<p><strong>答</strong>：<strong>ADR</strong>（Akkaya et al., 2019 OpenAI，Rubik's Cube 论文 arXiv 1910.07113）：自动调节 DR 参数分布范围的方法。核心机制：</p>
+<ol><li>每个随机化参数都有一个当前分布（如摩擦 [0.5, 2.0]）</li><li>根据策略在<strong>边界条件</strong>（分布上/下端采样）下的成功率动态调整：若成功率 &gt; 上阈值，扩宽分布范围；若 &lt; 下阈值，收窄</li><li>分布自动渐进扩展，只要策略能跟上就持续变难</li></ol>
+<p><strong>比手动 DR 好的地方</strong>：</p>
+<ul><li>无需逐参数手调范围，省去繁琐 hyperparameter tuning</li><li>自适应课程：跟策略学习进度对齐，不会"一步跳太难"导致训练崩溃</li><li>可扩展到几十个随机化维度，手动调 50+ 参数不现实</li></ul>
+<p><strong>局限</strong>：ADR 假设成功率是好的反馈信号，稀疏奖励任务中难以判断"是否在进步"；另外计算开销比固定分布 DR 大。</p>
+<p><strong>易错</strong>：ADR 不是一种新的随机化类型，而是一种<strong>自动调整 DR 参数范围</strong>的调度策略。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q14</b> · Domain Adaptation 和 Domain Randomization 是什么关系？Sim2Real 中各自的应用场景？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th></th><th>Domain Randomization（DR）</th><th>Domain Adaptation（DA）</th></tr></thead><tbody><tr><td>时机</td><td>训练期间</td><td>测试时（有少量真实数据）</td></tr><tr><td>思路</td><td>扩大 source domain 覆盖 target</td><td>对齐 source 和 target 的分布</td></tr><tr><td>真实数据需求</td><td>不需要真实数据</td><td>需要少量真实数据（labeled or not）</td></tr><tr><td>典型方法</td><td>随机化仿真参数</td><td>DANN、MMD、GAN-based alignment</td></tr><tr><td>部署场景</td><td>zero-shot 迁移</td><td>有一定 real world 收集预算</td></tr></tbody></table>
+<p><strong>具身中的组合使用</strong>：</p>
+<ul><li>先 DR 训练 → zero-shot 迁移（效果 60-80%）</li><li>再用少量真实数据 fine-tune（DA）→ 效果提升到 90%+</li><li>或用 sim-to-real 感知模块（视觉特征对齐）+ DR 策略组合</li></ul>
+<p><strong>易错</strong>：DA 不是"比 DR 更好的替代"，两者互补；没有真实数据时 DR 是唯一选择，有少量真实数据时 DA 是高效的补充。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×4</span> <b>Q15</b> · Digital Twin 在 sim2real 中的作用？与传统 DR 方法有什么区别？</summary>
+<p><strong>答</strong>：<strong>Digital Twin（数字孪生）</strong>：对特定真实场景/机器人进行精确建模（几何、动力学、外观），使仿真尽量还原真实个体，目标是"仿真精度高到不需要大范围 DR"。</p>
+<p><strong>和 DR 的对比</strong>：</p>
+<table><thead><tr><th></th><th>Digital Twin</th><th>Domain Randomization</th></tr></thead><tbody><tr><td>策略</td><td>"精确仿真" → 减小 gap</td><td>"宽泛仿真" → 覆盖 gap</td></tr><tr><td>构建成本</td><td>高（3D 扫描、系统辨识）</td><td>低（随机化参数设范围）</td></tr><tr><td>泛化性</td><td>绑定特定环境</td><td>泛化到更多场景</td></tr><tr><td>适合场景</td><td>工厂固定工位、已知机器人型号</td><td>多样化部署场景</td></tr></tbody></table>
+<p><strong>前沿融合</strong>：用 3D Gaussian Splatting 快速构建数字孪生（分钟级），与 RL 训练流程结合；ManiSkill3 的数字孪生 RL 接口仍在开发中（WIP），是研究前沿方向。</p>
+<p><strong>易错</strong>：Digital Twin 不是"替代 DR"的方案，在动态场景（人群、随机光照）中精确孪生不可能，仍需 DR 补充。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×4</span> <b>Q16</b> · 仿真到真机的"zero-shot transfer"和"fine-tuning transfer"有何区别？哪种更常用？</summary>
+<p><strong>答</strong>：</p>
+<ul><li><strong>Zero-shot transfer</strong>：仿真训练后<strong>直接部署</strong>到真机，无需真实数据；依赖 DR 或精确仿真覆盖真实分布。典型：ANYmal 四足行走（Lee 2020）、OpenAI dexterous hand（Andrychowicz 2020）。</li><li><strong>Fine-tuning transfer</strong>：仿真训练后用少量真实数据 fine-tune；真实环境数据几十到几千条即可显著提升成功率。典型：机械臂精细操作（夹夹手、拧瓶盖）。</li></ul>
+<p><strong>哪种更常用</strong>：</p>
+<ul><li>运动控制（四足/双足步态）→ <strong>zero-shot 更主流</strong>，因为策略对精确接触力不敏感，DR 覆盖足够</li><li>灵巧操作（抓取/插针/翻转）→ <strong>fine-tuning 更必要</strong>，接触力精度要求高，仿真永远有残差</li></ul>
+<p><strong>实务建议</strong>：先尝试 zero-shot，若成功率 &lt; 70% 再收集少量真实数据 fine-tune；节省数据采集成本。</p>
+<p><strong>易错</strong>：fine-tuning 不等于从头在真机上训练（那是 online RL，成本高）；fine-tuning 的基础是仿真预训练，只需少量真实 step 微调。</p>
+</details>
+<hr />
+<h2 id="4-teacher-student--自适应方法4-题">§4 Teacher-Student / 自适应方法（4 题）</h2>
+<blockquote><p>特权观测 + RMA + Curriculum + System ID：把仿真优势最大化转化为真机能力。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×7</span> <b>Q17</b> · Teacher-Student 框架在 sim2real 中怎么用？privileged observation 是什么？</summary>
+<p><strong>答</strong>：<strong>Teacher-Student 框架</strong>：仿真中训练两个策略：</p>
+<ul><li><strong>Teacher</strong>（教师策略）：可访问仿真中的<strong>特权观测</strong>（privileged observations）——真实机器人无法获取的信息，如精确地形高度图、摩擦系数、外力值等</li><li><strong>Student</strong>（学生策略）：只能访问真机上的传感器数据（IMU、关节角、相机图像）</li></ul>
+<p>训练流程：</p>
+<ol><li>仿真中训练 Teacher 达到高性能（有特权信息，容易）</li><li>Student 用 DAgger / BC 蒸馏 Teacher：给定相同状态，让 Student 模仿 Teacher 的动作</li><li>Student 部署到真机（无需特权信息）</li></ol>
+<p><strong>为什么有效</strong>：Teacher 利用特权信息找到了好策略，Student 蒸馏保留了策略质量，真机只需要 Student 可获取的传感器——打通了"仿真特权"和"真机局限"之间的桥梁。</p>
+<p><strong>易错</strong>：Teacher-Student 不是 knowledge distillation 的一般版本；特权观测是仿真专属的，不是"从大模型蒸馏小模型"；若 Student 观测与 Teacher 动作之间信息量差距太大，蒸馏也会失败。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×6</span> <b>Q18</b> · RMA（Rapid Motor Adaptation）的核心思路是什么？为什么比纯 DR 更鲁棒？</summary>
+<p><strong>答</strong>：<strong>RMA</strong>（Kumar et al., RSS 2021）= Teacher-Student + 在线自适应模块，两阶段训练：</p>
+<ul><li><strong>Phase 1（仿真）</strong>：训练 base policy（输入 proprio + extrinsics 向量 $e$，$e$ 编码地形/摩擦等特权信息）+ extrinsics encoder</li><li><strong>Phase 2</strong>：冻结 base policy，训 adaptation module：用历史本体感觉序列（IMU/关节角）预测 $\hat{e} \approx e$</li></ul>
+<p><strong>真机部署</strong>：adaptation module 实时估计 $\hat{e}$，base policy 用 $\hat{e}$ 适应未知环境，无需外感传感器。</p>
+<p><strong>比纯 DR 更鲁棒</strong>：DR 是"被动覆盖"，策略不知当前处于哪种环境；RMA 是"主动适应"，根据历史本体感觉动态估计当前参数，策略能"感知"到地形变化。</p>
+<p><strong>易错</strong>：adaptation module 只用 IMU/关节角（真机都有），不依赖外感；估计误差 $\hat{e} \ne e$ 由 module 的鲁棒性吸收，不要求完美匹配。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q19</b> · curriculum learning 在 sim2real 中怎么用？常见 curriculum 设计策略有哪些？</summary>
+<p><strong>答</strong>：<strong>Curriculum Learning（课程学习）</strong>：从简单任务/环境逐步加难，让策略稳定收敛，避免直接在"全难度"下训练失败。</p>
+<p><strong>在 Sim2Real 中的常见 Curriculum 策略</strong>：</p>
+<ol><li><strong>地形 Curriculum</strong>（运动控制）：从平地开始 → 加坡度 → 加台阶 → 加随机不规则地形。Isaac Lab 标配地形课程。</li><li><strong>随机化范围 Curriculum</strong>（DR Curriculum）：DR 范围从窄到宽逐步扩展；ADR 本质上是自动化的 DR curriculum</li><li><strong>任务难度 Curriculum</strong>（操作）：从接近成功位置开始 → 逐步增大初始距离；从固定目标 → 随机目标位置</li><li><strong>奖励塑造 Curriculum</strong>（dense → sparse）：初期用稠密奖励引导，后期切换稀疏奖励增强泛化</li></ol>
+<p><strong>何时用</strong>：策略在完整难度下无法启动时（cold start）；或 DR 范围过大导致训练崩溃时。</p>
+<p><strong>易错</strong>：Curriculum 不一定总能提升最终性能——有时直接暴力训 full random 效果一样甚至更好（任务简单时）；Curriculum 主要解决"训练启动难"问题，不是性能上界问题。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q20</b> · 什么是 system identification（系统辨识）？如何与 DR 结合？</summary>
+<p><strong>答</strong>：<strong>System Identification（系统辨识，SysID）</strong>：用真实机器人数据（如施加已知力矩后测量关节角度轨迹）估计物理模型参数（质量、惯量、摩擦、阻尼），使仿真参数尽量接近真实值。</p>
+<p><strong>与 DR 的结合（标准实践）</strong>：</p>
+<ol><li>用 SysID 找到"最优估计"参数 $\theta^*$（均值）</li><li>以 $\theta^*$ 为中心，在 ±uncertainty 范围内做 DR</li><li>这样 DR 的覆盖是<strong>有根据的分布</strong>，不是盲猜范围</li></ol>
+<p><strong>好处</strong>：DR 范围精准，不会过宽（浪费训练容量）也不会过窄（漏掉真实参数）。</p>
+<p><strong>常见 SysID 方法</strong>：最小二乘辨识（线性系统）/ 贝叶斯辨识（给出后验分布，直接指导 DR 范围）/ RMA 风格的在线辨识。</p>
+<p><strong>易错</strong>：SysID 是"一次性标定"，真机磨损/环境变化后需要重新辨识；RMA 等在线自适应方法是 SysID 的动态替代，无需离线标定步骤。</p>
+</details>
+<hr />
+<h2 id="5-仿真器选型与工程6-题">§5 仿真器选型与工程（6 题）</h2>
+<blockquote><p>Isaac Lab / MuJoCo / Genesis / ManiSkill：GPU 并行 + 接触模型 + 格式选择。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×6</span> <b>Q21</b> · Isaac Gym 和 Isaac Lab 的关系？与 MuJoCo 在仿真精度/速度上的对比？</summary>
+<p><strong>答</strong>：</p>
+<ul><li><strong>Isaac Gym</strong>（2021 NVIDIA）：第一款 GPU 加速 RL 仿真器，基于 PhysX，支持数千并行 env，已于 2024 年<strong>正式 deprecated</strong>，推荐迁移到 Isaac Lab</li><li><strong>Isaac Lab</strong>（2024 NVIDIA）：Isaac Gym 的官方继任，基于 Isaac Sim（Omniverse 平台）+ PhysX，提供模块化 RL 环境接口，支持 USD 场景格式，功能更完整（sensor 插件、物理材质 API）</li></ul>
+<table><thead><tr><th></th><th>Isaac Lab（PhysX）</th><th>MuJoCo（Newton/CG/PGS）</th></tr></thead><tbody><tr><td>速度（GPU 并行）</td><td>极快（100K+ FPS，千级 env）</td><td>较快（MJX GPU 后端，但单核慢）</td></tr><tr><td>接触精度</td><td>PhysX：速度优先，精度中等</td><td>Newton/CG/PGS：接触精细，适合精细操作</td></tr><tr><td>开源</td><td>Isaac Lab 开源，Isaac Sim 闭源依赖</td><td>完全开源</td></tr><tr><td>常用场景</td><td>大规模 RL 训练、四足/人形步态</td><td>控制研究、操作任务、学术基准</td></tr></tbody></table>
+<p><strong>易错</strong>：Isaac Gym 已 deprecated，不要在新项目中使用；Isaac Lab 需要 Isaac Sim 作为底层，而 Isaac Sim 是 NVIDIA 闭源商业软件（学术免费）。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×3</span> <b>Q22</b> · MuJoCo、PyBullet、SAPIEN、Genesis 的特点对比？各自适合什么场景？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th>仿真器</th><th>优势</th><th>局限</th><th>适合场景</th></tr></thead><tbody><tr><td><strong>MuJoCo</strong></td><td>接触精细（Newton/CG/PGS 求解器），学术标配，DMControl 基准</td><td>慢（CPU 主）；MJX 是 GPU 后端但较新</td><td>控制研究、精细操作、学术对比</td></tr><tr><td><strong>PyBullet</strong></td><td>开源免费，易上手，社区大</td><td>接触精度差，性能低，已逐渐式微</td><td>快速原型，教学</td></tr><tr><td><strong>SAPIEN</strong></td><td>关节/铰链精确，articulated 对象建模好</td><td>并行性有限，生态较小</td><td>多关节操作（抽屉、门）；ManiSkill 基础</td></tr><tr><td><strong>Genesis</strong></td><td>号称最快（43M FPS），多物理后端</td><td>成熟度低，纯物理比 ManiSkill 慢 3-10x（基准测试）</td><td>超大规模 RL 探索，数据生成</td></tr></tbody></table>
+<p><strong>MJX（MuJoCo with JAX）</strong>：MuJoCo 的 GPU 并行后端，2023 发布，接触精度保持，支持 JAX 自动微分，逐步成为精细操作研究的 GPU 方案。</p>
+<p><strong>易错</strong>：Genesis 宣称"最快"基于特定场景；在物理仿真精度可比的条件下，ManiSkill3 的 GPU 并行效率（3.5GB vs 14.1GB，128 env）比 Isaac Lab 更高效。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>Q23</b> · GPU 并行仿真（tensorized envs）的原理和关键优势？</summary>
+<p><strong>答</strong>：<strong>GPU 并行仿真</strong>：将 N 个独立仿真环境的物理状态张量化，通过 GPU 的 SIMD（单指令多数据）并行架构同时计算 N 个环境的物理步。</p>
+<p><strong>核心原理</strong>：</p>
+<ul><li>所有 env 的物理状态（关节角、速度、接触力）打包为 [N, D] 的 GPU 张量</li><li>物理引擎（PhysX / JAX MuJoCo）在 GPU 上一次前向计算 N 个 env</li><li>RL 的 policy 网络也在 GPU 上批量推断，无 CPU-GPU 数据传输瓶颈</li></ul>
+<p><strong>关键优势</strong>：</p>
+<ul><li>吞吐量：Isaac Lab 单卡 4090 可跑 4096 个 ANYmal env，效果相当于 4096 块 CPU 核</li><li>数据去相关：并行 env 采样多样轨迹，减少 on-policy 算法的 variance</li><li>训练加速：PPO 在 4096 env 下 wall-clock 时间比 1 env 快近 100×</li></ul>
+<p><strong>注意</strong>：GPU env 数量不能无限增大——内存受限（128 env 约 3.5 GB GPU 内存，ManiSkill3 测试）；N 太大时 batch too large 导致策略更新步过大。</p>
+<p><strong>易错</strong>：GPU 并行仿真不等于仿真精度更高，速度和精度是不同维度；PhysX 为了速度做了精度妥协，精细接触任务仍需 MuJoCo。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×3</span> <b>Q24</b> · URDF / MJCF / USD 三种机器人描述格式的区别？各仿真器对它们的支持情况？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th>格式</th><th>来源</th><th>核心特点</th><th>适用场景</th></tr></thead><tbody><tr><td><strong>URDF</strong></td><td>ROS</td><td>XML 树形链结构；不支持 loop closure；无物理材质细节</td><td>ROS / PyBullet / 快速原型</td></tr><tr><td><strong>MJCF</strong></td><td>MuJoCo</td><td>功能丰富（接触参数、肌腱、equality 约束），支持闭链</td><td>MuJoCo 精细仿真、控制研究</td></tr><tr><td><strong>USD</strong></td><td>Pixar / NVIDIA</td><td>场景层级管理，支持传感器/光照/动态物体，工业级扩展</td><td>Isaac Sim / Isaac Lab / 大规模渲染</td></tr></tbody></table>
+<p><strong>转换</strong>：URDF → USD（Isaac Lab 官方工具）；URDF → MJCF（dm_control 工具）；信息量不同，转换有损失。</p>
+<p><strong>选型</strong>：学术研究 → URDF；精细操作 → MJCF；大规模 GPU 训练/渲染 → USD。</p>
+<p><strong>易错</strong>：URDF 不支持闭链（loop closure），平行四杆等机构必须用 MJCF 的 equality 约束；直接用 URDF 会出现关节约束错误。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q25</b> · 仿真器的接触/碰撞模型（contact model）对 sim2real 的影响？为什么抓取任务难做？</summary>
+<p><strong>答</strong>：<strong>接触模型的核心问题</strong>：真实接触是面接触（有面积、有变形、有摩擦锥），但主流仿真器用点接触近似（point contact）+ 弹簧阻尼模型（spring-damper），引入两类误差：</p>
+<ol><li><strong>接触力方向误差</strong>：点接触无法模拟接触面的力矩分布（如抓取时手指包裹物体的摩擦力）</li><li><strong>接触刚度误差</strong>：仿真的"软体接触"系数很难与真实物体材质匹配</li></ol>
+<p><strong>为什么抓取任务特别难</strong>：</p>
+<ul><li>抓取稳定性取决于接触点分布和摩擦系数，仿真误差直接影响是否抓住</li><li>物体几何细节（倒角、表面粗糙度）在 CAD 模型中往往简化，真实接触面与仿真不同</li><li>插针（peg-in-hole）等精密操作误差仅 1mm，仿真接触力方向偏差就可能导致失败</li></ul>
+<p><strong>缓解策略</strong>：使用 MuJoCo（Newton/CG/PGS 精细接触）+ 合适摩擦参数 / 收集少量真实数据 fine-tune / 用力传感器反馈替代精确接触建模。</p>
+<p><strong>易错</strong>：PhysX（Isaac Lab）速度快但接触精度低于 MuJoCo，精细抓取研究应优先选 MuJoCo；不要因为 Isaac Lab 并行速度快就用它做高精度接触任务。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×3</span> <b>Q26</b> · ManiSkill 和 Isaac Lab 的 GPU 并行能力对比？哪个适合操作任务训练？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th></th><th>ManiSkill3（SAPIEN/Vulkan）</th><th>Isaac Lab（Isaac Sim/PhysX）</th></tr></thead><tbody><tr><td>物理引擎</td><td>SAPIEN（基于 PhysX 5 + Vulkan）</td><td>PhysX（NVIDIA 官方）</td></tr><tr><td>128 env GPU 内存</td><td><strong>3.5 GB</strong></td><td>14.1 GB</td></tr><tr><td>并行渲染</td><td>原生支持，速度极快</td><td>支持但资源占用高</td></tr><tr><td>操作任务丰富度</td><td>12+ 类操作域，human-artist 设计场景</td><td>操作任务少，步态类为主</td></tr><tr><td>学习框架集成</td><td>RL + IL，直接支持视觉 obs RL</td><td>RL 为主</td></tr><tr><td>开源程度</td><td>完全开源</td><td>Isaac Lab 开源，依赖闭源 Isaac Sim</td></tr></tbody></table>
+<p><strong>结论</strong>：</p>
+<ul><li>操作任务（抓取/灵巧操作/移动操作）→ <strong>ManiSkill3 更合适</strong>（内存效率高、操作任务丰富、可从视觉训练）</li><li>步态/人形运动 → <strong>Isaac Lab 更合适</strong>（四足/双足步态生态更完整，官方 ANYmal/G1 模板）</li></ul>
+<p><strong>易错</strong>：Genesis 号称最快，但在物理精度可比的基准下，ManiSkill3 GPU 内存效率更高；Genesis 2024 年仍在成熟中，生产环境慎用。</p>
+</details>
+<hr />
+<h2 id="6-具身-sim2real-实战5-题">§6 具身 Sim2Real 实战（5 题）</h2>
+<blockquote><p>人形 / 四足 / 操作任务的 sim2real 挑战差异 + 视频世界模型与 JEPA 的应用前景。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q27</b> · 人形机器人 sim2real 面临哪些特有挑战？和四足机器人 sim2real 有何不同？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th>维度</th><th>四足（ANYmal / Unitree Go2）</th><th>人形（Unitree G1 / Figure）</th></tr></thead><tbody><tr><td>DoF</td><td>12-16</td><td>30-50+（含双臂）</td></tr><tr><td>稳定性</td><td>4 接触点，裕度大</td><td>2 接触点，balance 极敏感</td></tr><tr><td>主要 gap</td><td>地形接触、地面摩擦</td><td>全身动力学、髋关节柔顺性</td></tr><tr><td>仿真工具</td><td>Isaac Lab（模板齐全）</td><td>Isaac Lab / MuJoCo（模板快速增加）</td></tr></tbody></table>
+<p><strong>人形特有挑战</strong>：</p>
+<ol><li>COM 高，关节误差 1cm 即可导致摔倒；</li><li>30+ 维 joint torques 输出，执行器模型误差被成倍放大；</li><li>双臂 + 行走协同，sim2real 难度非线性增长。</li></ol>
+<p><strong>缓解</strong>：Teacher-Student（特权观测含接触状态）+ RMA 在线适应 + 保守 DR 范围（不能太宽）。</p>
+<p><strong>易错</strong>：人形不是"四足加两条腿"——双足平衡对 contact model 误差极敏感，需比四足更精确的动力学建模。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q28</b> · 操作任务的 sim2real（抓取/插针/双臂）和运动控制的 sim2real 有何核心区别？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th>维度</th><th>运动控制 sim2real</th><th>操作任务 sim2real</th></tr></thead><tbody><tr><td>主要传感器</td><td>IMU + 关节编码器（proprio）</td><td>相机 + 深度 + 力传感器（多模态）</td></tr><tr><td>关键 gap 来源</td><td>地形接触、动力学参数</td><td>视觉外观、物体接触/摩擦、末端精度</td></tr><tr><td>成功指标</td><td>稳定行走（鲁棒）</td><td>任务完成（精确）</td></tr><tr><td>DR 有效性</td><td>高（地形/摩擦 DR 有效）</td><td>中（接触模型误差难以 DR 覆盖）</td></tr><tr><td>常用仿真器</td><td>Isaac Lab / Isaac Gym</td><td>MuJoCo / ManiSkill / SAPIEN</td></tr><tr><td>真机 fine-tune 需求</td><td>低（zero-shot 较常见）</td><td>中-高（精细操作几乎总需要 fine-tune）</td></tr></tbody></table>
+<p><strong>操作的特殊难点</strong>：末端执行器精度要求 &lt; 5mm（插针 &lt; 1mm），仿真的接触误差直接影响任务成败；物体的 CAD 模型与真实物体几何存在偏差，导致视觉特征也有 gap。</p>
+<p><strong>关键差异总结</strong>：运动控制看"稳定鲁棒"，sim2real 靠 DR 基本解决；操作任务看"精确完成"，sim2real 需要数据 + fine-tune + 传感器融合。</p>
+<p><strong>易错</strong>：不能把运动控制的 zero-shot sim2real 成功经验直接套用到操作任务——两者的 gap 来源和解决方案都不同。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q29</b> · Genie / 视频生成世界模型和具身智能的关联？它能否直接作为机器人 policy？</summary>
+<p><strong>答</strong>：<strong>Genie</strong>（Google DeepMind，2024 / Genie 3 2025）：从视频自监督学习的交互式世界模型，给定初帧 + 动作指令生成后续帧；Genie 3 实现 24 FPS 实时 3D 世界生成。</p>
+<p><strong>与具身的关联</strong>：① 从无标注视频学物理先验，减少真机数据需求；② 生成多样场景替代传统仿真；③ 在生成视频中 rollout 动作序列评估。</p>
+<p><strong>能否直接作为 policy</strong>：目前不能。控制粒度粗（不是 joint torques）、推理延迟高（无法达到 50Hz）、缺少精确物理约束（接触力/惯量）。</p>
+<p><strong>未来方向</strong>：Video World Model + Action Expert 两阶段（类 π0）——视频模型负责感知规划，轻量 action head 输出控制量。</p>
+<p><strong>易错</strong>：视频世界模型（像素空间生成，高保真但慢）≠ Dreamer RSSM（latent 空间预测，快但不可视化）；前者是"看得见的世界"，后者是"隐式的动力学"。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×3</span> <b>Q30</b> · JEPA（Joint-Embedding Predictive Architecture）和 Dreamer 世界模型的差异？</summary>
+<p><strong>答</strong>：<strong>JEPA</strong>（LeCun 提出，Meta V-JEPA / V-JEPA 2）：在 embedding 空间预测目标特征，不重建像素。</p>
+<table><thead><tr><th></th><th>JEPA（V-JEPA）</th><th>Dreamer（RSSM）</th></tr></thead><tbody><tr><td>预测目标</td><td>特征向量（feature space）</td><td>像素重建 + latent 预测</td></tr><tr><td>重建损失</td><td>无</td><td>有（解码器）</td></tr><tr><td>训练数据</td><td>互联网视频（无动作标签）</td><td>带动作的 agent 交互数据</td></tr><tr><td>可用于控制</td><td>间接（高质量表征 → 下游 RL）</td><td>直接（imagination rollout 训 actor）</td></tr></tbody></table>
+<p><strong>V-JEPA 2</strong>（Meta，2025，100 万小时视频预训练）：可做短期物理预测，作为 backbone 提升操作策略效果；类似 VLM 之于 VLA 的作用。</p>
+<p><strong>易错</strong>：V-JEPA 2 已有 action-conditioned 版本（V-JEPA 2-AC），支持短程规划和机器人控制；但它没有 Dreamer 那样的 long-horizon imagination rollout 训 actor 的成熟流程，两者适用场景不同。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×4</span> <b>Q31</b> · TD-MPC 的 temporal difference + MPC 是如何结合的？和纯 MPC 有何区别？（**破例**：TD-MPC2 ICLR 2024 顶会，面试中正在新增）</summary>
+<p><strong>答</strong>：<strong>TD-MPC</strong>（Hansen et al., 2022；TD-MPC2 ICLR 2024）结合 TD 学 value 和 MPC 做规划：</p>
+<p><strong>TD 部分</strong>：学 latent 动力学 $z_{t+1}=f(z_t,a_t)$、Q 函数（TD 误差监督）、reward 预测；latent 用 SimNorm 防坍缩。</p>
+<p><strong>MPC 部分</strong>：每步用 CEM 在 latent 空间搜索 H 步最优序列，序列末端价值用学到的 Q 评估（解决纯 MPC 只看 H 步的近视问题）；选第一步执行，下步重规划。</p>
+<p><strong>与纯 MPC 的区别</strong>：纯 MPC 依赖精确物理模型、无 value function；TD-MPC 用 TD 提供无限 horizon 的价值估计，精度和泛化性更强。</p>
+<p><strong>易错</strong>：TD-MPC2 是 decoder-free（不重建观测），latent 只对 TD/reward 预测有意义，不是可视化状态；和 Dreamer 的重建式 latent 本质不同。</p>
+</details>
+<hr />
+<h2 id="7-低频备选未入主表">§7 低频备选（未入主表）</h2>
+<blockquote><p>以下 4 题频次 1-2，保留供参考。面试中偶发，不作为必刷优先级。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×2</span> <b>N2</b> · V-JEPA 2 的预测目标是什么？和 Dreamer 的 reconstruction loss 有何区别？</summary>
+<p><strong>答</strong>：<strong>V-JEPA 2</strong>（Meta，2025，100 万小时视频预训练）的预测目标是<strong>遮挡区域的 patch 特征向量</strong>，而非像素值：给定上下文帧（部分可见），预测被遮挡 patch 的 encoder 输出（在 feature space 中预测，而非 pixel space）。</p>
+<p><strong>与 Dreamer 重建损失的区别</strong>：</p>
+<ul><li>Dreamer：decoder 将 latent 解码回像素，优化像素级 MSE；学的是"能还原图像"的 latent</li><li>V-JEPA 2：predictor 在特征空间预测目标特征，无像素解码器；学的是"能预测遮挡部分特征"的表征</li></ul>
+<p><strong>V-JEPA 2 的优势</strong>：避免了像素级重建的高频细节（噪声）干扰，表征质量更高；可直接迁移到 action-conditioned 场景进行下游操作策略学习。</p>
+<p><strong>易错</strong>：V-JEPA 不等于 JEPA（后者是架构原则），V-JEPA 是视频版本；V-JEPA 2 是 2025 年的更新版，加入了更多 embodied 相关任务评估。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×2</span> <b>N3</b> · 仿真器中的 actuator 模型如何影响 sim2real？PD/torque 控制的选择？</summary>
+<p><strong>答</strong>：<strong>Actuator 模型</strong>是 sim2real 中常被忽视的 gap 来源。仿真默认理想执行器（无延迟、无摩擦、线性响应），但真实电机有：电机动态延迟（约 3-10ms）、齿轮传动间隙（backlash）、热效应、电流饱和。</p>
+<p><strong>PD vs Torque 控制的选择</strong>：</p>
+<ul><li><strong>PD 控制</strong>（仿真主流）：给定目标关节角，仿真内置 PD 控制器输出力矩。隐藏了低层电机动态，sim2real gap 小，但精细控制受限</li><li><strong>Torque 控制</strong>（精细操作）：直接输出关节力矩，完全暴露电机动态，gap 大但控制精度高</li></ul>
+<p><strong>实务建议</strong>：步态控制（四足/人形）优选 PD 控制（配合适当 Kp/Kd 随机化）；精细操作优选 torque 控制 + 执行器延迟建模。</p>
+<p><strong>易错</strong>：不要在仿真中用过大的 PD 增益（刚性仿真），真机上无法重现；降低 PD 增益或加柔顺控制往往使 sim2real 更好。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×2</span> <b>N4</b> · Habitat 3.0 / SAPIEN 的应用场景？和 Isaac Lab 的定位有什么不同？</summary>
+<p><strong>答</strong>：</p>
+<ul><li><strong>Habitat 3.0</strong>（Meta AI）：室内场景导航和人机协作仿真，强调<strong>高真实感室内环境</strong>（PhotoAugmented 渲染）；特色是社交导航（机器人与人协作）和语义导航任务；GPU 并行有限，主打感知-导航研究。</li><li><strong>SAPIEN</strong>（清华/斯坦福）：基于 PhysX 的关节物体仿真，提供大量<strong>可关节化物体数据集</strong>（PartNet-Mobility）；ManiSkill 基于 SAPIEN 构建；擅长门、抽屉、开关等关节操作任务。</li><li><strong>Isaac Lab</strong>：NVIDIA Omniverse 生态，专注<strong>大规模 GPU 并行 RL</strong>，四足/人形步态完整工具链；场景真实感高（USD/Omniverse 渲染）；操作任务相对较少。</li></ul>
+<p><strong>定位总结</strong>：Habitat → 室内导航/人机协作；SAPIEN/ManiSkill → 关节物体操作；Isaac Lab → 大规模步态/运动 RL；MuJoCo → 学术控制基准。</p>
+<p><strong>易错</strong>：SAPIEN 和 ManiSkill 是不同层级——SAPIEN 是物理引擎层，ManiSkill3 是在 SAPIEN 上构建的任务基准框架，不要混淆。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×2</span> <b>N5</b> · 世界模型的"model error accumulation"（模型误差累积）如何缓解？</summary>
+<p><strong>答</strong>：<strong>模型误差累积</strong>：世界模型在 latent 空间的 H 步前向展开中，每步误差叠加，H 步后 latent 偏离真实状态越来越远，导致 imagination 训出的策略在真实环境中失效。</p>
+<p><strong>缓解策略</strong>：</p>
+<ol><li><strong>短 imagination horizon</strong>：Dreamer 实务 H=15，不宜太长（H&gt;20 误差明显放大）</li><li><strong>不确定性感知</strong>：对模型输出的不确定性加权，高不确定区域不做更新或降低学习率</li><li><strong>frequent model refresh</strong>：每 N 个真实 step 后重新训世界模型，对齐当前策略的分布</li><li><strong>ensemble</strong>：多个世界模型取平均，降低单模型 bias</li><li><strong>latent 正则化（SimNorm / free bits）</strong>：防止 latent 随时间漂移</li></ol>
+<p><strong>与 offline RL 对比</strong>：offline RL 中的 OOD 问题类似——策略迭代后访问的状态超出数据分布，解法都是"保守更新 + 不确定性罚项"。</p>
+<p><strong>易错</strong>：加大 H 不能提升 imagination 质量，只会加剧误差累积；增大 H 需要配合更好的世界模型质量（更多真实数据）。</p>
+</details>
+<hr />
+<p><em>题库维护：可查 <a href="../index.html">具身智能面试题库主页</a> 访问其他分册。</em></p>
+
+<footer class="aris-footer">
+  Generated by <a href="https://github.com/wanshuiyin/Auto-claude-code-research-in-sleep/blob/main/skills/render-html/SKILL.md">ARIS <code>/render-html</code></a> ·
+  source path <code>docs/interviews/04_world_sim.md</code> ·
+  SHA256 <code>015341242d19</code> ·
+  generated at 2026-05-20 19:22 UTC.
+  This is a generated view — edit the source Markdown, then re-render.
+</footer>
+</main>
+
+</div>
+</body>
+</html>

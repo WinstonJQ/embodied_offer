@@ -1,0 +1,126 @@
+{
+  "volume": "04_world_sim",
+  "title": "卷四 · 世界模型 / Sim2Real",
+  "question_count": 35,
+  "main_table": 31,
+  "supplemental": 4,
+  "review_rounds": 4,
+  "final_verdict": "WARN",
+  "rounds": [
+    {
+      "round": 1,
+      "verdict": "FAIL",
+      "model": "gpt-5.5",
+      "reasoning_effort": "xhigh",
+      "fixes_applied": 0,
+      "blocking_issues": [
+        "ADR 作者错误：Andrychowicz → Akkaya et al. 2019 arXiv 1910.07113",
+        "DayDreamer 平台不精确：ANYmal 类 → Unitree A1",
+        "MuJoCo solver 错误：TGS 是 PhysX 术语 → MuJoCo 应用 Newton/CG/PGS（Q21/Q22/Q25）",
+        "TD-MPC2 venue 错误：Nature 2023 → ICLR 2024",
+        "Q06/Q10/Q18/Q24/Q29/Q30/Q31 答案体超过 500 字（blocking）"
+      ]
+    },
+    {
+      "round": 2,
+      "verdict": "FAIL",
+      "model": "gpt-5.5",
+      "reasoning_effort": "xhigh",
+      "fixes_applied": 12,
+      "fixes_summary": [
+        "ADR 改为 Akkaya et al. 2019",
+        "DayDreamer 改为 Unitree A1",
+        "Q21/Q22/Q25 MuJoCo TGS → Newton/CG/PGS",
+        "Q31 summary + body TD-MPC2 ICLR 2024",
+        "Q06/Q10/Q18/Q24/Q29/Q30/Q31 压缩至 <500 字",
+        "RSSM stochastic path: V1 Gaussian, V2/V3 Categorical"
+      ],
+      "remaining_blocking": [
+        "Q01 DreamerV2 latent 仍写 Gaussian（V2 应为 Categorical）",
+        "Q27 答案体约 508 字，超过 >500 FAIL 阈值"
+      ]
+    },
+    {
+      "round": 3,
+      "verdict": "WARN",
+      "model": "gpt-5.5",
+      "reasoning_effort": "xhigh",
+      "fixes_applied": 4,
+      "fixes_summary": [
+        "Q01 DreamerV2 latent 改为 Categorical",
+        "Q09 TD-MPC2 改为 ICLR 2024",
+        "Q27 压缩至 <500 字",
+        "Q06 DreamerV2 latent 与 Q01 对齐"
+      ],
+      "remaining_warnings": [
+        "页眉难度分布 L2=16/L3=6 与实际 L2=18/L3=4 不一致",
+        "Q15 ManiSkill3 数字孪生 RL 接口表述偏超前（官方标注 WIP）",
+        "Q21/Q22/Q25 MuJoCo solver 未完全统一（部分仅 CG/PGS）",
+        "Q30 V-JEPA 2 表述保守（未提 V-JEPA 2-AC action-conditioned）",
+        "line5 N1 破例与正文编号不一致",
+        "ADR 年份口径（2019 vs 2020）",
+        "30/35 答案在 350-500 字 WARN 区间"
+      ]
+    },
+    {
+      "round": 4,
+      "verdict": "WARN",
+      "model": "gpt-5.5",
+      "reasoning_effort": "xhigh",
+      "fixes_applied": 8,
+      "fixes_summary": [
+        "页眉难度分布改为 L1=9/L2=18/L3=4",
+        "line5: N1 → Q31 破例入选",
+        "Q15: ManiSkill3 数字孪生改为 WIP",
+        "Q21/Q22/Q25 统一为 Newton/CG/PGS",
+        "Q13 ADR 年份改为 2019 arXiv 1910.07113",
+        "Q30: V-JEPA 2-AC action-conditioned 补充",
+        "N2: V-JEPA 2 易错与 Q30 对齐"
+      ],
+      "blocking_issues": [],
+      "remaining_warnings": [
+        "33/35 答案在 350-500 字 WARN 区间（无 >500 字 FAIL）"
+      ]
+    }
+  ],
+  "key_facts_verified": [
+    "PlaNet：Hafner et al., 2019，RSSM = h_t（GRU 确定性）+ z_t（Gaussian 随机），latent planning — https://arxiv.org/abs/1811.04551",
+    "DreamerV1：Hafner et al., ICLR 2020，连续 latent + actor-critic 想象训练 — https://arxiv.org/abs/1912.01603",
+    "DreamerV2：Hafner et al., ICLR 2021，离散 Categorical latent + KL balancing α=0.8 — https://arxiv.org/abs/2010.02193",
+    "DreamerV3：Hafner et al., 2023 arXiv / Nature 2025，symlog + free bits + 固定超参，7 类 domain — https://arxiv.org/abs/2301.04104",
+    "MuZero：Schrittwieser et al., 2020 Nature，MCTS + 隐式动力学，无重建 — https://arxiv.org/abs/1911.08265",
+    "TD-MPC2：Hansen et al., ICLR 2024，decoder-free 隐式世界模型 + CEM + Q，104 任务单套超参 — https://arxiv.org/abs/2310.16828",
+    "RMA：Kumar et al., RSS 2021，Teacher-Student + adaptation module，只用 proprio — https://arxiv.org/abs/2107.04034",
+    "ADR：Akkaya et al., arXiv 2019 arXiv 1910.07113，OpenAI Rubik's Cube，自动扩展 DR 范围",
+    "DayDreamer：Wu et al., CoRL 2022，Unitree A1，1 小时真机学四足行走 — https://arxiv.org/abs/2206.14176",
+    "Isaac Gym deprecated 2024，Isaac Lab 为官方继任（基于 Isaac Sim + PhysX）",
+    "MuJoCo 求解器：Newton/CG/PGS — https://mujoco.readthedocs.io/en/latest/computation/index.html",
+    "ManiSkill3：128 env 3.5GB GPU 内存 vs Isaac Lab 14.1GB — https://arxiv.org/abs/2410.00425",
+    "Genesis：号称最高 43M FPS，纯物理比 ManiSkill 慢 3-10x（特定基准）",
+    "V-JEPA 2：Meta 2025，100 万小时视频预训练，V-JEPA 2-AC 支持 action-conditioned — https://arxiv.org/abs/2506.09985"
+  ],
+  "sources_consulted": [
+    "arxiv.org/abs/1811.04551 (PlaNet)",
+    "arxiv.org/abs/1912.01603 (DreamerV1)",
+    "arxiv.org/abs/2010.02193 (DreamerV2)",
+    "arxiv.org/abs/2301.04104 (DreamerV3)",
+    "nature.com/articles/s41586-025-08744-2 (DreamerV3 Nature 2025)",
+    "arxiv.org/abs/1911.08265 (MuZero)",
+    "arxiv.org/abs/2310.16828 (TD-MPC2 / ICLR 2024)",
+    "arxiv.org/abs/2107.04034 (RMA)",
+    "arxiv.org/abs/1910.07113 (ADR / OpenAI Rubik's Cube)",
+    "arxiv.org/abs/2206.14176 (DayDreamer)",
+    "arxiv.org/abs/2410.00425 (ManiSkill3)",
+    "arxiv.org/abs/2506.09985 (V-JEPA 2)",
+    "mujoco.readthedocs.io (MuJoCo Newton/CG/PGS)",
+    "maniskill.readthedocs.io (ManiSkill3 Digital Twins WIP)",
+    "知乎 Dreamer/RSSM/sim2real/Isaac Lab 相关技术文章",
+    "CSDN 具身智能仿真/sim2real/世界模型系列",
+    "牛客网 具身算法岗面试汇编",
+    "github.com/apexrl/awesome-rl-for-legged-locomotion"
+  ],
+  "unresolved_warnings": [
+    "33/35 答案在 350-500 字 WARN 区间（无 >500 字 FAIL，按阈值规则为可接受的 WARN）"
+  ],
+  "max_rounds_reached": false
+}
