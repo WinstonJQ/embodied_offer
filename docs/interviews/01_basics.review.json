@@ -1,0 +1,120 @@
+{
+  "volume": "01_basics",
+  "title": "卷一 · 通识基础",
+  "question_count": 47,
+  "main_table": 44,
+  "supplemental": 3,
+  "review_rounds": 4,
+  "final_verdict": "WARN",
+  "rounds": [
+    {
+      "round": 1,
+      "verdict": "FAIL",
+      "model": "gpt-5.5",
+      "reasoning_effort": "xhigh",
+      "fixes_applied": 0,
+      "blocking_issues": [
+        "VLA 动作空间误写为关节角增量（应为末端增量，OpenVLA 官方为7-DoF end-effector deltas）",
+        "KV Cache 复杂度描述误导",
+        "NLLLoss 与 softmax 配合的描述有误",
+        "Advantage 零均值性质表述不准",
+        "StyleGAN 谱归一化标配说法不准",
+        "π0/GR00T 50Hz 表述过度简化",
+        "Q39 伪逆公式未区分满行秩/满列秩",
+        "Q04/Q25/Q31/Q39 答案体超 500 字"
+      ]
+    },
+    {
+      "round": 2,
+      "verdict": "WARN",
+      "model": "gpt-5.5",
+      "reasoning_effort": "xhigh",
+      "fixes_applied": 12,
+      "fixes_summary": [
+        "Q14：修正 NLLLoss 描述",
+        "Q17：重写 KV Cache 复杂度",
+        "Q30：补充 Advantage 零均值的理论与实践区别",
+        "Q38/Q41：修正 VLA 动作空间（OpenVLA=末端7维增量）",
+        "N3：替换 StyleGAN → SNGAN/SAGAN/BigGAN",
+        "Q44：π0=50Hz chunk，GR00T 因平台而异",
+        "Q39：修正伪逆公式（满行秩/满列秩区分）",
+        "Q17/Q18/Q34/N1：难度 L3 → L2",
+        "Q04/Q25/Q31/Q39 答案压缩至 <500 字"
+      ],
+      "remaining_warnings": [
+        "Q14 NLLLoss 表述仍需细化",
+        "Q17 KV Cache 仍有表述隐患",
+        "Q27 VLA 微调 PPO 表述过泛",
+        "Q43 workspace 定义前后不一",
+        "Q44 OpenVLA 频率需对应官方数据",
+        "部分答案 350-500 字 WARN 区间"
+      ]
+    },
+    {
+      "round": 3,
+      "verdict": "WARN",
+      "model": "gpt-5.5",
+      "reasoning_effort": "xhigh",
+      "fixes_applied": 7,
+      "fixes_summary": [
+        "Q14：再次修正 NLLLoss（直接用 F.cross_entropy）",
+        "Q17：再次重写 KV Cache 表述（消除维度复杂度歧义）",
+        "Q27：修正 VLA 微调 PPO 表述（BC/LoRA/flow-matching）",
+        "Q43：统一 workspace 定义（位置可达性 vs 姿态约束）",
+        "Q44：修正 OpenVLA 频率（~5Hz Franka-Tabletop）",
+        "Q31：PPO 适用范围限定为 RLHF 偏好对齐"
+      ],
+      "remaining_warnings": [
+        "Q17 复杂度表述略不严谨",
+        "Q31 PPO/VLA 说法需与 Q27 对齐",
+        "Q33/Q38/Q40/Q44 超 350 字 WARN 区间"
+      ]
+    },
+    {
+      "round": 4,
+      "verdict": "WARN",
+      "model": "gpt-5.5",
+      "reasoning_effort": "xhigh",
+      "fixes_applied": 4,
+      "fixes_summary": [
+        "Q17：去除 O(L·d) 复杂度表述",
+        "Q31：与 Q27 对齐（VLA 动作策略用 BC/flow-matching）",
+        "Q43：统一 workspace 定义（已完成上轮）",
+        "Q44：OpenVLA 频率修正（已完成上轮）"
+      ],
+      "blocking_issues": [],
+      "remaining_warnings": [
+        "10 题答案体在 350-500 字 WARN 区间（无 >500 字 FAIL）",
+        "正文无内联 arXiv 引用（格式选择，非技术错误）"
+      ]
+    }
+  ],
+  "key_facts_verified": [
+    "OpenVLA 动作空间: 7-DoF end-effector deltas (x,y,z,roll,pitch,yaw,gripper) — https://huggingface.co/openvla/openvla-7b",
+    "OpenVLA 推理频率: Franka-Tabletop ~5Hz, Franka-DROID ~15Hz — https://openvla.github.io/",
+    "π0 使用 H=50 action chunk，Flow Matching，最高约 50Hz — https://www.physicalintelligence.company/download/pi0.pdf",
+    "GR00T-N1: VLM+DiT flow-matching policy, System-1 120Hz, System-2 10Hz — https://arxiv.org/abs/2503.14734",
+    "Flash Attention: IO-aware exact attention, tiling SRAM, O(n) memory — https://arxiv.org/abs/2205.14135",
+    "谱归一化 GAN: SNGAN/SAGAN/BigGAN 广泛采用 — https://arxiv.org/abs/1802.05957, 1805.08318, 1809.11096",
+    "PPO: proximal policy, ε-clip — https://arxiv.org/abs/1707.06347",
+    "KV Cache: 缓存历史 K/V 消除前缀重复投影 — https://huggingface.co/docs/transformers/v4.53.0/kv_cache",
+    "Modern Robotics workspace definitions — https://modernrobotics.northwestern.edu/nu-gm-book-resource/2-5-task-space-and-workspace/"
+  ],
+  "sources_consulted": [
+    "牛客网 算法岗面试题汇编",
+    "知乎 深度学习/RL 面试合集",
+    "CSDN 2025 深度学习面试必问 100 题",
+    "GitHub amusi/Deep-Learning-Interview-Book",
+    "GitHub WeThinkIn/AIGC-Interview-Book",
+    "openvla.github.io (官方项目页)",
+    "physicalintelligence.company/download/pi0.pdf",
+    "arxiv.org/abs/2503.14734 (GR00T-N1)",
+    "arxiv.org/abs/2205.14135 (Flash Attention)",
+    "arxiv.org/abs/1707.06347 (PPO)"
+  ],
+  "unresolved_warnings": [
+    "部分答案在 350-500 字 WARN 区间（共 10 题），均未超过 500 字上限",
+    "正文无内联引用链接（面试题库格式，非技术错误）"
+  ],
+  "max_rounds_reached": false
+}
