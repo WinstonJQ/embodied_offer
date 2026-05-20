@@ -42,15 +42,14 @@ HTML 单文件自包含：MathJax + highlight.js 通过 CDN 加载（也可用 `
 | 主题 | Markdown | HTML | 审查轨迹 |
 |---|---|---|---|
 | **π 系列 (π0 → π0.7)** 面试 Cheat Sheet | [`pi_series_tutorial.md`](docs/tutorials/pi_series_tutorial.md) | [`pi_series_tutorial.html`](docs/tutorials/pi_series_tutorial.html) | [`.review.json`](docs/tutorials/pi_series_tutorial.review.json) — 5 节点路线 Lean+ 大纲（KI 作为 π0.5 子节），含 OpenVLA/RDT-1B/RT-2 横向比较 |
+| **强化学习基础 (V1 of 3)** 面试 Cheat Sheet | [`rl_foundations_tutorial.md`](docs/tutorials/rl_foundations_tutorial.md) | [`rl_foundations_tutorial.html`](docs/tutorials/rl_foundations_tutorial.html) | [`.review.json`](docs/tutorials/rl_foundations_tutorial.review.json) — MDP → DQN → PG → A2C；含独立 §4 on/off-policy + importance sampling；4 轮跨模型审查 PASS，27 处修正 |
 
 ## 路线图（18 个主题）
 
-**Tier 1 — RL 与决策基础**
-- [ ] RL 基础（MDP / Bellman / Value Iteration / Policy Gradient）
-- [ ] PPO / TRPO / GAE
-- [ ] SAC / TD3 / DDPG
-- [ ] Offline RL（CQL / IQL / AWAC）
-- [ ] 模仿学习（BC / DAgger / GAIL）
+**Tier 1 — RL 与决策基础（3 册系列）**
+- [x] **V1 强化学习基础**（MDP / Bellman / DP / MC-TD / IS / Q-learning / DQN / PG / A2C）✅
+- [ ] V2 策略优化与连续控制（TRPO / PPO / GAE / DDPG / TD3 / SAC）
+- [ ] V3 离线 RL + 模仿 + LLM Post-Training（BC / Offline RL / DPO / RLHF / RLVR / GRPO）
 
 **Tier 2 — 机器人学与控制**
 - [ ] 机器人学速查（运动学 / 动力学 / 雅可比）

@@ -113,12 +113,22 @@ footer a { color: var(--accent); text-decoration: none; }
 </section>
 
 <section class="tier">
-<h2>Tier 1 — RL 与决策基础</h2>
-<div class="card todo"><div class="card-title">RL 基础 <span class="badge todo">TODO</span></div></div>
-<div class="card todo"><div class="card-title">PPO / TRPO / GAE <span class="badge todo">TODO</span></div></div>
-<div class="card todo"><div class="card-title">SAC / TD3 / DDPG <span class="badge todo">TODO</span></div></div>
-<div class="card todo"><div class="card-title">Offline RL（CQL / IQL / AWAC） <span class="badge todo">TODO</span></div></div>
-<div class="card todo"><div class="card-title">模仿学习（BC / DAgger / GAIL） <span class="badge todo">TODO</span></div></div>
+<h2>Tier 1 — RL 与决策基础（3 册系列）</h2>
+
+<a class="card" href="tutorials/rl_foundations_tutorial.html">
+<div class="card-title">V1 · 强化学习基础（rl_foundations） <span class="badge">DONE</span></div>
+<div class="card-desc">MDP → Bellman → DP → MC/TD → <b>on/off-policy + importance sampling（独立章节）</b> → Q-learning vs SARSA → DQN 三件套 → DDQN/Dueling/PER → 策略梯度定理 → A2C → 探索；939 行 + from-scratch DQN/REINFORCE 代码 + 25 道 L1/L2/L3 高频题；跨模型审查 4 轮 PASS。</div>
+</a>
+
+<div class="card todo">
+<div class="card-title">V2 · 策略优化与连续控制（ppo_sac） <span class="badge todo">TODO</span></div>
+<div class="card-desc">TRPO → PPO-Clip → GAE → DDPG → TD3 → SAC + PG 家族关系图 + PPO in RLHF 的 KL to reference 独立节。</div>
+</div>
+
+<div class="card todo">
+<div class="card-title">V3 · 离线 RL + 模仿 + LLM Post-Training（post_training_rl） <span class="badge todo">TODO</span></div>
+<div class="card-desc">BC/DAgger/GAIL（压缩）→ Offline RL: CQL/IQL/AWAC/DT/BCQ → Preference Learning: RM/Bradley-Terry/DPO/IPO/KTO → RLHF/RLVR: SFT→RM→PPO + RLOO + GRPO + PRM/ORM + rejection sampling。<b>升级到 2025-2026 LLM reasoning RL 面试口径</b>。</div>
+</div>
 </section>
 
 <section class="tier">
