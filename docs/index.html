@@ -3,156 +3,327 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Embodied-AI-in-Offer · 具身智能秋招速查手册</title>
+<title>具身智能高频面试题库 · Embodied-AI Interview QA Bank</title>
+<meta name="description" content="中文具身智能秋招高频面试题库 · VLA / 模仿学习 / RL / 世界模型 / 工程落地。题目来自公开面经，频次 ≥3 才入卷。">
 <style>
 :root {
-  --bg: #fafafa;
-  --fg: #1a1a1a;
-  --muted: #666;
-  --accent: #2563eb;
-  --card: #fff;
-  --border: #e5e7eb;
+  --bg: #fdfcf7;
+  --bg-soft: #f4f1ea;
+  --bg-card: #ffffff;
+  --ink: #1a1a1a;
+  --ink-soft: #4a4a4a;
+  --ink-muted: #6b6b6b;
+  --primary: #1a4a8c;
+  --primary-soft: #2d6cb8;
+  --accent: #b8390e;
+  --border: #d6d0c0;
+  --border-soft: #e8e3d5;
+  --good: #065f46;
+  --warn: #92400e;
+  --bad: #991b1b;
 }
 * { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+  font-family: "Source Serif Pro", "Source Serif 4", "Crimson Pro", "Georgia", "Songti SC", "STSong", serif;
+  line-height: 1.65;
+  color: var(--ink);
   background: var(--bg);
-  color: var(--fg);
   margin: 0;
   padding: 0;
-  line-height: 1.6;
+  font-size: 16px;
 }
-.container {
-  max-width: 880px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem;
+.container { max-width: 960px; margin: 0 auto; padding: 56px 24px 80px; }
+
+header.hero {
+  border-bottom: 3px double var(--primary);
+  padding-bottom: 28px;
+  margin-bottom: 40px;
 }
-header { text-align: center; margin-bottom: 3rem; }
 .eyebrow {
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-size: 0.85rem;
   color: var(--accent);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
   font-weight: 600;
+  margin-bottom: 10px;
 }
-h1 { font-size: 2.2rem; margin: 0.5rem 0; }
-.subtitle { color: var(--muted); font-size: 1.05rem; }
-.tier { margin-bottom: 2.5rem; }
-.tier h2 {
-  font-size: 1.3rem;
-  border-bottom: 2px solid var(--border);
-  padding-bottom: 0.4rem;
-  margin-bottom: 1rem;
+h1 {
+  font-size: 34px;
+  line-height: 1.2;
+  margin: 0 0 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
-.card {
-  display: block;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 1rem 1.2rem;
-  margin-bottom: 0.6rem;
-  text-decoration: none;
-  color: var(--fg);
-  transition: border-color 0.15s, box-shadow 0.15s;
+.subtitle {
+  font-size: 17px;
+  color: var(--ink-soft);
+  margin: 0 0 18px;
+  font-style: italic;
 }
-.card:hover {
-  border-color: var(--accent);
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
+.tagline {
+  font-size: 14px;
+  color: var(--ink-muted);
+  border-top: 1px solid var(--border-soft);
+  padding-top: 14px;
+  margin: 0;
 }
-.card.todo { opacity: 0.55; cursor: not-allowed; }
-.card-title { font-weight: 600; font-size: 1.05rem; }
-.card-desc { color: var(--muted); font-size: 0.92rem; margin-top: 0.3rem; }
-.badge {
+.tagline strong { color: var(--ink-soft); font-weight: 600; }
+.tagline code {
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", monospace;
+  font-size: 12px;
+  background: var(--bg-soft);
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid var(--border-soft);
+}
+
+section { margin: 40px 0; }
+section h2 {
+  font-size: 22px;
+  margin: 0 0 18px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 700;
+}
+section h2 .num { color: var(--primary); font-weight: 600; margin-right: 8px; }
+
+.volumes {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+.volume-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  border-left: 4px solid var(--border);
+  border-radius: 6px;
+  padding: 18px 22px;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.volume-card.active { border-left-color: var(--primary); }
+.volume-card.active:hover { box-shadow: 0 2px 12px rgba(26,74,140,0.10); transform: translateY(-1px); }
+.volume-card.todo { border-left-color: var(--border); opacity: 0.72; }
+.volume-card a { text-decoration: none; color: inherit; }
+.volume-card.todo a { cursor: not-allowed; }
+.volume-card .vol-line {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.volume-card .vol-id {
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.volume-card .vol-title { font-size: 19px; font-weight: 700; color: var(--ink); }
+.volume-card.todo .vol-title { color: var(--ink-soft); }
+.volume-card .vol-status {
   display: inline-block;
-  background: var(--accent);
-  color: white;
-  font-size: 0.7rem;
-  padding: 0.1rem 0.5rem;
-  border-radius: 4px;
-  margin-left: 0.5rem;
-  vertical-align: middle;
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", monospace;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 8px;
+  border-radius: 3px;
+  letter-spacing: 0.04em;
 }
-.badge.todo { background: #94a3b8; }
-footer {
-  text-align: center;
-  color: var(--muted);
-  font-size: 0.85rem;
-  padding: 2rem 0;
+.vol-status.s-progress { background: #fef3c7; color: var(--warn); border: 1px solid #fcd34d; }
+.vol-status.s-done { background: #d1fae5; color: var(--good); border: 1px solid #6ee7b7; }
+.vol-status.s-todo { background: var(--bg-soft); color: var(--ink-muted); border: 1px solid var(--border-soft); }
+.volume-card .vol-scope {
+  font-size: 14px;
+  color: var(--ink-soft);
+  margin: 0;
+}
+.volume-card .vol-meta {
+  font-size: 12px;
+  color: var(--ink-muted);
+  margin-top: 6px;
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", monospace;
+}
+
+.legend {
+  background: var(--bg-soft);
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  padding: 16px 22px;
+  font-size: 14px;
+  line-height: 1.8;
+}
+.legend .legend-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.legend code, .legend .lv, .legend .freq {
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", monospace;
+}
+.lv {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  vertical-align: 1px;
+}
+.lv-l1 { background: #d1fae5; color: var(--good); border: 1px solid #6ee7b7; }
+.lv-l2 { background: #fef3c7; color: var(--warn); border: 1px solid #fcd34d; }
+.lv-l3 { background: #fee2e2; color: var(--bad); border: 1px solid #fca5a5; }
+.freq {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #fff1e6;
+  color: var(--accent);
+  border: 1px solid #fcd9c0;
+  vertical-align: 1px;
+}
+
+.howto {
+  font-size: 14.5px;
+  color: var(--ink-soft);
+}
+.howto ol { padding-left: 22px; }
+.howto ol li { margin: 8px 0; }
+.howto strong { color: var(--accent); font-weight: 600; }
+
+footer.foot {
+  margin-top: 60px;
+  padding-top: 20px;
   border-top: 1px solid var(--border);
-  margin-top: 3rem;
+  font-size: 12.5px;
+  color: var(--ink-muted);
 }
-footer a { color: var(--accent); text-decoration: none; }
+footer.foot a { color: var(--ink-muted); border-bottom: 1px dotted var(--border); text-decoration: none; }
+footer.foot a:hover { color: var(--primary); border-bottom-color: var(--primary); }
+
+@media (max-width: 640px) {
+  .container { padding: 32px 16px 60px; }
+  h1 { font-size: 26px; }
+  section h2 { font-size: 19px; }
+  .volume-card { padding: 14px 16px; }
+  .volume-card .vol-title { font-size: 17px; }
+}
 </style>
 </head>
 <body>
 <div class="container">
 
-<header>
-<div class="eyebrow">Embodied AI Interview Prep · 秋招速查</div>
-<h1>具身智能秋招速查手册</h1>
-<p class="subtitle">强化学习 · 机器人 · VLA · π 系列 · 世界模型 · 18 份长篇 cheat sheet</p>
+<header class="hero">
+  <div class="eyebrow">Embodied AI Interview Prep · Open Source · Free</div>
+  <h1>具身智能高频面试题库</h1>
+  <p class="subtitle">秋招冲刺向 · 题目来自公开面经 · 频次 ≥3 才入卷</p>
+  <p class="tagline">
+    <strong>5 卷</strong> · 覆盖 VLA / 模仿学习 / RL / 世界模型 / 工程落地 ·
+    <strong>来源</strong>：牛客 / 知乎 / 小红书 / 一亩三分地 / GitHub ·
+    <strong>不分公司</strong>，频次驱动 ·
+    <strong>渲染</strong>：跨模型审查后发布
+  </p>
 </header>
 
-<section class="tier">
-<h2>Tier 3 — VLA &amp; 机器人大模型</h2>
+<section>
+  <h2><span class="num">§1</span>五卷目录</h2>
+  <div class="volumes">
 
-<a class="card" href="tutorials/pi_series_tutorial.html">
-<div class="card-title">π 系列 (π0 → π0.7) 面试 Cheat Sheet <span class="badge">DONE</span></div>
-<div class="card-desc">Physical Intelligence VLA 5 节点学习路线：<b>π0 → π0-FAST → π0.5 → π*0.6 → π0.7</b>（KI 作为 π0.5 子节）。Flow matching 数学 + 934 行长文 + 25 道高频题（含 OpenVLA / RDT-1B / RT-2 横向比较）+ 跨模型审查 PASS。</div>
-</a>
+    <div class="volume-card todo">
+      <div class="vol-line">
+        <span class="vol-id">VOL · 01</span>
+        <span class="vol-title">通识基础</span>
+        <span class="vol-status s-todo">TODO</span>
+      </div>
+      <p class="vol-scope">DL 基础 · RL 基础（MDP / Bellman / TD）· 机器人学（运动学 / 雅可比 / 控制频率）· Transformer / 注意力</p>
+      <div class="vol-meta">slug: 01_basics · 等待启动</div>
+    </div>
 
-<div class="card todo">
-<div class="card-title">VLA 综述（RT-1 / RT-2 / RT-X / OpenVLA） <span class="badge todo">TODO</span></div>
-<div class="card-desc">Google + Stanford VLA 主线。</div>
-</div>
+    <div class="volume-card todo">
+      <div class="vol-line">
+        <span class="vol-id">VOL · 02</span>
+        <span class="vol-title">RL 算法</span>
+        <span class="vol-status s-todo">TODO</span>
+      </div>
+      <p class="vol-scope">PPO · TRPO · GAE · SAC · TD3 · DDPG · Offline RL · DPO · GRPO</p>
+      <div class="vol-meta">slug: 02_rl_algo · 等待启动</div>
+    </div>
 
-<div class="card todo">
-<div class="card-title">Diffusion Policy / 动作扩散 <span class="badge todo">TODO</span></div>
-<div class="card-desc">DP / 3D-DP / RDT-1B。</div>
-</div>
+    <div class="volume-card active">
+      <a href="interviews/03_vla_il.html">
+      <div class="vol-line">
+        <span class="vol-id">VOL · 03</span>
+        <span class="vol-title">VLA / 模仿学习</span>
+        <span class="vol-status s-done">DONE · 58 题</span>
+      </div>
+      <p class="vol-scope">OpenVLA · RT-2 · π0/π0.5/π0.6/π0.7 · Octo · RDT-1B · GR00T-N1 · Diffusion Policy · Flow Matching · BC / DAgger / GAIL · Action Chunking · ACT · FAST · OpenVLA-OFT · RECAP</p>
+      <div class="vol-meta">slug: 03_vla_il · L1 18 / L2 31 / L3 9 · Codex GPT-5.5 xhigh 6 轮跨模型审查 PASS</div>
+      </a>
+    </div>
+
+    <div class="volume-card todo">
+      <div class="vol-line">
+        <span class="vol-id">VOL · 04</span>
+        <span class="vol-title">世界模型 / Sim2Real</span>
+        <span class="vol-status s-todo">TODO</span>
+      </div>
+      <p class="vol-scope">Dreamer V1-V3 · TD-MPC2 · Genie · V-JEPA · Domain Randomization · RMA · SysID</p>
+      <div class="vol-meta">slug: 04_world_sim · 等待启动</div>
+    </div>
+
+    <div class="volume-card todo">
+      <div class="vol-line">
+        <span class="vol-id">VOL · 05</span>
+        <span class="vol-title">工程落地</span>
+        <span class="vol-status s-todo">TODO</span>
+      </div>
+      <p class="vol-scope">数据采集 / Open-X / DROID · 分布式训练 · 推理优化 · 系统设计 · 开放题</p>
+      <div class="vol-meta">slug: 05_engineering · 等待启动</div>
+    </div>
+
+  </div>
 </section>
 
-<section class="tier">
-<h2>Tier 1 — RL 与决策基础（3 册系列）</h2>
-
-<a class="card" href="tutorials/rl_foundations_tutorial.html">
-<div class="card-title">V1 · 强化学习基础（rl_foundations） <span class="badge">DONE</span></div>
-<div class="card-desc">MDP → Bellman → DP → MC/TD → <b>on/off-policy + importance sampling（独立章节）</b> → Q-learning vs SARSA → DQN 三件套 → DDQN/Dueling/PER → 策略梯度定理 → A2C → 探索；939 行 + from-scratch DQN/REINFORCE 代码 + 25 道 L1/L2/L3 高频题；跨模型审查 4 轮 PASS。</div>
-</a>
-
-<a class="card" href="tutorials/ppo_sac_tutorial.html">
-<div class="card-title">V2 · 策略优化与连续控制（ppo_sac） <span class="badge">DONE</span></div>
-<div class="card-desc">TRPO → PPO-Clip → GAE → DDPG → TD3 → SAC + PG 家族关系图 + <b>PPO in RLHF 的 KL to reference 独立节</b>。1224 行 + PPO/SAC from-scratch on Pendulum + 25 道 L1/L2/L3；写作风格调整为"先建直觉再上公式 + VAE 类比 + 6 象限 PPO clip 表"；跨模型审查 3 轮 PASS（含 CPI 常数修正 / SAC auto-α 对偶下降订正）。</div>
-</a>
-
-<div class="card todo">
-<div class="card-title">V3 · 离线 RL + 模仿 + LLM Post-Training（post_training_rl） <span class="badge todo">TODO</span></div>
-<div class="card-desc">BC/DAgger/GAIL（压缩）→ Offline RL: CQL/IQL/AWAC/DT/BCQ → Preference Learning: RM/Bradley-Terry/DPO/IPO/KTO → RLHF/RLVR: SFT→RM→PPO + RLOO + GRPO + PRM/ORM + rejection sampling。<b>升级到 2025-2026 LLM reasoning RL 面试口径</b>。</div>
-</div>
+<section>
+  <h2><span class="num">§2</span>标签速查</h2>
+  <div class="legend">
+    <div class="legend-line"><span class="lv lv-l1">L1</span> 必会 · 一面常考 · 基础概念题</div>
+    <div class="legend-line"><span class="lv lv-l2">L2</span> 进阶 · 二面常考 · 技术深度题</div>
+    <div class="legend-line"><span class="lv lv-l3">L3</span> 顶级 lab · 开放 / 系统设计 / 前沿判断</div>
+    <div class="legend-line" style="margin-top: 10px;"><span class="freq">🔥×12</span> 该题在公开面经中被合并统计了 12 次（同义题归并后）</div>
+  </div>
 </section>
 
-<section class="tier">
-<h2>Tier 2 — 机器人学与控制</h2>
-<div class="card todo"><div class="card-title">机器人学速查 <span class="badge todo">TODO</span></div></div>
-<div class="card todo"><div class="card-title">MPC &amp; 轨迹优化 <span class="badge todo">TODO</span></div></div>
-<div class="card todo"><div class="card-title">Sim-to-Real <span class="badge todo">TODO</span></div></div>
+<section>
+  <h2><span class="num">§3</span>使用方式</h2>
+  <div class="howto">
+    <ol>
+      <li>每卷 HTML 默认 <strong>全部折叠</strong>——只看题目；点击题目展开答案。</li>
+      <li>手机端原生支持折叠（HTML5 <code>&lt;details&gt;</code>，零 JS），公交地铁也能刷。</li>
+      <li>建议按 <strong>L1 → L2 → L3</strong> 的顺序刷；同等级内按频次从高到低。</li>
+      <li>答案 ≤200 字，便于背诵；超长的拆"答 / 易错 / 延伸"三段。</li>
+      <li>每题答案都经过 <strong>跨模型审查</strong>（Claude 写 / GPT-5.5 xhigh 审查）。</li>
+    </ol>
+  </div>
 </section>
 
-<section class="tier">
-<h2>Tier 4 — 世界模型与生成式规划</h2>
-<div class="card todo"><div class="card-title">世界模型基础（Dreamer / TD-MPC2） <span class="badge todo">TODO</span></div></div>
-<div class="card todo"><div class="card-title">大世界模型（Genie / GAIA-1 / V-JEPA） <span class="badge todo">TODO</span></div></div>
-<div class="card todo"><div class="card-title">MBRL &amp; Planning <span class="badge todo">TODO</span></div></div>
-</section>
-
-<section class="tier">
-<h2>Tier 5 — 任务域 &amp; 仿真</h2>
-<div class="card todo"><div class="card-title">Manipulation 基准 <span class="badge todo">TODO</span></div></div>
-<div class="card todo"><div class="card-title">导航 &amp; VLN <span class="badge todo">TODO</span></div></div>
-</section>
-
-<footer>
-构建思路源自 <a href="https://github.com/wanshuiyin/ARIS-in-AI-Offer">ARIS-in-AI-Offer</a> · MIT License
+<footer class="foot">
+  <p>
+    Source: <a href="https://github.com/WinstonJQ/embodied_offer">github.com/WinstonJQ/embodied_offer</a> ·
+    License: MIT ·
+    渲染脚本由 <a href="https://github.com/wanshuiyin/Auto-claude-code-research-in-sleep">ARIS</a> 提供。
+  </p>
+  <p>
+    本题库每题答案均经过跨模型审查（执行者 ≠ 审查者）。如发现错误请提 issue 或 PR。
+  </p>
 </footer>
 
 </div>

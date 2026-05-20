@@ -1,81 +1,53 @@
-# Embodied-AI-in-Offer
+# Embodied-AI Interview QA Bank
 
-> 中文具身智能秋招速查手册集合 · 仿照 [ARIS-in-AI-Offer](https://github.com/wanshuiyin/ARIS-in-AI-Offer) 范式重做。
+> 中文具身智能（Embodied AI）秋招高频面试题库
 
-聚焦 **强化学习 / 机器人 / VLA / π 系列 / 世界模型** 五大方向，每份手册都包括：
+聚焦 **VLA / 模仿学习 / RL / 世界模型 / 工程落地** 五大方向。每题包含：
 
-- §0 TL;DR Cheat Sheet
-- §1–§N 公式推导 + 直觉解释
-- §N+1 From-scratch PyTorch 代码（要能跑）
-- §N+2 25 道 L1/L2/L3 高频面试题（含可折叠答案）
-- §A 一手资料引用
+- 题目（折叠式，默认收起）
+- ≤200 字精简答案（便于记忆）
+- 难度标签（L1 必会 / L2 进阶 / L3 顶级 lab）
+- 频次徽章（🔥×N — 同义题合并后的出现次数）
 
-## 工作流
+题目来自牛客 / 知乎 / 小红书 / 一亩三分地 / GitHub 公开面经，**频次 ≥3 才入卷**。
 
-```
-/interview-cheatsheet <topic>
-  ├─ Step 1: 规划 12-14 节结构
-  ├─ Step 2: 起草 docs/tutorials/<slug>_tutorial.md
-  ├─ Step 3: 跨模型审查 — codex gpt-5.5 xhigh （fresh thread / 轮）
-  │          10 项检查（公式 / 代码 / 答案 / 引用 / 表格 / callout / heading / 完整性 / 长度 / 隐私）
-  ├─ Step 4: 修正 FAIL 项 → 新 thread 再审，循环至 PASS
-  ├─ Step 5: 渲染 HTML — python3 tools/render_html.py
-  └─ Step 6: 写 .review.json 审计日志
-```
+## 五卷结构
 
-**关键不变量**：执行者（Claude） ≠ 审查者（GPT-5.5）；每轮审查开 fresh thread；隐私脱敏 banlist 硬编码在审查 prompt 里。
+| 卷 | 主题 | 状态 |
+|---|---|---|
+| 卷一 通识基础 | DL / RL 基础 / 机器人学 | TODO |
+| 卷二 RL 算法 | PPO / SAC / TD3 / Offline RL | TODO |
+| [**卷三 VLA / 模仿学习**](docs/interviews/03_vla_il.html) | OpenVLA / π0-π0.7 / Diffusion Policy / Flow Matching / BC / DAgger / ACT / FAST / OpenVLA-OFT / RECAP | **DONE · 58 题** |
+| 卷四 世界模型 / Sim2Real | Dreamer / Genie / DR / RMA | TODO |
+| 卷五 工程落地 | 数据 / 部署 / 系统设计 / 开放题 | TODO |
+
+题量灵活，由真实调研频次决定（卷三预估 50-80 题，卷四可能 30-50 题）。
 
 ## 部署
 
-纯 **GitHub Pages 静态托管**，无后端依赖：
+纯 **GitHub Pages 静态托管**，无后端依赖。
+
+访问主册：<https://winstonjq.github.io/embodied_offer/>
+
+HTML 单文件自包含：MathJax + highlight.js 从 CDN 加载（也支持 `--offline`）。
+
+## 工作流
+
+每卷独立跑：
 
 ```
-Settings → Pages → Source: main / docs
+Phase 1 调研  → 跨平台爬取 + 同义题合并 + 频次统计
+Phase 0 审核  → 题目清单交用户审过删/加/换
+Phase 2 起草  → Markdown（含 <details> 折叠块）
+Phase 3 审查  → Codex GPT-5.5 xhigh fresh-thread 多轮（10 项检查）
+Phase 4 渲染  → academic 模板 HTML
+Phase 5 索引  → 更新 docs/index.html
+Phase 6 推送  → push GitHub
 ```
 
-访问地址：`https://winstonjq.github.io/embodied_offer/tutorials/<slug>_tutorial.html`
+**关键不变量**：执行者（Claude） ≠ 审查者（GPT-5.5）；每轮 fresh thread；隐私脱敏 banlist 硬编码在审查 prompt。
 
-HTML 单文件自包含：MathJax + highlight.js 通过 CDN 加载（也可用 `--offline` 全本地化）。
-
-## 已完成
-
-| 主题 | Markdown | HTML | 审查轨迹 |
-|---|---|---|---|
-| **π 系列 (π0 → π0.7)** 面试 Cheat Sheet | [`pi_series_tutorial.md`](docs/tutorials/pi_series_tutorial.md) | [`pi_series_tutorial.html`](docs/tutorials/pi_series_tutorial.html) | [`.review.json`](docs/tutorials/pi_series_tutorial.review.json) — 5 节点路线 Lean+ 大纲（KI 作为 π0.5 子节），含 OpenVLA/RDT-1B/RT-2 横向比较 |
-| **强化学习基础 (V1 of 3)** 面试 Cheat Sheet | [`rl_foundations_tutorial.md`](docs/tutorials/rl_foundations_tutorial.md) | [`rl_foundations_tutorial.html`](docs/tutorials/rl_foundations_tutorial.html) | [`.review.json`](docs/tutorials/rl_foundations_tutorial.review.json) — MDP → DQN → PG → A2C；含独立 §4 on/off-policy + importance sampling；4 轮跨模型审查 PASS，27 处修正 |
-| **策略优化与连续控制 (V2 of 3)** 面试 Cheat Sheet | [`ppo_sac_tutorial.md`](docs/tutorials/ppo_sac_tutorial.md) | [`ppo_sac_tutorial.html`](docs/tutorials/ppo_sac_tutorial.html) | [`.review.json`](docs/tutorials/ppo_sac_tutorial.review.json) — TRPO/PPO/GAE/DDPG/TD3/SAC + PPO in RLHF；写作风格调整为先直觉后公式 + VAE 类比；3 轮跨模型审查 PASS，11 处修正 |
-
-## 路线图（18 个主题）
-
-**Tier 1 — RL 与决策基础（3 册系列）**
-- [x] **V1 强化学习基础**（MDP / Bellman / DP / MC-TD / IS / Q-learning / DQN / PG / A2C）✅
-- [x] **V2 策略优化与连续控制**（TRPO / PPO / GAE / DDPG / TD3 / SAC + PPO-RLHF）✅
-- [ ] V3 离线 RL + 模仿 + LLM Post-Training（BC / Offline RL / DPO / RLHF / RLVR / GRPO）
-
-**Tier 2 — 机器人学与控制**
-- [ ] 机器人学速查（运动学 / 动力学 / 雅可比）
-- [ ] MPC & 轨迹优化（iLQR / MPPI / CEM）
-- [ ] Sim-to-Real（Domain Randomization / SysID / RMA）
-
-**Tier 3 — VLA & 机器人大模型**
-- [x] **π 系列**（π0 → π0.7）✅
-- [ ] VLA 综述（RT-1 / RT-2 / RT-X / OpenVLA）
-- [ ] Diffusion Policy / 动作扩散
-- [ ] 机器人表征学习（R3M / VC-1 / Voltron / MVP）
-- [ ] 触觉 & 多模态感知
-
-**Tier 4 — 世界模型与生成式规划**
-- [ ] 世界模型基础（Dreamer V1-V3 / TD-MPC2）
-- [ ] 大世界模型（Genie / GAIA-1 / Sora-as-WM / V-JEPA）
-- [ ] MBRL & Planning（PlaNet / MuZero）
-
-**Tier 5 — 任务域 & 仿真**
-- [ ] Manipulation 基准（RLBench / CALVIN / LIBERO / ManiSkill）
-- [ ] 导航 & VLN（R2R / VLN-CE / Habitat）
-
-## 致谢
-
-构建思路 & 渲染脚本均来源于 [ARIS-in-AI-Offer](https://github.com/wanshuiyin/ARIS-in-AI-Offer)（MIT License）。
+详见 [`CLAUDE.md`](CLAUDE.md)。
 
 ## License
 

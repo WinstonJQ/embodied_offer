@@ -1,183 +1,118 @@
-# CLAUDE.md — Embodied-AI-in-Offer 项目工作指令
+# CLAUDE.md — 具身智能高频面试题库 项目工作指令
 
 > 当 Claude Code 在 `/home/scut/embodied_offer` 目录启动时自动加载此文件。
-> 用户输入"做 XXX 系列"或"帮我做 XXX 速查表"时，按本文件的工作流执行，**无需重新调研构建思路**。
+> 用户输入"做卷 X / 做 XXX 卷 / 继续下一卷"时，按本文件的工作流执行。
 
 ## 0. 项目定位
 
-中文具身智能秋招速查手册集合，仿照 [ARIS-in-AI-Offer](https://github.com/wanshuiyin/ARIS-in-AI-Offer) 范式：
+**这是一个纯面试题库项目**，不是学习笔记 / cheat sheet。
 
-- 每篇是一份 600–1000 行的长文 cheat sheet（公式 + from-scratch 代码 + 25 道 L1/L2/L3 面试题）
-- 输出双产物：Markdown 源 + 单文件 HTML（响应式，手机/平板/PC 通用）
-- 部署：**GitHub Pages 纯静态托管**，无后端
-- 所有产物必须经过跨模型审查（Claude 写 / GPT-5.5 xhigh 审查）才能发布
+- 内容：题目 + 200 字内精简答案 + 频次/难度标签
+- 不含：公式推导、代码实现、知识讲解（如需深入学习另找资源）
+- 形式：Markdown 源 + 单文件折叠 HTML（默认收起，点开看答案）
+- 部署：GitHub Pages 静态托管，无后端
+- 跨模型审查（Claude 写 / GPT-5.5 xhigh 审查）后发布
+
+旧的 cheat sheet 模式（pi_series / rl_foundations / ppo_sac）已 **彻底废弃**，相关文件已 git rm。不要互链、不要复用其内容。
 
 ## 1. 用户偏好（HARD RULES — 不可违反）
 
-| 规则 | 来源 | 触发场景 |
-|---|---|---|
-| **写之前先列大纲让用户审过** | 2026-05-20 反馈 "Hi Robot 不是我想要的内容你也写进去了" | 任何新主题开工前，先列覆盖的子主题清单 + 各自的核心点，明确询问"哪些要 / 哪些不要 / 哪些要补"，等用户回复再开写 |
-| **完成后必须 push 到 GitHub** | 2026-05-20 反馈 "我不是为了在本地阅读的" | 渲染 + 审计完成后，主动 commit + push；如果还没远程仓库，要询问仓库名+可见性 |
-| **手机端必须可用** | 2026-05-20 反馈 "手机点击也能看，排版不会乱" | 用 `academic` 模板（已自带 responsive CSS）；不要用 `dashboard` 模板 |
-| **首选主题准确性优先于覆盖广度** | 同上 | 宁可少写一个版本/方法，也不要塞用户没要的内容 |
+| 规则 | 触发场景 |
+|---|---|
+| **写之前先列题目清单让用户审过** | 每卷开工前提交频次+难度+题目清单，等用户审过删/加/换 |
+| **完成后必须 push 到 GitHub** | 渲染审计完成后，主动 commit + push |
+| **手机端必须可用** | 用 academic 模板（已自带响应式 CSS） |
+| **不按公司分类** | 题目不打公司标签；公司只出现在 Phase 1 调研报告的来源备注里 |
+| **题量由频次决定** | 不强求 50 题/卷；某些卷可能 30 题或 80 题 |
+| **同义题合并，频次 ≥3 才进卷** | 防止单条噪声面经污染 |
+| **不写公式推导/代码块/知识讲解** | 答案是"标准回答模板"风格，不是"教程" |
+| **答案精简（≤200 字）便于记忆** | 超过的拆"答 + 易错 + 延伸"3 段 |
 
-## 2. 标准工作流（用户说"做 XXX"时的固定动作序列）
+## 2. 标准工作流
 
-```
-Phase 0 — 解析与对齐
-  ① 解析 "XXX" 是哪个主题（RL / VLA / 世界模型 / 仿真等）
-  ② 在 docs/tutorials/README.md 路线图里找对应位置
-  ③ 用 Agent 子代理快速调研该主题的最新进展（用 WebFetch + WebSearch）
-  ④ ★ 列大纲：12-14 节标题 + 每节核心 1-2 句 → 提交用户审过
-  ⑤ ★ 等用户确认增删后再进 Phase 1
-
-Phase 1 — 深度调研
-  调 general-purpose Agent，写一份结构化报告：
-    - 版本/方法时间线（一张表）
-    - 每个版本/方法的资料卡（含 arXiv ID, 作者, 关键数字）
-    - 数学公式 + 横向对比
-    - 25 道面试题草稿（L1×10 + L2×10 + L3×5）
-
-Phase 2 — 起草 Markdown
-  写到 docs/tutorials/<slug>_tutorial.md
-  风格严格参照 /home/scut/aris_repo/docs/tutorials/attention_tutorial.md：
-    - ## §N Title（§N 后有空格，不可粘连）
-    - 表格内 math 用 \lvert ... \rvert 不用 |...|
-    - callout intro line 与列表分两行（不要 "> 💡 **xxx** — 1. ... 2. ..."）
-    - callout 前缀仅 💡 ⚠️ ✅ ❌（其它没 class）
-    - $...$ 行内 / $$...$$ 行间 / $$\boxed{...}$$ 关键框
-    - 中文为主，英文术语保留原文
-    - 代码块用 ```python，且要 statically correct
-  长度目标 1000 行（max effort）/ 600 行（balanced）
-
-Phase 3 — 跨模型审查（必跑，不可跳）
-  调用 mcp__codex__codex：
-    model: "gpt-5.5"
-    config: {model_reasoning_effort: "xhigh"}
-    sandbox: "read-only"
-    fresh thread 每轮（绝不复用 threadId）
-  审查 10 项：
-    1. formula_correctness（独立重推每个 $$ 公式）
-    2. code_correctness（每个 python 块能否跑、shape/device 一致）
-    3. interview_answer_correctness（25 题答案核对）
-    4. historical_citations（arXiv ID / 年份 / 作者）
-    5. table_pipe_escape（表格内是否有 |x| 未转义）
-    6. callout_list_collision（callout + list 同行碰撞）
-    7. heading_consistency（§N 空格）
-    8. section_completeness（§0..§N + §A 齐全）
-    9. length_target（±20% 内）
-    10. personal_info_leak（无 SJTU / JHC / Server5 / /Users/ 等）
-  循环修 FAIL → fresh thread 再审，直到 PASS。
-  典型收敛 3-5 轮；超过 6 轮无收敛 → 停下来报用户。
-  审计日志写到 docs/tutorials/<slug>_tutorial.review.json
-
-Phase 4 — 渲染 HTML（必用 academic 模板）
-  cd /home/scut/embodied_offer
-  python3 tools/render_html.py docs/tutorials/<slug>_tutorial.md \
-    --template academic \
-    --out docs/tutorials/<slug>_tutorial.html \
-    --title "<Topic> 面试 Cheat Sheet" \
-    --subtitle "<scope summary>" \
-    --eyebrow "Embodied AI Interview Prep · <Topic>" \
-    --author "WinstonJQ" \
-    --lang zh-CN
-
-Phase 5 — 更新索引
-  ① docs/index.html 把新主题从 TODO 换成 DONE 卡片
-  ② README.md 路线图勾选
-
-Phase 6 — Push 到 GitHub
-  git add docs/tutorials/<slug>_tutorial.{md,html,review.json} \
-          docs/index.html README.md
-  git commit -m "docs: add <Topic> interview cheat sheet"
-  git push origin master
-  （远程仓库已存在；首次 push 见 §5）
-  push 完后给用户最终报告：发布 URL + 审查轮数 + fix 数
-
-Phase 7 — 报告
-  ✅ <Topic> cheat sheet 完成
-    HTML:   https://winstonjq.github.io/embodied_offer/tutorials/<slug>_tutorial.html
-    Markdown: docs/tutorials/<slug>_tutorial.md (<lines> 行)
-    审查:   PASS after N rounds, M fixes
-    Commit: <commit hash>
-```
-
-## 3. 主题清单与 slug 命名
-
-slug = topic 的 kebab/snake-case，**不含日期/版本号噪声**。
-
-| 主题（用户说法） | slug | 状态 |
-|---|---|---|
-| π 系列 / pi 系列 | `pi_series` | ✅ done |
-| VLA 综述 / RT 系列 / OpenVLA | `vla_survey` | TODO |
-| Diffusion Policy / 动作扩散 | `diffusion_policy` | TODO |
-| RL 基础 / 强化学习基础 | `rl_foundations` | TODO |
-| PPO / TRPO / GAE | `ppo_trpo` | TODO |
-| SAC / TD3 / DDPG | `sac_td3` | TODO |
-| Offline RL / 离线 RL | `offline_rl` | TODO |
-| 模仿学习 / BC / GAIL | `imitation_learning` | TODO |
-| 机器人学速查 | `robot_kinematics` | TODO |
-| MPC / 轨迹优化 | `mpc_trajopt` | TODO |
-| Sim-to-Real | `sim2real` | TODO |
-| 世界模型基础 / Dreamer | `world_models` | TODO |
-| 大世界模型 / Genie / GAIA / V-JEPA | `large_world_models` | TODO |
-| 表征学习 / R3M / VC-1 / Voltron | `robot_representation` | TODO |
-| 触觉 / 多模态感知 | `tactile_multimodal` | TODO |
-| MBRL / Planning | `mbrl_planning` | TODO |
-| Manipulation 基准 | `manipulation_benchmarks` | TODO |
-| 导航 / VLN | `vln_navigation` | TODO |
-
-如果用户说的主题不在这张表里，先列大纲 + 提议新 slug 让用户确认，再补充进表。
-
-## 4. 关键文件路径
+每一卷独立跑一遍：
 
 ```
-/home/scut/embodied_offer/                  ← 本仓库 (cwd)
-├── CLAUDE.md                                ← 本文件
-├── README.md                                ← 仓库主页
-├── docs/
-│   ├── index.html                           ← GitHub Pages 入口
-│   └── tutorials/
-│       ├── <slug>_tutorial.md               ← Markdown 源
-│       ├── <slug>_tutorial.html             ← 渲染 HTML
-│       └── <slug>_tutorial.review.json      ← 审计日志
-└── tools/
-    ├── render_html.py                       ← 渲染脚本（零依赖）
-    └── templates/
-        ├── academic.html                    ← ★ 必用模板（responsive）
-        └── dashboard.html                   ← 不用
-
-/home/scut/aris_repo/docs/tutorials/         ← 风格参照（attention_tutorial.md）
-/home/scut/.claude/skills/                   ← 备用 skill 副本
+Phase 1  → 调研：多关键词跨平台爬取 + 同义题合并 + 频次统计
+            产出：/tmp/<slug>_questions_research.md（题目清单 + 频次 + 难度）
+Phase 0  → 提交题目清单给用户审过删/加/换（必停下等用户回复）
+Phase 2  → 起草 docs/interviews/XX_<slug>.md（<details> 折叠块格式）
+Phase 3  → codex gpt-5.5 xhigh 跨模型审查（10 项检查）
+            循环修 FAIL → fresh thread 再审，典型收敛 3-5 轮
+            审计日志：docs/interviews/XX_<slug>.review.json
+Phase 4  → 渲染 academic 模板 HTML
+Phase 5  → 更新 docs/index.html（主册入口卡片状态 + Top N）
+Phase 6  → git add + commit + push origin master
+Phase 7  → 报告发布 URL + 题数 + 审查轮数
 ```
 
-## 5. GitHub 远程仓库
+## 3. 分册
 
-- GitHub 用户：`WinstonJQ`
-- 仓库名：`embodied_offer`（与本地目录同名）
-- 远程 URL：`git@github.com:WinstonJQ/embodied_offer.git` 或 `https://github.com/WinstonJQ/embodied_offer.git`
-- 默认分支：`master`
-- 可见性：**public**（GitHub Pages 免费版要求 public）
-- GitHub Pages 配置：Source = `master / docs`
-- 发布 URL 模板：`https://winstonjq.github.io/embodied_offer/tutorials/<slug>_tutorial.html`
+| 卷 | slug | 主题 | 状态 |
+|---|---|---|---|
+| 一 | basics | 通识基础（DL / RL 基础 / 机器人学） | TODO |
+| 二 | rl_algo | RL 算法（PPO / SAC / Offline RL） | TODO |
+| 三 | vla_il | VLA / 模仿学习（OpenVLA / π / Diffusion Policy / BC） | **进行中** |
+| 四 | world_sim | 世界模型 / Sim2Real | TODO |
+| 五 | engineering | 工程落地 / 系统设计 / 开放题 | TODO |
 
-**首次 push 流程**（仓库已在 GitHub 网页端创建空仓库后）：
+题量灵活：调研出多少进卷由频次决定，不强求 50。
 
-```bash
-git remote add origin https://github.com/WinstonJQ/embodied_offer.git
-git push -u origin master
+## 4. 题目格式
+
+每题用 HTML5 `<details>` 标签实现折叠：
+
+```markdown
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×12</span> <b>Q01</b> · OpenVLA 和 RT-2 在架构上的主要区别？</summary>
+
+**答**：200 字内精简回答（含必要对比/数字，不写公式推导）。
+
+**易错**：一句话点关键陷阱。
+
+</details>
 ```
 
-**后续 push**：
+渲染后：
+- 默认折叠，只看到一行（难度色标 + 频次徽章 + 题号 + 题目）
+- 点击展开看答案
+- 手机端原生支持（HTML5 `<details>`，零 JS）
 
-```bash
-git add docs/tutorials/<slug>_tutorial.{md,html,review.json} \
-        docs/index.html README.md
-git commit -m "docs: add <Topic> interview cheat sheet"
-git push origin master
-```
+**字段约定**：
+- `<span class="lv lv-l1">L1</span>` 绿色 / `lv-l2` 黄色 / `lv-l3` 红色
+- `<span class="freq">🔥×N</span>` N 为同义题合并后的出现次数
+- 题号 Q01...QN：卷内顺序，按频次或难度组织（频次高优先）
+- 答案目标：≤200 字；超过的拆 3 段（答 / 易错 / 延伸）
 
-## 6. 跨模型审查 — codex MCP 调用模板
+## 5. 题源调研规则
+
+**关键词**（每个都必须用 WebSearch 跑过）：
+
+中文：
+- 「VLA 实习 面经」「具身实习 面经」「具身智能 算法岗 面经」「具身 offer」
+- 「OpenVLA 面试」「π0 面试」「diffusion policy 面试」「模仿学习 面试题」
+- 「机器人 算法岗 面经」「robot policy 面试」
+- 公司名作搜索关键词（仅搜索用，不打分类标签）：字节 Seed Robotics / 智元 / 银河通用 / 星海图 / π / Figure / 1X / 宇树 / 蔚来 / 小米 CyberOne / 优必选
+
+英文（少量）：「embodied AI internship interview」「VLA interview questions」
+
+**调研平台**：
+- 牛客网 / 知乎 / 小红书 / 一亩三分地
+- GitHub awesome-* 仓库
+- 公众号"具身智能之心""自动驾驶之心"网页版归档
+- Reddit r/robotics, r/MachineLearning（少量补充）
+
+## 6. 频次合并规则
+
+- 相似度 ≥ 70% 视为同一题 → 合并计数
+- 同一帖子里重复出现的同义题只算一次该帖
+- 不同帖子各算一次
+- 合并到最规范表述（简洁、含问号的中文版本）
+- 频次 ≥3 进主表
+- 频次 1-2 放"低频备选"档（用户可选入卷，要标注）
+- 2 年以上的过时题（如只考 RT-1）剔除
+
+## 7. 跨模型审查（必跑，10 项）
 
 ```python
 mcp__codex__codex(
@@ -185,18 +120,24 @@ mcp__codex__codex(
     config={"model_reasoning_effort": "xhigh"},
     sandbox="read-only",
     cwd="/home/scut/embodied_offer",
-    prompt="""FRESH THREAD — review of <FILE>.
+    prompt="""FRESH THREAD — review of docs/interviews/<XX_slug>.md (面试题库).
 
-# Files (READ-ONLY)
-- Draft MD: /home/scut/embodied_offer/docs/tutorials/<slug>_tutorial.md
-- Style ref: /home/scut/aris_repo/docs/tutorials/attention_tutorial.md (style only)
-
-# 10 checks (see CLAUDE.md §2 Phase 3)
+# 10 checks
+1. answer_correctness：每题答案技术正确，公式/概念/数字无误
+2. frequency_validity：🔥×N 与 Phase 1 调研报告频次一致
+3. difficulty_appropriate：L1/L2/L3 标定合理（L1 不是太难，L3 不是太浅）
+4. timeliness：题目仍是当前高频（>2 年过时题剔除）
+5. answer_conciseness：答案 ≤200 字（超长的拆段）
+6. details_block_well_formed：每个 <details><summary> 结构闭合
+7. duplicate_detection：无未合并的同义题（70% 相似视为重复）
+8. citation_check：题目引用的论文/数字正确
+9. personal_info_leak：无 SJTU / JHC / Server5 / /Users/ 等
+10. length_target：卷长度合理（不刻意凑题，但 <30 或 >100 警告）
 
 Return JSON:
 {
   "verdict": "PASS | WARN | FAIL",
-  "checks": {check_name: status + note + file:line},
+  "checks": {check_name: {"status": ..., "note": ..., "evidence": "file:line"}},
   "blocking_issues": [],
   "warnings": [],
   "summary": "..."
@@ -205,26 +146,57 @@ Return JSON:
 )
 ```
 
-**每轮必开 fresh thread** — 绝不调用 `mcp__codex__codex-reply`。
+每轮必开 **fresh thread**（绝不调用 `mcp__codex__codex-reply`）。
 
-## 7. 已知陷阱（lessons from 过往修正）
+## 8. 关键文件路径
 
-| 陷阱 | 触发条件 | 避免方法 |
-|---|---|---|
-| Flow matching path 方差 | 描述 $A^\tau = \tau A + (1-\tau)\varepsilon$ 时 | 必须用 $(1-\tau)^2 I$ 不是 $(1-\tau) I$ |
-| Advantage 公式过度简化 | RECAP / DT 章节 | 用 n-step 形式 $A_t = \mathbb{E}[\sum r] + V(s_{t+N}) - V(s_t)$ |
-| 控制频率单位 | "50 Hz 要求 X ms" | 是 **20 ms / control step**，不是 20 ms / chunk |
-| Stage 数据组成对不上 | 多阶段训练描述 | 列每个 stage 的具体数据集集合（不要写 "MM/ME/CE/HL/WD/VI 一锅炖"，要分阶段） |
-| arXiv license 默认 | "论文 license CC-BY-4.0" | arXiv 默认是 "non-exclusive distribution"，不是 CC-BY |
-| 复杂度表混搭 | flow inference 行 | π0/π0.5 = 10 步；π0.6/π0.7 = 5 步（KI recipe）；π0-FAST 是 AR 不在 flow 行 |
-| Code 预期输出 | range(N) 循环的 print | range(2000) 不打印 step 2000，最后是 1500 |
+```
+/home/scut/embodied_offer/                  ← 本仓库 (cwd)
+├── CLAUDE.md                                ← 本文件
+├── README.md                                ← 仓库主页
+├── docs/
+│   ├── index.html                           ← GitHub Pages 入口 / 主册
+│   └── interviews/
+│       ├── 01_basics.{md,html}              ← TODO
+│       ├── 02_rl_algo.{md,html}             ← TODO
+│       ├── 03_vla_il.{md,html}              ← 进行中
+│       ├── 04_world_sim.{md,html}           ← TODO
+│       └── 05_engineering.{md,html}         ← TODO
+└── tools/
+    ├── render_html.py                       ← 渲染脚本（原生支持 <details>）
+    └── templates/
+        └── academic.html                    ← ★ 必用模板（含难度色标 CSS）
+```
 
-## 8. 不要做的事
+## 9. GitHub 远程仓库
 
-- ❌ 不要塞用户没明确同意的子主题（例如这次的 Hi Robot）
-- ❌ 不要用 dashboard 模板（用 academic）
+- GitHub 用户：`WinstonJQ`
+- 仓库：`embodied_offer`
+- 远程：`https://github.com/WinstonJQ/embodied_offer.git`
+- 默认分支：`master`
+- 可见性：public
+- Pages 配置：Source = `master / docs`
+- 发布 URL：
+  - 主册：`https://winstonjq.github.io/embodied_offer/`
+  - 卷 X：`https://winstonjq.github.io/embodied_offer/interviews/XX_<slug>.html`
+
+**每卷完成后的 push**：
+
+```bash
+git add docs/interviews/XX_<slug>.{md,html,review.json} docs/index.html README.md
+git commit -m "docs(interviews): add vol-X <slug> (N questions)"
+git push origin master
+```
+
+## 10. 不要做的事
+
+- ❌ 不要把 cheat sheet 风格的公式推导/代码块塞进答案
+- ❌ 不要给题目打公司分类标签（如 `#字节Seed`）
+- ❌ 不要强求每卷 50 题（按真实频次走）
 - ❌ 不要跳过跨模型审查直接渲染
 - ❌ 不要在 codex 审查时复用 threadId
 - ❌ 不要忘记 push GitHub 就报告完成
-- ❌ 不要在 Markdown 里写 SJTU / JHC / Server5 / /Users/ 等个人信息
-- ❌ 不要 force push 到 master（先 review 再 push）
+- ❌ 不要写超过 400 字的答案（拆段或精简）
+- ❌ 不要保留 SJTU / JHC / Server5 / /Users/ 等个人信息
+- ❌ 不要 force push 到 master
+- ❌ 不要复活旧 pi_series / rl_foundations / ppo_sac 内容

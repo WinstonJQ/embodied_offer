@@ -1,0 +1,119 @@
+{
+  "artifact": "docs/interviews/03_vla_il.md",
+  "volume": "卷三 · VLA / 模仿学习",
+  "question_count": 58,
+  "difficulty_distribution": {"L1": 18, "L2": 31, "L3": 9},
+  "review_model": "gpt-5.5",
+  "review_effort": "xhigh",
+  "executor_model": "claude-opus-4-7",
+  "rounds": 6,
+  "verdict": "PASS",
+  "ready_to_publish": true,
+  "fix_summary": {
+    "round_1": {
+      "verdict": "FAIL",
+      "blocking_fixes": [
+        "Q10/Q14/Q30/Q33/Q34/Q35/Q39/Q58: 维度 8 → 7（OpenVLA = 7 维 [Δx,Δy,Δz,Δroll,Δpitch,Δyaw,gripper]）",
+        "Q09: RT-2 视觉表格改为 PaLI-X / PaLM-E 内置 ViT（不是 SigLIP 单路）",
+        "Q17: 推理频率描述软化（删除每秒 1 次 / 500 次绝对说法）",
+        "Q28/Q32/Q33: OXE 数字 22 → ~60 datasets / 22 embodiments / 1M+ trajectories；DROID 564 scenes / 350h / 76K demos / ~86 tasks",
+        "Q47: RECAP 全称改为 'RL with Experience and Corrections via Advantage-conditioned Policies'",
+        "Q54: 严重压缩（删除 task_reward = +10 等模板数值）"
+      ],
+      "warning_fixes": [
+        "Q25/Q27: Q27 重写为 z=0 局限 / 随机采样不稳 / β-VAE 调参（与 Q25 错开）",
+        "Q06: 最优策略公式加 E_{s'} 期望",
+        "Q39: 加 action chunking + 改速度数字为论文报告值（26× throughput / 3× latency）",
+        "Q23: 重写为 slow planner + fast reactive controller",
+        "Q26: 复合误差表述去绝对化",
+        "Q57: 标签 '项目易错' → '易错'"
+      ]
+    },
+    "round_2": {
+      "verdict": "FAIL",
+      "blocking_fixes": [
+        "Q15 / Q32: 残留 22 datasets → ~60 datasets",
+        "Q19: 删除 '每秒 chunk inference 1 次 / 剩 980 ms'",
+        "Q11: π0.5 主体改为开放世界泛化 + 多源 co-training；KI 是后续扩展",
+        "Q34: 删除 '不足补 0 / 超出截断' 粗暴方案，区分单臂 7D vs 双臂 14D / Mobile 16D",
+        "Q28 后: 删除多余 </details>（折叠块平衡 58/58）"
+      ]
+    },
+    "round_3": {
+      "verdict": "FAIL",
+      "blocking_fixes": [
+        "Q15: 970K 归属修正（RT-X 用 OXE robotics mixture，OpenVLA 用 ~970K curated）",
+        "Q34: Franka / UR5e DoF 修正（Franka 7-DoF / UR5e 6-DoF，之前写反）",
+        "Q34/Q47: 压缩到 < 500 字符",
+        "Q32: DROID tasks 改 '~86 tasks（84/86 版本差异）'"
+      ]
+    },
+    "round_4": {
+      "verdict": "FAIL",
+      "blocking_fixes": [
+        "Q15/Q17/Q19/Q39/Q42/Q43/Q50/Q53/Q55: 9 题压缩到 < 500 字符（删冗余表格、合并 bullet、压模板话术）"
+      ]
+    },
+    "round_5": {
+      "verdict": "FAIL",
+      "blocking_fixes": [
+        "Q47: 进一步压缩 544 → 423 字符（删除 conditional generation 重复展开）",
+        "Q53: RECAP 表述微调为 'advantage-conditioned 变体，不是典型 PPO'"
+      ]
+    },
+    "round_6": {
+      "verdict": "PASS",
+      "blocking_issues": [],
+      "warnings": [
+        "49 题在 350-500 字符 WARN 区间；Q07=491 缓冲最小",
+        "Q47 当前 423 字符，已退出 FAIL 区"
+      ]
+    }
+  },
+  "checks_final": {
+    "answer_correctness": "PASS",
+    "frequency_validity": "PASS",
+    "difficulty_appropriate": "PASS",
+    "timeliness": "PASS",
+    "answer_conciseness": "PASS (max=491, min=282, all<500)",
+    "details_block_well_formed": "PASS (58/58 balanced)",
+    "duplicate_detection": "PASS",
+    "citation_check": "PASS",
+    "personal_info_leak": "PASS",
+    "length_target": "PASS (58 questions, 9 sections)"
+  },
+  "key_facts_verified": [
+    "OpenVLA = Llama-2 7B + SigLIP + DINOv2 双路视觉; 7 维动作",
+    "RT-2 = PaLI-X 55B / PaLM-E 12B; co-finetune web + robot data",
+    "OXE = ~60 datasets / 22 embodiments / 1M+ trajectories",
+    "OpenVLA 训练用 OXE 中 ~970K curated demonstrations",
+    "DROID = 564 scenes / 350h / 76K demos / ~86 tasks（不在 OXE 原始列表）",
+    "π0 backbone = PaliGemma (SigLIP + Gemma-2B); 50 Hz 控制; chunk H=50",
+    "π0.5 主体 = 开放世界泛化 + co-training; KI 是后续扩展",
+    "RECAP = RL with Experience and Corrections via Advantage-conditioned Policies (π*0.6, arXiv:2511.14759)",
+    "π0.7 = 2026-04 发布",
+    "OpenVLA = 6 Hz (4090 未优化); OpenVLA-OFT 提速 26× throughput / 3× latency (arXiv:2502.19645)",
+    "Mobile ALOHA = 16 维（14 双臂 + 2 base v/ω）",
+    "FAST = DCT → scale → round → flatten → BPE 五步",
+    "Franka/Panda = 7-DoF; UR5e = 6-DoF"
+  ],
+  "review_invariants": [
+    "fresh thread per round (无 codex-reply)",
+    "executor (claude-opus-4-7) ≠ reviewer (gpt-5.5)",
+    "read-only sandbox during review",
+    "answer_conciseness threshold: ≤350 PASS / 350-500 WARN / >500 FAIL"
+  ],
+  "sources_consulted": [
+    "https://arxiv.org/abs/2406.09246 (OpenVLA)",
+    "https://arxiv.org/abs/2310.08864 (OXE / RT-X)",
+    "https://arxiv.org/abs/2502.19645 (OpenVLA-OFT)",
+    "https://arxiv.org/abs/2511.14759 (RECAP / π*0.6)",
+    "https://arxiv.org/abs/2604.15483 (π0.7)",
+    "https://arxiv.org/abs/2504.16054 (π0.5)",
+    "https://www.pi.website/research/knowledge_insulation (KI)",
+    "https://arxiv.org/abs/2403.12945 (DROID)",
+    "https://mobile-aloha.github.io/resources/mobile-aloha.pdf (Mobile ALOHA)",
+    "https://arxiv.org/abs/2410.24164 (π0)",
+    "https://arxiv.org/abs/2308.12952 (BridgeData V2)"
+  ]
+}

@@ -250,27 +250,69 @@ details.qa, details {
   border-radius: 6px;
   margin: 10px 0;
   padding: 0;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
+details.qa { margin: 8px 0; }
+details.qa:hover { border-color: var(--primary-soft); box-shadow: 0 1px 4px rgba(26,74,140,0.06); }
 details summary {
   cursor: pointer;
-  padding: 10px 14px;
+  padding: 11px 14px;
   font-weight: 600;
-  font-size: 14px;
-  color: var(--primary);
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--ink);
   list-style: none;
   user-select: none;
 }
+details.qa summary { color: var(--ink); }
 details summary::-webkit-details-marker { display: none; }
 details summary::before {
   content: "▸ ";
   margin-right: 4px;
   display: inline-block;
   transition: transform 0.15s;
+  color: var(--primary);
 }
 details[open] summary::before { transform: rotate(90deg); }
 details[open] summary { border-bottom: 1px solid var(--border-soft); }
-details > :not(summary) { padding: 10px 14px; }
+details[open].qa { background: #fdfcf7; }
+details > :not(summary) { padding: 10px 16px; }
 details p:first-of-type { margin-top: 8px; }
+details p:last-of-type { margin-bottom: 10px; }
+
+/* difficulty pills: L1 green / L2 yellow / L3 red */
+.lv {
+  display: inline-block;
+  padding: 1px 7px;
+  margin-right: 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", monospace;
+  vertical-align: 1px;
+  line-height: 1.5;
+}
+.lv-l1 { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+.lv-l2 { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+.lv-l3 { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+
+/* frequency badge: 🔥×N */
+.freq {
+  display: inline-block;
+  padding: 1px 7px;
+  margin-right: 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--bg-soft);
+  color: var(--ink-soft);
+  border: 1px solid var(--border-soft);
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", monospace;
+  vertical-align: 1px;
+  line-height: 1.5;
+}
+.freq-hot { background: #fff1e6; color: #b8390e; border-color: #fcd9c0; }
 
 mjx-container[display="true"] { margin: 12px 0 !important; }
 
