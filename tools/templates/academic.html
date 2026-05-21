@@ -85,6 +85,25 @@ nav.toc a {
 nav.toc a:hover { color: var(--primary); border-bottom-color: var(--primary); }
 nav.toc ul { list-style: none; padding-left: 14px; margin: 3px 0; font-size: 12px; }
 nav.toc ul li::before { content: "→ "; color: var(--border); }
+nav.toc a.back-home {
+  display: inline-block;
+  margin-bottom: 18px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+nav.toc a.back-home:hover {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+}
 
 main { min-width: 0; }
 
@@ -350,6 +369,7 @@ footer.aris-footer a { color: var(--ink-muted); border-bottom: 1px dotted var(--
 <div class="layout">
 
 <nav class="toc">
+  <a class="back-home" href="../index.html">← 返回主册</a>
   <h3>{{TOC_LABEL}}</h3>
   {{TOC_HTML}}
 </nav>
