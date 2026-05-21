@@ -14,8 +14,8 @@
       "reasoning_effort": "xhigh",
       "fixes_applied": 0,
       "blocking_issues": [
-        "Q15 把"7B 模型 = 7 GB"称为 FP16 推理估算，实际 7B FP16 权重约 14 GB；7 GB 对应 INT8",
-        "Q06 的"7B 模型 ~40 GB → ~10 GB"量化描述不一致",
+        "Q15 把「7B 模型 = 7 GB」称为 FP16 推理估算，实际 7B FP16 权重约 14 GB；7 GB 对应 INT8",
+        "Q06 的「7B 模型 ~40 GB → ~10 GB」量化描述不一致",
         "Q24 把 R3M 说成 Something-Something 预训练，实际 R3M 论文明确为 Ego4D",
         "Q22 的 DROID 描述不符合官方数据（应为 76K/564 scenes/86 tasks/50 collectors）",
         "Q18/Q19/Q20/Q29/Q31 超过普通题 >500 字 FAIL 阈值"
@@ -29,12 +29,12 @@
       "fixes_applied": 8,
       "fixes_summary": [
         "Q06：INT8 量化描述改为 FP16 ~14GB → INT8 ~7GB，推理显存约 8-10 GB",
-        "Q15：易错修正"7B=7GB 是 INT8 权重估算，FP16 约 14GB"",
-        "Q18：删除"反传路径变长导致梯度不稳定"错误说法，改为"重计算增加约 30% 计算量，梯度数值不变"",
+        "Q15：易错修正「7B=7GB 是 INT8 权重估算，FP16 约 14GB」",
+        "Q18：删除「反传路径变长导致梯度不稳定」错误说法，改为「重计算增加约 30% 计算量，梯度数值不变」",
         "Q22：DROID 改为 76K 轨迹、564 场景、86 任务、50 名采集者",
-        "Q23：时间同步改为"< 1ms 需硬件触发或 PTP；NTP 只做毫秒级粗同步"",
+        "Q23：时间同步改为「< 1ms 需硬件触发或 PTP；NTP 只做毫秒级粗同步」",
         "Q24：R3M 预训练数据改为 Ego4D（非 Something-Something）",
-        "Q37：删除"π0.7 在家庭任务 > 90% SR"无出处数字",
+        "Q37：删除「π0.7 在家庭任务 > 90% SR」无出处数字",
         "Q18/Q19/Q20/Q29/Q31：压缩至 ≤500 字"
       ],
       "remaining_blocking": [
@@ -51,8 +51,8 @@
       "fixes_summary": [
         "文首难度分布改为 L1=3 / L2=31 / L3=5（与实际计数一致）",
         "Q18 再次压缩",
-        "Q10 删除"PaliGemma 本身是蒸馏产物"不准确说法",
-        "Q17 "必须用" → "几乎是标配/强烈推荐"",
+        "Q10 删除「PaliGemma 本身是蒸馏产物」不准确说法",
+        "Q17 「必须用」 → 「几乎是标配/强烈推荐」",
         "Q13 speculative decoding 与 GR00T N1 类比改弱"
       ],
       "remaining_blocking": [
@@ -67,8 +67,8 @@
       "fixes_applied": 3,
       "fixes_summary": [
         "Q06 压缩至约 340 字",
-        "Q17 标题改为"为何几乎是标配"，答案压缩至约 380 字",
-        "Q10 对 PaliGemma 表述进一步规范为"π0 系列使用 PaliGemma/SigLIP+Gemma 作为预训练 VLM backbone""
+        "Q17 标题改为「为何几乎是标配」，答案压缩至约 380 字",
+        "Q10 对 PaliGemma 表述进一步规范为「π0 系列使用 PaliGemma/SigLIP+Gemma 作为预训练 VLM backbone」"
       ],
       "blocking_issues": [],
       "remaining_warnings": [
@@ -86,13 +86,13 @@
       "fixes_applied": 2,
       "fixes_summary": [
         "Q13：明确区分 GR00T N1 扩散式并行动作生成与 speculative decoding，两者原理不同",
-        "Q37：路线图改为明确标注"预判"，避免确定性断言；"2025（当前）"改为"2025（已发生/回顾）""
+        "Q37：路线图改为明确标注「预判」，避免确定性断言；「2025（当前）」改为「2025（已发生/回顾）」"
       ],
       "blocking_issues": [],
       "remaining_warnings": [
         "30 道普通题处于 350-500 字 WARN 区间（无 >500 字 FAIL）",
         "Q35 开放题约 513 字，进入开放题 WARN 区间（但未超 700）",
-        "Q37 "2025（已发生/回顾）"时间锚点已修正",
+        "Q37 「2025（已发生/回顾）」时间锚点已修正",
         "Q06 GR00T N1 表述方向已修正"
       ]
     }
