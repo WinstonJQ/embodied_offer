@@ -165,5 +165,5 @@
     "citation_check: benchmark numbers attributed by method but not by exact paper table line — typical interview-bank limitation, not a blocker"
   ],
   "max_rounds_reached": false,
-  "notes": "用户已豁免 Phase 0 题目清单审过；研究笔记保存在 /tmp/perception_nav_questions_research.md（仓库外）。最终 WARN 在 Round 5 达成（无 blocking issues）。Round 1 → 5 共 16 个 fix；最 thorny 是 Round 1 的 47/60 answers >500 chars（通过 Round 2 系统压缩降到 0/60 >500），ETPNav 归属（Round 2 一次性修正为 An et al. TPAMI 2024），SemExp 策略训练方法（Round 4 把 IL 改为 RL/PPO），OpenFMNav map 名称（Round 4 改为 VSSM）。用户重点章节 §5 (10) + §6 (10) + §7 (10) = 30 题，达 ≥25 题目标。信心较低章节：§8 端到端 VLN-VLA 前沿判断（多为开放题，答案的"自洽 > 标答"由面试官评判）；Q11 端到端 GS-policy 是 2025 研究阶段方向（信心 medium）。已知 caveat：低频备选 N1-N3 频次均为 2 但来源权威破例入选；OpenFMNav 不同 setting 下 HM3D SR 略有出入（54.6 / 54.9），文中已标注。"
+  "notes": "用户已豁免 Phase 0 题目清单审过；研究笔记保存在 /tmp/perception_nav_questions_research.md（仓库外）。最终 WARN 在 Round 5 达成（无 blocking issues）。Round 1 → 5 共 16 个 fix；最 thorny 是 Round 1 的 47/60 answers >500 chars（通过 Round 2 系统压缩降到 0/60 >500），ETPNav 归属（Round 2 一次性修正为 An et al. TPAMI 2024），SemExp 策略训练方法（Round 4 把 IL 改为 RL/PPO），OpenFMNav map 名称（Round 4 改为 VSSM）。用户重点章节 §5 (10) + §6 (10) + §7 (10) = 30 题，达 ≥25 题目标。信心较低章节：§8 端到端 VLN-VLA 前沿判断（多为开放题，答案的「自洽 > 标答」由面试官评判）；Q11 端到端 GS-policy 是 2025 研究阶段方向（信心 medium）。已知 caveat：低频备选 N1-N3 频次均为 2 但来源权威破例入选；OpenFMNav 不同 setting 下 HM3D SR 略有出入（54.6 / 54.9），文中已标注。"
 }
