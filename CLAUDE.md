@@ -50,11 +50,13 @@ Phase 7  → 报告发布 URL + 题数 + 审查轮数
 
 | 卷 | slug | 主题 | 状态 |
 |---|---|---|---|
-| 一 | basics | 通识基础（DL / RL 基础 / 机器人学） | TODO |
-| 二 | rl_algo | RL 算法（PPO / SAC / Offline RL） | TODO |
-| 三 | vla_il | VLA / 模仿学习（OpenVLA / π / Diffusion Policy / BC） | **进行中** |
-| 四 | world_sim | 世界模型 / Sim2Real | TODO |
-| 五 | engineering | 工程落地 / 系统设计 / 开放题 | TODO |
+| 一 | basics | 通识基础（DL / RL 基础 / 机器人学） | 已完成 |
+| 二 | rl_algo | RL 算法（PPO / SAC / Offline RL） | 已完成 |
+| 三 | vla_il | VLA / 模仿学习（OpenVLA / π / Diffusion Policy / BC） | 已完成 |
+| 四 | world_sim | 世界模型 / Sim2Real | 已完成 |
+| 五 | engineering | 工程落地 / 系统设计 / 开放题 | 已完成 |
+| 六 | legged_control | 腿足控制 / WBC / 遥操作 | 已完成 |
+| 七 | perception_nav | 3D 感知 / SLAM / VLN / ObjectNav / Embodied VLM | 已完成 |
 
 题量灵活：调研出多少进卷由频次决定，不强求 50。
 

@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>卷七 · 3D 感知 / SLAM / VLN / 零样本 ObjectNav / Embodied VLM · 高频面试题</title>
+
+<meta name="generator" content="ARIS render-html (academic, v1)">
+<meta name="aris:source-path" content="docs/interviews/07_perception_nav.md">
+<meta name="aris:source-sha256" content="25e3585b1c533b2206d9daed96783bee4c9b384423f52c67b02fafb1a6217cc8">
+<meta name="aris:generated-at" content="2026-05-21 18:08 UTC">
+
+<!-- MathJax 3 -->
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']], processEscapes: true },
+  options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+
+<!-- highlight.js -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/atom-one-light.min.css">
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded', () => hljs.highlightAll());</script>
+
+
+<style>
+:root {
+  --bg: #fdfcf7;
+  --bg-soft: #f4f1ea;
+  --bg-code: #f8f5ec;
+  --ink: #1a1a1a;
+  --ink-soft: #4a4a4a;
+  --ink-muted: #6b6b6b;
+  --primary: #1a4a8c;
+  --primary-soft: #2d6cb8;
+  --accent: #b8390e;
+  --warn: #b45309;
+  --warn-bg: #fef3c7;
+  --info-bg: #dbeafe;
+  --good-bg: #d1fae5;
+  --good: #065f46;
+  --bad-bg: #fee2e2;
+  --bad: #991b1b;
+  --border: #d6d0c0;
+  --border-soft: #e8e3d5;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: "Source Serif Pro", "Source Serif 4", "Crimson Pro", "Georgia", "Songti SC", "STSong", serif;
+  line-height: 1.65;
+  color: var(--ink);
+  background: var(--bg);
+  margin: 0;
+  padding: 0;
+  font-size: 16px;
+}
+
+.layout {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 48px;
+  padding: 40px 32px;
+}
+
+nav.toc {
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  font-size: 13px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  border-right: 1px solid var(--border-soft);
+  padding-right: 16px;
+}
+nav.toc h3 {
+  margin: 0 0 12px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+  font-weight: 600;
+}
+nav.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+nav.toc ol li { margin: 5px 0; counter-increment: toc; }
+nav.toc ol li::before { content: counter(toc) ". "; color: var(--ink-muted); margin-right: 4px; }
+nav.toc a {
+  color: var(--ink-soft);
+  text-decoration: none;
+  border-bottom: 1px dotted transparent;
+}
+nav.toc a:hover { color: var(--primary); border-bottom-color: var(--primary); }
+nav.toc ul { list-style: none; padding-left: 14px; margin: 3px 0; font-size: 12px; }
+nav.toc ul li::before { content: "→ "; color: var(--border); }
+nav.toc a.back-home {
+  display: inline-block;
+  margin-bottom: 18px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+nav.toc a.back-home:hover {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+}
+
+main { min-width: 0; }
+
+header.hero {
+  border-bottom: 3px double var(--primary);
+  padding-bottom: 24px;
+  margin-bottom: 32px;
+}
+header.hero .eyebrow {
+  color: var(--accent);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+header.hero h1 {
+  font-size: 32px;
+  line-height: 1.2;
+  margin: 0 0 12px;
+  color: var(--ink);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+header.hero .subtitle {
+  font-size: 16px;
+  color: var(--ink-soft);
+  margin: 0 0 8px;
+  font-style: italic;
+}
+header.hero .byline {
+  font-size: 14px;
+  color: var(--ink-soft);
+  margin: 0 0 20px;
+}
+header.hero .byline strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+header.hero .meta {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--ink-muted);
+  border-top: 1px solid var(--border-soft);
+  padding-top: 14px;
+}
+header.hero .meta span strong { color: var(--ink-soft); }
+header.hero .meta code {
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", "Consolas", monospace;
+  font-size: 11px;
+  background: var(--bg-soft);
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid var(--border-soft);
+}
+
+h2 {
+  font-size: 24px;
+  margin: 44px 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  color: var(--ink);
+  font-weight: 700;
+}
+h2 .num { color: var(--primary); font-weight: 600; margin-right: 8px; }
+h3 { font-size: 19px; margin: 28px 0 10px; color: var(--primary); font-weight: 600; }
+h4 { font-size: 16px; margin: 20px 0 8px; color: var(--ink); font-weight: 600; }
+
+p { margin: 10px 0; }
+ul, ol { padding-left: 22px; margin: 10px 0; }
+ul li, ol li { margin: 4px 0; }
+ul li::marker { color: var(--primary); }
+
+strong { color: var(--accent); font-weight: 600; }
+em { color: var(--ink-soft); }
+
+a { color: var(--primary); }
+a:hover { color: var(--accent); }
+
+code:not(.hljs) {
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", "Consolas", monospace;
+  font-size: 0.86em;
+  background: var(--bg-code);
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid var(--border-soft);
+  color: var(--accent);
+}
+
+pre {
+  background: #fafaf6;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  padding: 0;
+  overflow-x: auto;
+  border-radius: 4px;
+  margin: 14px 0;
+}
+pre code, pre code.hljs {
+  background: transparent !important;
+  display: block;
+  padding: 14px 18px !important;
+  font-size: 13px;
+  line-height: 1.55;
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", monospace;
+  color: var(--ink);
+}
+pre.diagram {
+  background: #f9f6ed;
+  border-left: 4px solid var(--accent);
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.callout {
+  margin: 16px 0;
+  padding: 12px 16px;
+  border-radius: 4px;
+  border-left: 4px solid;
+  font-size: 15px;
+}
+.callout-title {
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.callout-info { background: var(--info-bg); border-left-color: var(--primary); }
+.callout-info .callout-title { color: var(--primary); }
+.callout-warn { background: var(--warn-bg); border-left-color: var(--warn); }
+.callout-warn .callout-title { color: var(--warn); }
+.callout-good { background: var(--good-bg); border-left-color: var(--good); }
+.callout-good .callout-title { color: var(--good); }
+.callout-bad { background: var(--bad-bg); border-left-color: var(--bad); }
+.callout-bad .callout-title { color: var(--bad); }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 14px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+thead { background: var(--primary); color: white; }
+th, td {
+  text-align: left;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border-soft);
+  vertical-align: top;
+}
+th { font-weight: 600; font-size: 13px; letter-spacing: 0.02em; }
+tr:last-child td { border-bottom: none; }
+tbody tr:nth-child(even) { background: var(--bg-soft); }
+
+details.qa, details {
+  background: white;
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  margin: 10px 0;
+  padding: 0;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+details.qa { margin: 8px 0; }
+details.qa:hover { border-color: var(--primary-soft); box-shadow: 0 1px 4px rgba(26,74,140,0.06); }
+details summary {
+  cursor: pointer;
+  padding: 11px 14px;
+  font-weight: 600;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--ink);
+  list-style: none;
+  user-select: none;
+}
+details.qa summary { color: var(--ink); }
+details summary::-webkit-details-marker { display: none; }
+details summary::before {
+  content: "▸ ";
+  margin-right: 4px;
+  display: inline-block;
+  transition: transform 0.15s;
+  color: var(--primary);
+}
+details[open] summary::before { transform: rotate(90deg); }
+details[open] summary { border-bottom: 1px solid var(--border-soft); }
+details[open].qa { background: #fdfcf7; }
+details > :not(summary) { padding: 10px 16px; }
+details p:first-of-type { margin-top: 8px; }
+details p:last-of-type { margin-bottom: 10px; }
+
+/* difficulty pills: L1 green / L2 yellow / L3 red */
+.lv {
+  display: inline-block;
+  padding: 1px 7px;
+  margin-right: 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", monospace;
+  vertical-align: 1px;
+  line-height: 1.5;
+}
+.lv-l1 { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+.lv-l2 { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+.lv-l3 { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+
+/* frequency badge: 🔥×N */
+.freq {
+  display: inline-block;
+  padding: 1px 7px;
+  margin-right: 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--bg-soft);
+  color: var(--ink-soft);
+  border: 1px solid var(--border-soft);
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", monospace;
+  vertical-align: 1px;
+  line-height: 1.5;
+}
+.freq-hot { background: #fff1e6; color: #b8390e; border-color: #fcd9c0; }
+
+mjx-container[display="true"] { margin: 12px 0 !important; }
+
+footer.aris-footer {
+  margin-top: 60px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+footer.aris-footer a { color: var(--ink-muted); border-bottom: 1px dotted var(--border); }
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; gap: 20px; padding: 20px 16px; }
+  nav.toc {
+    position: static;
+    max-height: none;
+    border-right: none;
+    border-bottom: 1px solid var(--border-soft);
+    padding-right: 0;
+    padding-bottom: 14px;
+  }
+  header.hero h1 { font-size: 24px; }
+  h2 { font-size: 20px; }
+}
+@media print {
+  nav.toc { display: none; }
+  .layout { grid-template-columns: 1fr; padding: 0; }
+  body { background: white; }
+  header.hero { border-bottom-color: var(--ink); }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="toc">
+  <a class="back-home" href="../index.html">← 返回主册</a>
+  <h3>Contents</h3>
+  <ol>
+<li><a href="#1-3d-感知基础6-题">§1 3D 感知基础（6 题）</a>
+</li>
+<li><a href="#2-nerf--3dgs-在机器人里5-题">§2 NeRF / 3DGS 在机器人里（5 题）</a>
+</li>
+<li><a href="#3-slam-与状态估计6-题">§3 SLAM 与状态估计（6 题）</a>
+</li>
+<li><a href="#4-经典导航栈与地图表征5-题">§4 经典导航栈与地图表征（5 题）</a>
+</li>
+<li><a href="#5-vln-视觉语言导航10-题">§5 VLN 视觉语言导航（10 题）</a>
+</li>
+<li><a href="#6-零样本-objectnav10-题">§6 零样本 ObjectNav（10 题）</a>
+</li>
+<li><a href="#7-embodied-vlm10-题">§7 Embodied VLM（10 题）</a>
+</li>
+<li><a href="#8-端到端-vln-vla-与前沿判断5-题">§8 端到端 VLN-VLA 与前沿判断（5 题）</a>
+</li>
+<li><a href="#9-低频备选3-题">§9 低频备选（3 题）</a>
+</li>
+</ol>
+</nav>
+
+<main>
+
+
+
+
+<h1 id="卷七--3d-感知--slam--vln--零样本-objectnav--embodied-vlm--高频面试题">卷七 · 3D 感知 / SLAM / VLN / 零样本 ObjectNav / Embodied VLM · 高频面试题</h1>
+<blockquote><p>中文具身智能秋招高频面试题库 · <strong>第七卷</strong> 题源：牛客 / 知乎 / CSDN 公开面经 / 深蓝学院题库 / GankInterview 总结 / VLN/ObjectNav arXiv 高引论文与项目页 / GitHub awesome-* 仓库 同义题合并后 <strong>60 题</strong>（主表 57 题：频次 ≥3 或权威破例 + 低频备选 3 题）</p></blockquote>
+<p><strong>难度分布</strong>：L1（必会） <strong>10</strong> · L2（进阶） <strong>35</strong> · L3（顶级 / 前沿） <strong>12</strong> （低频备选另计：L2 ×2 / L3 ×1）</p>
+<p><strong>使用方式</strong>：题目默认折叠，点开看答案。建议按 <strong>L1 → L2 → L3</strong> 顺序刷；同级内按频次从高到低。手机端原生支持。</p>
+<p><strong>重点章节</strong>：本卷 §5 VLN / §6 零样本 ObjectNav / §7 Embodied VLM 三节共 30 题，是 2024-2026 视觉语言导航 / VLA 算法岗的核心考察面，L3 难题多集中在这三节。§1-§4 是支撑性章节（3D 感知 / NeRF / SLAM / 经典导航栈），偏 L1/L2，是上层方法的"基本功"。</p>
+<p><strong>与其他卷的关系</strong>：本卷与卷三（VLA / 模仿学习）在 prompt 工程 / VLM 调用 / cross-modal 表征上有少量重叠——视角不同：卷三讲 manipulation 上的 VLA 架构，本卷讲 navigation 上的 VLM 应用。</p>
+<hr />
+<h2 id="1-3d-感知基础6-题">§1 3D 感知基础（6 题）</h2>
+<blockquote><p>点云 / 深度 / 占用 — 这些是几乎所有上层导航算法的输入侧基本功。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×5</span> <b>Q01</b> · PointNet 怎么解决点云的"无序性 / 置换不变性"问题？为什么能做点云分类的开山工作？</summary>
+<p><strong>答</strong>：点云的根本性质是<strong>无序集合</strong>——同一个物体的 $N$ 个点排列方式有 $N!$ 种，网络对任意置换必须输出同一个特征。PointNet（Qi 等 CVPR 2017）的解决方案：</p>
+<ol><li><strong>共享 MLP</strong>：每个点独立过同一个 MLP 升维，逐点变换不会引入顺序依赖</li><li><strong>对称聚合函数</strong>：用 max-pooling 把 $N$ 个点的特征聚合成全局特征——max 是对称函数，对置换天然不变</li><li><strong>T-Net</strong>：轻量 STN-like 子网络估计 $3\times3$ / $64\times64$ 变换矩阵，对齐输入和特征</li></ol>
+<p><strong>为什么开山</strong>：之前主流是把点云体素化（voxelization）后用 3D CNN，分辨率受限于内存；PointNet 直接吃点、参数少（约 3.5 M），ModelNet40 准确率 89.2%。</p>
+<p><strong>易错</strong>：max-pooling 对<strong>离群点敏感</strong>——异常远的一两个点会主导全局特征；PointNet++ 用层次化 FPS + grouping 缓解。"置换不变"和"旋转不变"是两回事，T-Net 只对<strong>仿射变换</strong>部分对齐，不能完全解决旋转不变。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q02</b> · PointNet++ 相比 PointNet 改进了什么？hierarchical FPS + grouping 解决什么问题？</summary>
+<p><strong>答</strong>：PointNet 的核心缺陷是<strong>没有局部结构</strong>——只有 per-point MLP + 全局 max-pool，丢掉"哪些点是邻居"的几何信息，复杂场景（语义分割、室内检测）效果差。PointNet++（NeurIPS 2017）三步改造：</p>
+<ol><li><strong>FPS</strong>（Farthest Point Sampling）：从 N 个点采 M 个中心点，比随机均匀</li><li><strong>Grouping</strong>：以每中心点 ball-query 半径 r 内邻居形成局部簇</li><li><strong>局部 PointNet</strong>：每簇上小 PointNet 提特征 → 再 FPS+Group → 层次化</li></ol>
+<p><strong>密度自适应</strong>：MSG（multi-scale）多尺度并联；MRG（multi-resolution）多层级拼接——稀疏区粗特征兜底。</p>
+<p><strong>易错</strong>：ball-query 半径是<strong>超参数</strong>，调不对漏邻居或纳入太多噪声；近年 PointMLP / Point Transformer 都用 KNN 省掉此超参。ModelNet40 ↑1.3pt 不大，<strong>真正提升在 ScanNet</strong>：PointNet 53% mIoU → PointNet++ 64%。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q03</b> · Point Transformer / PointMLP / PVCNN 各自定位？为什么近几年 PointNet++ 仍是 baseline 但很少作 SOTA？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th>方法</th><th>核心机制</th><th>优势 / 劣势</th></tr></thead><tbody><tr><td><strong>PointNet++</strong></td><td>FPS + ball-query + 局部 MLP</td><td>简单兼容 / 局部表达力弱</td></tr><tr><td><strong>PVCNN</strong></td><td>Point + Voxel 双分支并联</td><td>快、内存低 / 体素分辨率受限</td></tr><tr><td><strong>Point Transformer</strong>（Zhao 2021）</td><td>vector self-attention 替 MLP</td><td>几何感强 SOTA / 慢，$O(Nk)$</td></tr><tr><td><strong>PointMLP</strong>（ICLR 2022）</td><td>纯 MLP + 几何 affine 归一</td><td>训练快超 Transformer / 缺解释性</td></tr></tbody></table>
+<p><strong>为什么 PN++ 还在</strong>：① 代码极轻；② 工业部署友好（无 attention）；③ "Revisiting PointNet++"（BAAI 2022）显示改训练策略 + 大模型 PN++ 也能逼近 SOTA。</p>
+<p><strong>易错</strong>：sparse convolution（Minkowski / SPVNAS）是<strong>另一条线</strong>——对大规模室外场景（自驾 LiDAR）显著有优势；室内点数 &lt; 100k，点级方法仍主流。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×5</span> <b>Q04</b> · 单目深度估计：metric depth 和 relative depth 的区别？什么时候必须用 metric？</summary>
+<p><strong>答</strong>：</p>
+<ul><li><strong>Relative depth</strong>：只输出<strong>相对</strong>深度（哪个点更远），整体可以差一个未知缩放和偏移因子。训练时用"尺度无关" loss（如 SSI-MAE）；可在跨数据集预训练得到强泛化</li><li><strong>Metric depth</strong>：输出<strong>绝对</strong>深度（米为单位），必须有相机内参、训练数据有真值标定。跨域泛化差，相机 FoV / 焦距变了就崩</li></ul>
+<p><strong>什么时候必须用 metric</strong>：</p>
+<ul><li><strong>导航 / 避障</strong>：要知道"墙在 1.2 m 外"才能给出速度命令</li><li><strong>建图 / SLAM 融合</strong>：把单目深度灌进占用栅格必须米单位</li><li><strong>抓取</strong>：末端位置需要绝对距离</li></ul>
+<p><strong>什么时候 relative 够用</strong>：纯视觉显著性、portrait 模式背景虚化、单图深度可视化。</p>
+<p><strong>易错</strong>：MiDaS 是 <strong>relative</strong>，直接拿来做导航<strong>必崩</strong>；ZoeDepth / Metric3D / Depth Anything v2（metric 微调版）是 metric。Depth Anything v1 默认是 relative，需要在 NYU / KITTI 上 metric 微调才能给绝对深度。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q05</b> · Depth Anything v2 vs MiDaS vs ZoeDepth 怎么选？室内 / 室外有差别吗？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th>模型</th><th>类型</th><th>强项 / 弱项</th></tr></thead><tbody><tr><td><strong>MiDaS v3.1</strong>（2022）</td><td>relative</td><td>跨域鲁棒老 baseline / 不是 metric，细节模糊</td></tr><tr><td><strong>ZoeDepth</strong>（2023）</td><td>metric</td><td>真米单位零样本可用 / 边缘退化，室外一般</td></tr><tr><td><strong>Depth Anything v2</strong>（2024）</td><td>relative + metric</td><td>SOTA 细节 + 强泛化 / 算量比 v1 大</td></tr></tbody></table>
+<p><strong>选择</strong>：室内导航 / 抓取 → DA v2 metric 或 Metric3D v2；室外远距 → ZoeDepth (KITTI) 或 Metric3D v2；只要相对结构 → DA v2 relative 默认版。</p>
+<p><strong>易错</strong>：DA v2 默认输出是 <strong>disparity</strong>（视差），需 $1/d$ 反演才是深度；KB/KITTI 模式直接输出米。ViT-L 单帧 CUDA / TensorRT 约 30-80 ms，端到端实时需要 ViT-S。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q06</b> · occupancy network 和 2D occupancy grid map 的本质区别？BEV 和 voxel 各自适用什么场景？</summary>
+<p><strong>答</strong>：两类思想不同：</p>
+<table><thead><tr><th></th><th>2D Occupancy Grid</th><th>Occupancy Network</th></tr></thead><tbody><tr><td>结构</td><td>平面栅格 + 占用概率</td><td>3D voxel / 隐式连续</td></tr><tr><td>学习</td><td>log-odds Bayes 更新</td><td>神经网络端到端预测</td></tr><tr><td>代表</td><td>gmapping / Cartographer</td><td>Tesla Occupancy / SurroundOcc</td></tr><tr><td>用途</td><td>2D 规划 / SLAM</td><td>自驾 BEV / 机械臂避障</td></tr></tbody></table>
+<p><strong>BEV vs 体素</strong>：BEV 省内存规划友好但<strong>忽略高度</strong>（桌下椅腿、低矮障碍物会丢）；Voxel 保 z 维能表达悬空 / 透空 / 多层，但内存 $O(LWH)$ 分辨率受限。</p>
+<p><strong>实务</strong>：自驾 2023 后从纯 BEV 转向 occupancy（Tesla AI Day 2022 推动）；室内移动机器人仍以 2D grid 为主。</p>
+<p><strong>易错</strong>：occupancy network 是<strong>端到端学习</strong>输出，与 grid map 的 Bayesian filter 累积是两种范式；别说成"grid map 的 3D 版"。</p>
+</details>
+<h2 id="2-nerf--3dgs-在机器人里5-题">§2 NeRF / 3DGS 在机器人里（5 题）</h2>
+<blockquote><p>神经渲染 2023 年后从计算机视觉外溢到机器人——核心驱动是"用少量 view 重建可查询的 3D 场景表示"。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×4</span> <b>Q07</b> · NeRF 和 3D Gaussian Splatting 的核心区别？为什么 3DGS 在机器人圈快速取代 NeRF？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th></th><th>NeRF</th><th>3DGS</th></tr></thead><tbody><tr><td>表征</td><td>隐式 MLP $(x,y,z,\theta,\phi) \to (\sigma, c)$</td><td>显式高斯椭球 $\{\mu, \Sigma, c, \alpha\}$</td></tr><tr><td>渲染</td><td>volumetric ray marching</td><td>光栅化 splatting（GPU 友好）</td></tr><tr><td>训练</td><td>数小时（原文 12h）</td><td>几十分钟（20-30 min）</td></tr><tr><td>渲染速度</td><td>~1 FPS（原版）</td><td>100+ FPS</td></tr><tr><td>编辑</td><td>难（黑箱 MLP）</td><td>容易（增删高斯）</td></tr></tbody></table>
+<p><strong>为什么 3DGS 在机器人圈走红</strong>：实时渲染 100+ FPS（closed-loop 控制 / VR teleop 可行）；可编辑（物体级增删移动）；显式几何（高斯中心可直接当点云用，GaussianGrasper / SplatSim 下游友好）。</p>
+<p><strong>易错</strong>：3DGS 训练快主要是<strong>前向便宜</strong>；反光 / 透明 / 大尺度室外仍劣于最强 NeRF（Zip-NeRF）。"SLAM 后端拿稀疏 GS 当地图"这条路还在演进，没有定论。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q08</b> · F3RM（Feature Fields for Robotic Manipulation）是怎么把 CLIP 特征蒸馏到 NeRF 里的？为什么操作场景 view 少是个大问题？</summary>
+<p><strong>答</strong>：F3RM（Shen 等 CoRL 2023）思路：</p>
+<ol><li>用 <strong>DINO + CLIP</strong> 对每帧图像抽 patch 级特征</li><li>NeRF 学一个<strong>额外的特征通道</strong> $f(x)$：把多视角特征"提升"到 3D 空间</li><li>推理时给文本 query（如"红色杯子"），用 CLIP 文本编码器算 cosine similarity 选最相关 3D 区域</li><li>用经典 Anti-Podal grasp planner 在该区域生成抓取候选</li></ol>
+<p><strong>为什么 view 少是大问题</strong>：原版 NeRF 需要 ~30 个视角才能 converge；操作任务里相机机位往往<strong>只能从机械臂第三视角扫几个角度</strong>（5-10 view），稀疏视角下 NeRF 会出现"漂浮云""空洞"伪影。F3RM 用 50 view 已经算比较奢侈。</p>
+<p><strong>易错</strong>：F3RM 蒸馏的是 <strong>patch 级</strong>特征，不是 pixel 级——细节上的对象边界仍模糊；后续 GaussianGrasper / LERF-TOGO 都改进了这一点。F3RM 不是 zero-shot，每个新场景<strong>仍需要重训 NeRF</strong>（虽然 patch encoder 是预训练的）。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q09</b> · GaussianGrasper 相对 F3RM 的优势是什么？怎么做 open-vocabulary grasping？</summary>
+<p><strong>答</strong>：GaussianGrasper（Zheng 等 IEEE RA-L 2024，arXiv 2403.09637）三大改进：</p>
+<ol><li><strong>3DGS 代替 NeRF</strong>：训练 30 min → &lt; 10 min；推理 100+ FPS vs F3RM 1-2 FPS</li><li><strong>少视角友好</strong>：原文用 ~10 view RGB-D 就能重建（F3RM 需 50 view）</li><li><strong>EFD 蒸馏 + 对比学习</strong>：把 SAM 分割 + CLIP 特征在 GS 上做对比学习蒸馏，特征更精确</li></ol>
+<p><strong>open-vocabulary grasping 流程</strong>：</p>
+<ul><li>文本 query → CLIP 编码 → 与每个高斯的特征 cos similarity → 阈值得 mask → 该 mask 区域作为抓取候选 region → 经典 GraspNet 或 AnyGrasp 在该 region 生成 6-DoF 抓取</li></ul>
+<p><strong>易错</strong>：GaussianGrasper 仍<strong>每场景重训</strong>，不是 zero-shot 部署。其优势更多在"<strong>特征蒸馏 + GS 几何</strong>联合"，而不仅是"换了 GS 就快"。真正实时 zero-shot grasping 还得靠 RGB-D 端到端模型（如 AnyGrasp）。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×2 (破例)</span> <b>Q10</b> · NeRF / 3DGS 实时性瓶颈在哪？训练 / 渲染 / 编辑 哪个最难做 < 30 Hz？</summary>
+<p><strong>答</strong>：三环节延迟来源不同：</p>
+<table><thead><tr><th></th><th>NeRF 瓶颈</th><th>3DGS 瓶颈</th></tr></thead><tbody><tr><td>训练</td><td>每像素数百次 MLP 前向</td><td>每像素排序 + α-blend</td></tr><tr><td>渲染</td><td>volumetric ray marching</td><td>tile-based 光栅化（已较快）</td></tr><tr><td>编辑</td><td>改一处需重训</td><td>改局部高斯即可</td></tr></tbody></table>
+<p><strong>&lt; 30 Hz 难点</strong>：</p>
+<ul><li>NeRF：<strong>渲染就难</strong>——Instant-NGP / NeRFAcc 加速到 30+ FPS（中分辨率），但训练仍 5-10 min</li><li>3DGS：<strong>渲染稳定 100+ FPS</strong>；<strong>训练</strong>是真正瓶颈（10+ min/场景，不能在线建图）</li><li><strong>编辑</strong>：NeRF 几乎无法在线编辑；3DGS 可逐高斯增删，但保持自洽（光照、阴影）仍困难</li></ul>
+<p><strong>实务</strong>：机器人圈"地图建好后查询"做到了实时，"在线建图同时控制"仍是 2025-2026 开放问题。Gaussian-SLAM（SplaTAM / MonoGS）能 10-30 FPS 在线建图，但精度鲁棒性显著低于 ORB-SLAM3。</p>
+<p><strong>破例说明</strong>：频次 2 但来自具身/SLAM 圈"实时性瓶颈"高频开放题，来源多 work（Instant-NGP / SplaTAM）权威。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×3</span> <b>Q11</b> · 端到端 NeRF / GS-based policy（如 SplatRL / GaussianActor）相比传统 BC + RGB-D 输入有什么收益和代价？</summary>
+<p><strong>答</strong>：</p>
+<p><strong>收益</strong>：</p>
+<ul><li><strong>显式 3D 几何</strong>：策略不需要从 RGB-D 隐式重建空间，几何先验更强 → <strong>样本效率 +</strong></li><li><strong>跨视角一致</strong>：相机视角变了 GS 表征不变，<strong>视角泛化 +</strong></li><li><strong>多模态融合</strong>：可灌 CLIP/SAM 特征到高斯上，<strong>语义一致性 +</strong></li></ul>
+<p><strong>代价</strong>：</p>
+<ul><li><strong>训练管线复杂</strong>：每个新场景要先建 GS（10+ min），不能像 BC 那样直接吃 RGB</li><li><strong>GS 可微渲染但策略联合优化难</strong>：GS 渲染本身是可微的，但 densification / pruning / 在线 map 更新与策略联合优化困难，多数工作把 GS 当<strong>固定输入</strong></li><li><strong>泛化到新场景</strong>：依赖 GS 重建质量，未见物体 / 遮挡仍易崩</li><li><strong>算力</strong>：高斯数 100k-1M 量级，单帧策略推理慢于纯 vision encoder</li></ul>
+<p><strong>实务</strong>：2025 端到端 GS-policy 仍是研究阶段，<strong>没有像 Diffusion Policy 那样可即插即用</strong>的工业方案；主流仍是"GS 当 perception 输入"+"DP / ACT 当 policy"分离架构。</p>
+<p><strong>易错</strong>：不要把"GS-based policy"等同于"GS 重建后查询"——前者是<strong>联合学习</strong>，后者是<strong>两阶段</strong>；只有联合学习才有"端到端"含义。</p>
+</details>
+<h2 id="3-slam-与状态估计6-题">§3 SLAM 与状态估计（6 题）</h2>
+<blockquote><p>SLAM 是机器人长期工业基本盘——传统几何 SLAM 仍是 2024-2026 主流方案。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×6</span> <b>Q12</b> · ORB-SLAM3 和 VINS-Fusion 的核心区别？工程上一般怎么选？</summary>
+<p><strong>答</strong>：两者都是经典 VIO / V-SLAM，路线不同：</p>
+<table><thead><tr><th></th><th><strong>ORB-SLAM3</strong>（Campos 2021）</th><th><strong>VINS-Fusion</strong>（Qin 2019）</th></tr></thead><tbody><tr><td>前端</td><td>ORB 特征点匹配</td><td>光流跟踪（KLT）</td></tr><tr><td>后端</td><td>BA</td><td>滑动窗口 BA + 边缘化</td></tr><tr><td>回环</td><td>DBoW2 + 全局 BA</td><td>词袋 + pose graph</td></tr><tr><td>多地图</td><td>Atlas</td><td>单地图</td></tr><tr><td>传感器</td><td>mono/stereo/RGB-D + IMU</td><td>mono/stereo + IMU + GPS</td></tr></tbody></table>
+<p><strong>工程选择</strong>：室内相机不快 → ORB-SLAM3（精度高、回环鲁棒、长期建图）；快速运动 / 弱纹理 / 无人机 → VINS-Fusion（光流动态下更稳，IMU 紧耦合更激进）；嵌入式 → VINS-Fusion 略轻，ORB3 全套 1-2 GB RAM。</p>
+<p><strong>易错</strong>：两者都用 <strong>GPLv3</strong> copyleft 协议——开源但商用闭源产品要谨慎（衍生必须同 GPL）；商用闭源首选 OpenVINS / Kimera / Maplab 等 BSD/MIT 系。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q13</b> · VIO 相比纯视觉里程计的优势？IMU 预积分解决了什么核心问题？</summary>
+<p><strong>答</strong>：</p>
+<p><strong>VIO 优势</strong>：</p>
+<ul><li><strong>绝对尺度</strong>：单目纯视觉<strong>只能恢复相对尺度</strong>（5 倍小或大都对），IMU 给出加速度积分提供米单位真尺度</li><li><strong>快速运动鲁棒</strong>：相机在快速旋转 / 模糊时跟踪失败，IMU 在毫秒级仍稳定</li><li><strong>退化恢复</strong>：低纹理 / 黑屋子里相机失效时 IMU 可以"撑过"</li><li><strong>频率高</strong>：IMU 100-1000 Hz，能给控制器更频繁的位姿</li></ul>
+<p><strong>IMU 预积分（Forster 2017）</strong>：</p>
+<ul><li><strong>问题</strong>：每次优化变量（位姿）更新，都要把窗口内全部 IMU 测量重新积分——计算爆炸</li><li><strong>解决</strong>：用"<strong>相对量</strong> $\Delta R, \Delta v, \Delta p$"代替绝对积分，把窗口的 IMU 测量预积分到一个<strong>与状态无关</strong>的常量。状态更新时只需对常量做一阶修正，不必重积分</li></ul>
+<p><strong>易错</strong>：预积分是<strong>离散 SO(3) 流形上的积分</strong>，不能直接用欧氏空间公式；常用 Lie group exp/log 处理旋转。预积分<strong>仍受 IMU 零偏 / 噪声</strong>影响，零偏估计是 VIO 收敛关键。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q14</b> · 回环检测的两条主流路线：词袋（BoW）vs 学习型（NetVLAD / EigenPlaces）。优劣势？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th></th><th><strong>BoW</strong>（DBoW2 / DBoW3 / FBoW）</th><th><strong>学习型</strong>（NetVLAD / EigenPlaces / SuperGlue）</th></tr></thead><tbody><tr><td>原理</td><td>ORB/SIFT 特征聚类成视觉词典，TF-IDF 检索</td><td>CNN 全局描述子 + 度量学习</td></tr><tr><td>内存</td><td>字典约 10-100 MB</td><td>模型 &lt; 100 MB，描述子 256-4096 维</td></tr><tr><td>速度</td><td>&lt; 10 ms / query</td><td>50-200 ms / query（GPU）</td></tr><tr><td>鲁棒性</td><td>光照 / 视角变化敏感</td><td>强（端到端学到不变性）</td></tr><tr><td>部署</td><td>嵌入式友好</td><td>依赖 GPU</td></tr></tbody></table>
+<p><strong>ORB-SLAM3 / VINS-Fusion 都用 BoW</strong>——工业稳定、可解释。<strong>机器学习时代</strong>学习型方法在跨季节 / 昼夜 / 视角变换上显著更鲁棒（VPR benchmark 上 NetVLAD recall@1 比 BoW 高 10-20pt）。</p>
+<p><strong>易错</strong>：回环<strong>检测</strong>和回环<strong>校正</strong>是两件事——检测告诉你"这里来过"，校正用 pose graph 优化把累积漂移摊平；BoW 只解决检测。学习型方法可与几何验证（如 RANSAC + PnP）级联，避免 false positive。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q15</b> · 因子图优化和滤波（EKF）的区别？为什么现代 SLAM 几乎都用因子图？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th></th><th><strong>EKF</strong></th><th><strong>因子图 / 非线性优化</strong></th></tr></thead><tbody><tr><td>思想</td><td>高斯递推 + 一阶线性化</td><td>所有约束建图，全局优化</td></tr><tr><td>时序</td><td>增量式（一来一更新）</td><td>批处理 / 滑动窗口</td></tr><tr><td>线性化点</td><td>当前状态（一固定无法修）</td><td>每次迭代重线性化</td></tr><tr><td>多假设 / 回环</td><td>难</td><td>容易（加一条因子边）</td></tr><tr><td>计算量</td><td>$O(n^2)$</td><td>稀疏 $O(n)$-$O(n^{1.5})$</td></tr></tbody></table>
+<p><strong>因子图胜出根本原因</strong>：① 可重新线性化（EKF 卡死，因子图每次重算雅可比，对非线性/大旋转友好）；② 信息矩阵天然稀疏（Cholesky / iSAM 高效）；③ 多传感器融合干净（IMU/轮速/GPS/回环都"加一条因子"）。</p>
+<p><strong>易错</strong>：EKF 在<strong>算力极小</strong>场景仍在用（小型微控制器）。现代 SLAM "用因子图"通常是<strong>滑动窗口优化</strong>，保留最近 N 帧因子老的 marginalize，不是真正全局 BA。GTSAM 的 iSAM2 是增量因子图，复杂度接近 EKF 但精度逼近批 BA。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q16</b> · Bundle Adjustment 在 SLAM 后端的角色？滑动窗口 BA 怎么控制规模？</summary>
+<p><strong>答</strong>：<strong>BA</strong>：以<strong>重投影误差</strong>为代价，联合优化关键帧位姿 $\{T_i\}$ 和路标点 $\{P_j\}$：</p>
+<p>$$\min \sum_{i,j} \rho\left( \| u_{ij} - \pi(T_i, P_j) \|^2 \right)$$</p>
+<p>求解器：Levenberg-Marquardt + Schur complement 利用稀疏性消除路标点。</p>
+<p><strong>滑动窗口 BA 控制规模</strong>：① 关键帧选择（旋转/平移阈值）；② 窗口大小（最近 10-20 关键帧 + 共视帧，老帧 marginalize）；③ 共视图 covisibility graph（local BA，全局 BA 仅回环触发）。</p>
+<p><strong>易错</strong>：滑动窗口边缘化老变量时<strong>信息矩阵 fill-in</strong>（变稠密），用 first-estimate Jacobian / iSAM2 保持稀疏。路标点数 &gt;&gt; 位姿数，BA 计算量主要被路标点 dominated，必须 Schur 消元。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×3</span> <b>Q17</b> · sparse SLAM（ORB-SLAM）和 dense SLAM（KinectFusion / NICE-SLAM）的取舍？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th></th><th>sparse SLAM</th><th>dense SLAM</th></tr></thead><tbody><tr><td>地图</td><td>数百 - 数千 ORB 路标点</td><td>体素 / TSDF / mesh / NeRF</td></tr><tr><td>内存</td><td>几 MB - 几十 MB</td><td>几百 MB - 几 GB</td></tr><tr><td>用途</td><td>定位 / 路径回放</td><td>建图 / 避障 / 重建</td></tr><tr><td>实时性</td><td>30+ Hz</td><td>KinectFusion 30 Hz（小场景）；NeRF-SLAM 1-10 Hz</td></tr><tr><td>代表</td><td>ORB-SLAM3 / VINS-Fusion</td><td>KinectFusion / ElasticFusion / NICE-SLAM / Gaussian-SLAM</td></tr></tbody></table>
+<p><strong>取舍核心</strong>：</p>
+<ul><li>只要"机器人在哪" → sparse 够用</li><li>要"机器人能不能撞墙 / 抓桌子" → dense（要稠密几何）</li><li>现代实践常<strong>分离</strong>：sparse SLAM 做实时定位，dense map 离线后处理或低频构建</li></ul>
+<p><strong>易错</strong>：dense SLAM 不等于"更准"——稀疏 SLAM 的<strong>关键帧位姿精度</strong>通常更高（路标点少，BA 更稳）；dense 的优势是<strong>几何完整性</strong>。NeRF-SLAM / Gaussian-SLAM 是近 2 年的方向，工业可用度低于 ORB-SLAM3。</p>
+</details>
+<h2 id="4-经典导航栈与地图表征5-题">§4 经典导航栈与地图表征（5 题）</h2>
+<blockquote><p>经典栈仍是工业落地（家庭服务机器人、AGV、扫地机）的主流——VLN / ObjectNav 也常用它做底层 controller。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×5</span> <b>Q18</b> · A* / Dijkstra / RRT / RRT* 怎么选？哪个能找最优？哪个能高维？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th>算法</th><th>类型</th><th>最优性</th><th>维度</th><th>适用</th></tr></thead><tbody><tr><td><strong>Dijkstra</strong></td><td>图搜索</td><td>全局最优</td><td>低（2D）</td><td>已知静态地图、规模小</td></tr><tr><td><strong>A\</strong>*</td><td>图搜索 + 启发</td><td>启发可采纳时最优</td><td>低</td><td>加速版 Dijkstra</td></tr><tr><td><strong>RRT</strong></td><td>采样</td><td>概率完备<strong>非</strong>最优</td><td>高</td><td>高维状态空间 / 复杂约束</td></tr><tr><td><strong>RRT\</strong>*</td><td>采样 + rewire</td><td><strong>渐近最优</strong></td><td>高</td><td>RRT 但允许迭代到最优</td></tr></tbody></table>
+<p><strong>选择</strong>：2D 平面 / 栅格 → A\<em>（最常用）；机械臂 7-DoF → RRT-Connect / RRT\</em>；移动机器人已知地图要最优 → A\<em>；动态环境 → A\</em> 全局 + DWA/MPC 局部。</p>
+<p><strong>易错</strong>：A\<em> 启发函数必须<strong>可采纳</strong>（不高估真实代价）才保证最优——曼哈顿距离对 4-邻接可采纳，8-邻接要用欧氏。RRT 不能保证最优解（可能绕大圈），必须 RRT\</em> 的 rewire 才能逼近最优。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q19</b> · Nav2 vs ROS1 move_base：behavior tree + lifecycle 解决了什么痛点？</summary>
+<p><strong>答</strong>：ROS1 <code>move_base</code> 是单体大节点，状态机硬编码在 C++ 里——<strong>痛点</strong>：故障恢复策略写死难定制；单节点宕机整栈崩；状态机不可视化不可热改。</p>
+<p><strong>Nav2 三大改造</strong>：① <strong>Behavior Tree</strong>：导航流程用 BT XML 描述，节点（ComputePathToPose / FollowPath / Recovery）可拖拽组合——故障恢复可写"先转 30 度再重规划"；② <strong>lifecycle 节点</strong>：每 server 独立 unconfigured → configured → activated 生命周期，单点故障可重启不影响整栈；③ <strong>插件化</strong>：planner / controller / behavior / costmap layer 都 pluginlib 动态加载——可热插拔 A\* / NavFn / Smac / TEB / DWB。</p>
+<p><strong>易错</strong>：Nav2 不只"move_base 移植到 ROS2"——是<strong>架构重写</strong>。但学习曲线陡（BT + lifecycle + 插件），新手项目慎用，BT 调试难（状态多日志多）。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q20</b> · 全局规划 vs 局部规划（DWA / TEB）：分工和接口是什么？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th></th><th><strong>全局 Planner</strong></th><th><strong>局部 Controller</strong></th></tr></thead><tbody><tr><td>目的</td><td>起点到终点长程最优路径</td><td>沿全局路径短程避障</td></tr><tr><td>输入</td><td>全局 costmap</td><td>局部 costmap（实时传感器）</td></tr><tr><td>输出</td><td>path 路径点</td><td>cmd_vel ($v, \omega$)</td></tr><tr><td>算法</td><td>A* / Dijkstra / NavFn / Smac</td><td>DWA / TEB / MPC / Pure Pursuit</td></tr><tr><td>频率</td><td>1-5 Hz</td><td>10-30 Hz</td></tr></tbody></table>
+<p><strong>接口</strong>：全局发 <code>Path</code>，局部订阅 path + odom + scan 输出 <code>Twist</code>。两者解耦可独立替换。</p>
+<p><strong>DWA vs TEB</strong>：DWA 速度空间采样 + 评分（路径偏离、目标距离、速度），快稳但只算下一步；TEB 轨迹建成弹性带 + 时间维度优化整段，能处理倒车 / 复杂动态约束，但慢。</p>
+<p><strong>易错</strong>：局部规划器<strong>不应</strong>重规划全局——会死锁。卡住时触发 Recovery Behavior（旋转 / 后退 / 清 costmap），不是叫起全局规划器。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q21</b> · 占用栅格地图：log-odds 更新、未知/空闲/占用三态怎么编码？</summary>
+<p><strong>答</strong>：栅格地图本质：每个 cell 维护占用概率 $p \in [0,1]$，0 空闲 / 1 占用 / 0.5 未知。</p>
+<p><strong>为什么用 log-odds</strong>：直接用 $p$ 更新数值不稳（接近 0/1 时溢出）；log-odds $l = \log \frac{p}{1-p}$ 无界，更新变加法 $l_t = l_{t-1} + l_\text{sensor}$。</p>
+<p><strong>典型实现</strong>：三个常量 $l_\text{free} = -0.4$、$l_\text{occ} = +0.85$、$l_0 = 0$；ray casting 从机器人到激光击中点，沿途 cell 减 $|l_\text{free}|$，击中点加 $l_\text{occ}$；加 clamp 防饱和。</p>
+<p><strong>三态查询</strong>：$p < 0.3$ free / $p > 0.7$ occupied / 否则 unknown。</p>
+<p><strong>易错</strong>：cell 独立假设其实不成立（邻居相关），但工程够用。激光 ray casting $O(L)$/ray，LiDAR 一帧 1000+ 线量大，gmapping / Cartographer 用 Bresenham 加速。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q22</b> · 拓扑地图 vs 度量地图 vs 语义地图 各自适用于什么任务？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th></th><th><strong>度量地图</strong></th><th><strong>拓扑地图</strong></th><th><strong>语义地图</strong></th></tr></thead><tbody><tr><td>表征</td><td>占用栅格 / 点云 / mesh</td><td>节点（场所）+ 边（连通）</td><td>度量 + 物体类别 / 关系</td></tr><tr><td>精度</td><td>厘米级</td><td>房间级</td><td>厘米 + 类别</td></tr><tr><td>内存</td><td>大</td><td>极小</td><td>中-大</td></tr><tr><td>适合查询</td><td>"距离墙 0.5 m"</td><td>"客厅到厨房怎么走"</td><td>"找冰箱"</td></tr><tr><td>代表</td><td>gmapping / Cartographer</td><td>老式 NavGraph、Hyam</td><td>VLMaps / ConceptFusion / SemExp 语义图</td></tr></tbody></table>
+<p><strong>实务组合</strong>：</p>
+<ul><li>长程 VLN / ObjectNav → <strong>语义图</strong>（VLMaps）+ 度量底图（占用栅格）</li><li>多楼层导航 → <strong>拓扑图</strong>（楼层节点）+ 每层度量图</li><li>局部避障 → 纯度量栅格</li></ul>
+<p><strong>易错</strong>：语义地图不等于"在度量图上贴标签"——更现代的做法是<strong>特征场</strong>（VLMaps / ConceptFusion）：每个体素存 CLIP / SigLIP 特征向量，查询时用文本编码做 cos similarity，<strong>零样本</strong>支持任意类别。</p>
+</details>
+<h2 id="5-vln-视觉语言导航10-题">§5 VLN 视觉语言导航（10 题）</h2>
+<blockquote><p>用户研究方向核心节。VLN 是 2024-2026 具身 AI 最活跃方向之一——R2R 数据集 2018 年提出，至今几乎每个 NeurIPS / CVPR / RSS / CoRL 都有新方法。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×6</span> <b>Q23</b> · R2R / RxR / REVERIE / SOON 这几个 VLN 数据集的差别？指令复杂度和任务定义</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th>数据集</th><th>平台 / 长度</th><th>任务定义</th><th>核心差别</th></tr></thead><tbody><tr><td><strong>R2R</strong>（Anderson CVPR 2018）</td><td>MP3D / ~29 词</td><td>指令导航到点</td><td>VLN 鼻祖，step-by-step</td></tr><tr><td><strong>R4R / R8R</strong>（Jain 2019）</td><td>MP3D / 58-116 词</td><td>R2R 路径拼接</td><td>长路径泛化压测</td></tr><tr><td><strong>RxR</strong>（Ku EMNLP 2020）</td><td>MP3D / ~78 词</td><td>英语 + 印地语 + 泰卢固语</td><td>多语 + 长指令 + 全程动作对齐</td></tr><tr><td><strong>REVERIE</strong>（Qi CVPR 2020）</td><td>MP3D / ~21 词</td><td>找物体并指认</td><td>任务变"找物体" + 输出 bbox ID</td></tr><tr><td><strong>SOON</strong>（Zhu CVPR 2021）</td><td>MP3D / ~38 词</td><td>找属性匹配物体</td><td>加空间关系 + 属性（颜色、相对位置）</td></tr></tbody></table>
+<p><strong>难度演进</strong>：动作级（R2R） → 目标级（REVERIE/SOON） → 多语长指令（RxR）。</p>
+<p><strong>易错</strong>：REVERIE 是"<strong>找物体 + 指认</strong>"，最后必须输出 <strong>bbox ID</strong>，是"指代消解 + 导航"联合任务，不要等同于 ObjectNav 的"接近物体"。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>Q24</b> · VLN-CE 相比离散 VLN 的核心区别？waypoint predictor 解决了什么问题？</summary>
+<p><strong>答</strong>：</p>
+<p><strong>离散 VLN</strong>（R2R 原版）：MP3D 每房间预定义<strong>有向图</strong>（节点 + 边），agent 在节点间跳跃。<strong>与真机脱节</strong>——真机要走米单位连续动作。</p>
+<p><strong>VLN-CE</strong>（Krantz ECCV 2020）：Habitat 里跑 R2R，agent 输出<strong>低层离散动作</strong>（前进 0.25 m / 转 15° / 停止——动作集是离散的，但状态空间连续）。<strong>搜索空间爆炸</strong>——每步十几动作连乘，长指令规划难。</p>
+<p><strong>waypoint predictor 折中</strong>：先预测"下一个可达候选点"集合（12 方向、0.5/1/2 m），选一个候选再用 PointNav controller 走过去。代表：CMA-Waypoint（Hong 2022）、ETPNav（An et al. TPAMI 2024）。</p>
+<p><strong>易错</strong>：VLN-CE 难度<strong>远高于</strong>离散 VLN——SOTA SR 从 70%+ 掉到 50% 上下；很多论文报"VLN 60% SR"不区分 VLN / VLN-CE 是面试雷点。NaVid / VLN-R1 都直接在 VLN-CE 上做评测。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q25</b> · VLN-BERT / HAMT / DUET 的演进路线？history memory / panorama / cross-modal attention</summary>
+<p><strong>答</strong>：VLN 模型架构三代演进：</p>
+<ol><li><strong>VLN-BERT</strong>（Hong CVPR 2021）：BERT 套 VLN，文本-视觉 cross-attention，每步独立看 panorama，<strong>无显式历史</strong>——长指令易迷路</li><li><strong>HAMT</strong>（Chen NeurIPS 2021）：引入<strong>历史 transformer</strong>，把过去 K 步 panorama + 动作编码成 history tokens 与当前一起 cross-attention；解决"看 panorama 不记得"</li><li><strong>DUET</strong>（Chen CVPR 2022）：<strong>dual-scale 双尺度</strong>——粗尺度 topology graph（去过哪些节点）+ 细尺度局部 panorama（当前看到啥），两分支 cross-fuse</li></ol>
+<p><strong>演进核心</strong>：无历史 → 时序历史 → 拓扑空间历史。R2R SR：VLN-BERT 63% → HAMT 66% → DUET 72%。</p>
+<p><strong>易错</strong>：DUET topology graph <strong>在线构建</strong>——agent 走过自动加，不需要先验地图。HAMT history token 不是无限增长——窗口 K 是超参，过长 token 数太多。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q26</b> · NaVid 怎么做到"无地图、无深度、无里程计"也能做 VLN-CE？</summary>
+<p><strong>答</strong>：NaVid（Zhang RSS 2024）核心思路：<strong>把 VLN-CE 当视频理解任务</strong>，用 LLaMA-VID 改造的 video-VLM 直接吃单目 RGB 视频流，输出下一步低层动作。</p>
+<p><strong>架构</strong>：输入 = 当前帧 + 过去 32 帧 RGB（不要 panorama）+ 文本指令；视觉编码每帧 EVA-CLIP 抽特征 → 时序压缩到 4 token/帧；LLaMA-7B LoRA 微调输出文本动作（"前进 0.25 m" / "右转 15°"）；训练 510k VLN trajectory。</p>
+<p><strong>为什么"无地图无深度"能 work</strong>：视频隐式编码空间几何（光流暗含深度）；LLM 常识助推（"看到楼梯就上楼"）；指令本身是高层语义，不需厘米级精度。</p>
+<p><strong>易错</strong>：NaVid <strong>不是 zero-shot</strong>——仍需 510k trajectory SFT；相比 BERT 系是"VLM 替代任务专家网络"。SR 约 37% on R2R-CE val-unseen——仍低于专家方法（ETPNav 57%）但接近 SOTA。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q27</b> · Uni-NaVid 怎么统一 VLN / ObjectNav / EQA / 人物跟随四类任务？token merging 起什么作用？</summary>
+<p><strong>答</strong>：Uni-NaVid（Zhang RSS 2025，arXiv 2412.06224）三大设计：</p>
+<ol><li><strong>统一任务模板</strong>：四类任务都改写为"指令 + 视频流 → 文本动作"——VLN（自然语言指令）/ ObjectNav（<code>find a chair</code>）/ EQA（<code>Q: where is the bed?</code>）/ Tracking（<code>follow the person in red</code>）</li><li><strong>3.6M 多任务联合训练</strong>：4 类任务轨迹混合微调</li><li><strong>在线 token merging</strong>：类似 ToMe 逐帧合并相似 token，把单帧 4 token 压到全程 &lt; 100 token</li></ol>
+<p><strong>token merging 作用</strong>：推理加速（单 A100 5 Hz）+ 长程记忆（100+ 帧不爆显存）+ 隐式去冗余（相似帧合并 = 自动 keyframe）。</p>
+<p><strong>易错</strong>：Uni-NaVid 是 <strong>NaVid 统一升级版</strong>——四个任务都跑赢专门 baseline 但通常不及最强专家。task synergy 中等收益（+2-5pt）不是"涌现"。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×3</span> <b>Q28</b> · NaVILA 的两级框架：VLM 出 mid-level action + RL low-level locomotion，分层为什么必要？</summary>
+<p><strong>答</strong>：NaVILA（Lin RSS 2025，UC San Diego）针对<strong>腿足机器人 VLN</strong>——四足/人形不能"瞬移到 waypoint"，必须考虑步态、平衡、地形。</p>
+<p><strong>两级架构</strong>：High-level VLM 吃图像 + 指令输出 mid-level action（"右转 30°"/"前进 1 m"），1-2 Hz；Low-level RL locomotion 吃 mid-level + 本体状态输出关节力矩，50-100 Hz。</p>
+<p><strong>为什么分层必要</strong>：① 频率失配（VLM 1 Hz vs 控制 50+ Hz）单网难兼顾；② 语义 vs 动力学训练数据来源不同（VLM 互联网视频；locomotion sim2real RL），<strong>分别迭代不互相干扰</strong>。</p>
+<p><strong>对比 NaVid</strong>：NaVid 输出"前进 0.25 m"适合<strong>轮式</strong>；NaVILA 输出"前进 1 m"让 locomotion 自己规划步态，适合腿足。</p>
+<p><strong>易错</strong>：NaVILA low-level 仍是预训练 RL 策略（如 Walk These Ways），非端到端联合学习；两级解耦意味着 mid-level command 不合理（"穿墙"）底层不会反馈纠错。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q29</b> · VLN 评估指标 SR / SPL / nDTW 各自衡量什么？SR 高但 SPL 低说明什么？</summary>
+<p><strong>答</strong>：</p>
+<ul><li><strong>SR（Success Rate）</strong>：最终停止时距目标 &lt; 3 m（R2R 阈值）的轨迹占比。<strong>只关心是否到达</strong></li><li><strong>SPL（Success weighted by Path Length）</strong>：$\text{SPL} = \text{SR} \cdot \frac{\ell^*}{\max(\ell^*, \ell_\text{agent})}$。<strong>惩罚绕路</strong>——agent 走的越远 SPL 越低</li><li><strong>nDTW（normalized Dynamic Time Warping）</strong>：把 agent 轨迹和参考轨迹做 DTW 对齐，归一化到 $[0, 1]$。<strong>衡量轨迹形状是否贴近参考</strong>——更适合 RxR 这种"按指令走"任务</li><li><strong>NE（Navigation Error）</strong>：终点距目标的距离，越小越好</li><li><strong>OSR（Oracle SR）</strong>：路径中<strong>任一点</strong>离目标 &lt; 3 m 就算成功——衡量"看到过没"</li></ul>
+<p><strong>SR 高 SPL 低意味着</strong>：到达目标但<strong>绕了一大圈</strong>——典型如随机探索 + 偶然撞上。reward 设计偏向 SR 时（如 IL）会出现此情况；reward 加入路径长度惩罚后 SPL 提升。</p>
+<p><strong>易错</strong>：R2R 的"成功"阈值 3 m 是<strong>任务约定</strong>，不是物理意义——agent 可能"看到了目标但没靠近"也算失败。SPL 是 SR 的<strong>严格上界</strong>（$\text{SPL} \le \text{SR}$），看到 SPL &gt; SR 就是 bug。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q30</b> · low-level action space vs high-level action space 在 VLN 里的取舍？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th></th><th><strong>low-level</strong>（VLN-CE 默认）</th><th><strong>high-level</strong>（waypoint）</th></tr></thead><tbody><tr><td>动作</td><td>前进 0.25 m / 转 15° / 停</td><td>选 N 个候选 waypoint 之一</td></tr><tr><td>决策频率</td><td>每米 ~4 步</td><td>每路口 1 步</td></tr><tr><td>序列长度</td><td>长（30-100 步）</td><td>短（5-15 步）</td></tr><tr><td>真机迁移</td><td>接近真实控制</td><td>需 PointNav controller 落地</td></tr><tr><td>长程规划</td><td>容易迷路（短视）</td><td>容易（macro 决策）</td></tr></tbody></table>
+<p><strong>实务</strong>：学术 R2R 离散 benchmark → high-level；VLN-CE / 真机 → 多数论文用 <strong>waypoint predictor 折中</strong>（high-level 决策 + low-level 跟踪）；端到端 VLM（NaVid / VLN-R1）→ 直接 low-level，靠大模型容量克服短视。</p>
+<p><strong>易错</strong>：high-level action ≠ "真机可部署"——你仍需 PointNav 控制器把"去那个 waypoint"落到 cmd_vel。真正的 sim2real gap 在 PointNav，不在 VLN 上层决策。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×2 (破例)</span> <b>Q31</b> · VLN-R1：RFT（reinforcement fine-tuning）解决了 SFT 的什么短板？</summary>
+<p><strong>答</strong>：VLN-R1（Qi 等 2025，arXiv 2506.17221）针对 SFT 核心问题：<strong>仅模仿专家无法处理 OOD</strong>——没见过的环境就崩。</p>
+<p><strong>RFT 改造</strong>：SFT 阶段在 VLN-Ego 数据集（HK 大 + 上海 AI Lab）模仿专家；RFT 阶段用 <strong>GRPO</strong>（DeepSeek-R1 同款）微调，reward = 成功 + SPL；关键 trick <strong>Time-Decayed Reward</strong>——离目标近的步奖励越大。</p>
+<p><strong>收益</strong>：R2R-CE val-unseen SR：SFT 41% → RFT 49%（+8pt）；OOD 长指令鲁棒性提升；sim→real gap 缩小。RFT 有效原因：SFT 教模仿，RFT 教达成目标，目标导向 reward 更鲁棒。</p>
+<p><strong>易错</strong>：VLN-R1 仍<strong>两阶段</strong>——纯 RL from scratch 在 VLN 上不收敛（探索太难），SFT 必须先做。RFT ≠ RLHF，前者是任务奖励，后者是偏好建模。</p>
+<p><strong>破例说明</strong>：频次 2 但来源权威（HK 大 + 上海 AI Lab arXiv 高引），代表 2025"RL 微调 VLM" 大方向，主表保留。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q32</b> · panorama 全景输入 vs 单目 RGB 输入：哪种更接近真实部署？SmartWay / Fast-SmartWay 怎么取舍？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th></th><th><strong>panorama</strong>（12 视角 RGB-D）</th><th><strong>单目 RGB</strong></th></tr></thead><tbody><tr><td>FoV</td><td>360° 无盲区</td><td>60-90° 有盲区</td></tr><tr><td>硬件</td><td>12 路相机 / 全景相机（贵）</td><td>普通单目</td></tr><tr><td>计算</td><td>视觉特征 ×12</td><td>单帧</td></tr><tr><td>主要工作</td><td>HAMT / DUET / ETPNav</td><td>NaVid / Fast-SmartWay / VLN-R1</td></tr></tbody></table>
+<p><strong>SmartWay / Fast-SmartWay</strong>（2025）：前者用 panorama 简化 waypoint 预测 + MLLM；后者 <strong>panoramic-free</strong>——只 3 张前向 RGB-D 做端到端 MLLM 决策，速度 +50%，真机友好。</p>
+<p><strong>实务</strong>：学术 SOTA 仍 panorama 为主（信息全），<strong>工业趋势是单目 + 头部转动</strong>。NaVid / Fast-SmartWay 是后路线代表。</p>
+<p><strong>易错</strong>：单目 ≠ 无空间感——agent 可转身获等效信息，只是多几步。真正取舍在"训练时是否给 panorama"，给了再单目蒸馏比直接单目训练好。</p>
+</details>
+<h2 id="6-零样本-objectnav10-题">§6 零样本 ObjectNav（10 题）</h2>
+<blockquote><p>用户研究方向第二核心节。ObjectNav 任务定义简单（"找到 chair"）但<strong>零样本</strong>部署难——这是 2024-2026 VLM-driven 导航的主战场。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×5</span> <b>Q33</b> · ObjectNav 任务定义？success / SPL 在 HM3D-Sem / MP3D 上的标准评测设定</summary>
+<p><strong>答</strong>：</p>
+<p><strong>任务</strong>：给定一个<strong>类别名</strong>（如 <code>chair</code> / <code>bed</code> / <code>tv</code>），agent 从随机起点开始探索房屋，最终停在目标类物体附近视野内。</p>
+<p><strong>成功条件</strong>（Habitat ObjectNav Challenge 标准）：</p>
+<ul><li>停止时距任意目标类物体实例 &lt; 1 m</li><li>目标类物体在 agent 视野内</li><li>不超过 500 步</li></ul>
+<p><strong>指标</strong>：</p>
+<ul><li><strong>Success</strong>：满足上述三条件</li><li><strong>SPL</strong>：成功率 × 最短路径占比</li><li><strong>SoftSPL</strong>：放宽 SPL 阈值（部分成功）</li></ul>
+<p><strong>数据集</strong>：</p>
+<ul><li><strong>HM3D-Sem</strong>（Yadav 2022，1000+ 真实扫描场景）：当前 Challenge 主数据集</li><li><strong>MP3D</strong>：90 场景，更老</li><li><strong>Gibson</strong>：早期室内数据集</li></ul>
+<p><strong>易错</strong>：ObjectNav 的"目标"是<strong>类别</strong>而不是具体实例——房间里有 3 把椅子都行，只要走到任意一把视野内。这与 InstanceNav（找特定实例）和 ImageNav（找特定图像目标）不同。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>Q34</b> · SemExp 的语义探索是怎么做的？为什么是 CVPR 2020 Habitat Challenge 冠军 baseline？</summary>
+<p><strong>答</strong>：SemExp（Chaplot NeurIPS 2020）三模块：① <strong>Semantic Map</strong>：Mask R-CNN 检测 RGB-D 投到 2D BEV（每类一通道）；② <strong>Goal-Oriented Semantic Policy</strong>：在 semantic map 上<strong>用 RL（PPO）学</strong>选 long-term goal（哪个 frontier）；③ <strong>Local Policy</strong>：Fast Marching 走到 goal。</p>
+<p><strong>为什么 work</strong>：模块化（感知/探索/规划解耦）、类别先验（"chair 在客厅"等共现学到）、长期记忆（map 累积避免重搜）。</p>
+<p><strong>Habitat 2020 Challenge 冠军</strong>——SR 17.85%（当时 SOTA）；后续 PIRLNav 等在其上加 RL fine-tune。</p>
+<p><strong>易错</strong>：SemExp <strong>不是 zero-shot</strong>——Mask R-CNN 闭集，新类别（不在 COCO 80）不行；VLFM / OpenFMNav 才是"open-set 升级"。SemExp 强在 closed-set + 数据驱动，给足训练数据仍有竞争力。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q35</b> · ZSON 怎么实现 zero-shot？image-goal pretraining + text/image goal embedding 共享</summary>
+<p><strong>答</strong>：ZSON（Majumdar NeurIPS 2022）核心：<strong>zero-shot 来自 CLIP 跨模态对齐</strong>。</p>
+<p><strong>做法</strong>：</p>
+<ol><li><strong>预训练</strong>：在 ImageNav（给目标图像导航到拍照地）训 RL agent，目标用 CLIP image encoder 编码</li><li><strong>零样本部署到 ObjectNav</strong>：把目标类别名走 CLIP text encoder，<strong>text embedding 直接替代 image embedding</strong> 喂给 agent</li><li>CLIP 图文对齐保证两者空间相近，agent 不微调可用</li></ol>
+<p><strong>巧妙之处</strong>：避开了 ObjectNav 数据少的问题——ImageNav 合成便宜（任意场景任意位置都能合成图像目标），训了 100M+ 帧。</p>
+<p><strong>结果</strong>：HM3D ObjectNav zero-shot SR 25.5%（原文）；与 CoW 等不同 setting 数字不可直比，但 ZSON 是首个 image-goal 预训练 + CLIP 跨模态做到 SOTA 的方法。</p>
+<p><strong>易错</strong>：ZSON 的"zero-shot"指<strong>对 ObjectNav</strong>——其 ImageNav 训练仍是大规模监督，不是完全无监督。CLIP 对齐精度也限制 ZSON 上限。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q36</b> · L3MVN：LLM 怎么参与 frontier 选择？相比 SemExp 的核心收益？</summary>
+<p><strong>答</strong>：L3MVN（Yu IROS 2023）思路：<strong>用 LLM 作 frontier 选择的语义打分器</strong>。</p>
+<p><strong>做法</strong>：① 维护 semantic map；② 在边界 cell 提取 frontier 候选；③ 对每个 frontier 拼接 prompt：<code>&quot;I want to find {goal}. Around frontier-i, I see {nearby_objects}. Score 0-10.&quot;</code>；④ LLM 输出分数选最高分作 long-term goal。</p>
+<p><strong>相比 SemExp 收益</strong>：零样本类别支持（LLM 知道 "toaster 在 kitchen" 常识）；解释性强（每步有 LLM 解释）；数据效率（不需要海量 ObjectNav 训练轨迹）。</p>
+<p><strong>结果</strong>：HM3D zero-shot SR 35.2%（vs SemExp 22.7% same setting）。</p>
+<p><strong>易错</strong>：L3MVN 仍需<strong>闭集语义分割</strong>（COCO/LVIS）填 semantic map——只是 LLM 替代 goal policy，不是端到端零样本。完全开放词汇要等 VLFM/OpenFMNav。LLM 推理延迟（每步调一次）也是工程瓶颈。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q37</b> · VLFM 的 value map 是什么？怎么把 BLIP-2 cos similarity 灌到 frontier 选择？</summary>
+<p><strong>答</strong>：VLFM（Yokoyama ICRA 2024，arXiv 2312.03275）三步：</p>
+<ol><li><strong>occupancy map</strong>：深度反投影 → 2D 占用栅格 + frontier</li><li><strong>value map</strong>：每帧 RGB 用 BLIP-2 算 <code>&quot;a photo of {goal}&quot;</code> cos similarity → 投到对应 BEV cell（前向 cone 内），多帧累积取 max</li><li><strong>frontier 选择</strong>：选 value map 最大的 frontier 作 long-term goal，Fast Marching 走过去</li></ol>
+<p><strong>核心创新</strong>：把 VLM 图文 similarity 当<strong>密集的目标存在性 prior</strong>——不是闭集类别，而是任意 prompt。完全开放词汇 + 空间记忆 + 零训练。</p>
+<p><strong>结果</strong>：HM3D zero-shot SR 52.5%——VLM-based zero-shot ObjectNav 2024 SOTA baseline。</p>
+<p><strong>易错</strong>：prompt 工程敏感——<code>&quot;a photo of {goal}&quot;</code> 比裸 <code>&quot;{goal}&quot;</code> 显著更好。value map 投影是前向 cone，假设目标在视野中央方向，侧向目标会丢。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q38</b> · OpenFMNav 相比 VLFM 的优势？open-set 怎么做？</summary>
+<p><strong>答</strong>：OpenFMNav（Kuang NAACL 2024）针对 VLFM 两问题：① BLIP-2 query 粗粒度（全图 cos sim）不精确；② 自由形式指令（"找绿色马克杯"）效果差。</p>
+<p><strong>改造</strong>：① <strong>PNP</strong>（Prompt-based Navigation Planner）：LLM 解析指令拆出关键物体 + 属性；② <strong>Open-Set Detector</strong>：GLIP / Grounding DINO 替代 BLIP-2 cos sim 给 bbox；③ <strong>VSSM</strong>（Versatile Semantic Score Map）：聚合 open-set 检测分数到地图，支持 PNP 引导下的目标 / 中间物体打分。</p>
+<p><strong>核心区别</strong>：VLFM 图文整体 similarity 粒度粗；OpenFMNav 开放词汇 detection 粒度精 + 属性可控。结果：HM3D zero-shot SR ~54.9%（vs VLFM 52.5%，不同 setting 略有出入）；自由形式指令 +10pt。</p>
+<p><strong>易错</strong>：OpenFMNav 调用链长（LLM + Grounding DINO + LLM scoring）单步 1-3 s；VLFM BLIP-2 单步 300-500 ms 更接近实时。工程上 VLFM 仍是首选 baseline。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q39</b> · CoW (CLIP-on-Wheels)：为什么 zero-shot 简单方法能打过学习方法？</summary>
+<p><strong>答</strong>：CoW（Gadre CVPR 2023，arXiv 2203.10421）极简方案：CLIP 定位（每帧 RGB 拆 patch + image-text similarity 找最像目标的 patch）+ 经典 FBE 探索（1997 算法）+ depth 反投影；<strong>无任何训练</strong>。</p>
+<p><strong>为什么打过学习方法</strong>：当时学习方法（SemExp、ZER）<strong>强依赖训练分布</strong>，HM3D 训练在 Gibson 测就崩；CLIP 4 亿图文对预训练泛化强；经典 FBE 简单可靠不受数据漂移影响。</p>
+<p><strong>结果</strong>：HM3D ObjectNav zero-shot SR 12-25%（不同 CLIP backbone），在零样本设定下优于同期 ZSON / SemExp。</p>
+<p><strong>深层意义</strong>：CoW 揭示了"<strong>学习方法在 OOD 上 vs zero-shot 基线</strong>"——2023 之后 zero-shot ObjectNav 主线开端。</p>
+<p><strong>易错</strong>：CoW 在<strong>复杂指令</strong>（自由形式）上不行——只能吃单类别名，属性 / 关系 / 空间介词都 handle 不了。VLFM / OpenFMNav 是 CoW 思路的 "VLM 升级版"。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×3</span> <b>Q40</b> · Frontier + LLM 评分 vs 端到端 RL：哪种更适合零样本泛化？训练-推理代价对比</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th></th><th><strong>Frontier + LLM 评分</strong>（L3MVN / VLFM 系）</th><th><strong>端到端 RL</strong>（DD-PPO / Habitat-Web）</th></tr></thead><tbody><tr><td>训练</td><td>零训练</td><td>1B+ steps RL（数千 GPU 小时）</td></tr><tr><td>推理延迟</td><td>每步 0.3-3 s（VLM call）</td><td>单帧 &lt; 30 ms</td></tr><tr><td>零样本类别</td><td>✅ 任意类别</td><td>❌ 只能训练集见过</td></tr><tr><td>跨场景泛化</td><td>✅ 强（VLM 内置常识）</td><td>⚠️ 弱（OOD 易崩）</td></tr><tr><td>真机迁移</td><td>✅ 不依赖训练数据分布</td><td>❌ sim-to-real gap 大</td></tr><tr><td>长程效率</td><td>⚠️ FBE 探索次优</td><td>✅ RL 能学到高效路径</td></tr></tbody></table>
+<p><strong>实务结论</strong>：</p>
+<ul><li><strong>零样本必须用</strong> frontier + LLM 路线（VLFM / OpenFMNav）</li><li><strong>闭集 + 大量训练数据</strong> RL 仍最优（HM3D 闭集 SR 70%+）</li><li><strong>混合</strong>：PIRLNav 先 IL 后 RL 是闭集 SOTA；VLFM + RL 微调是 2025 新方向</li></ul>
+<p><strong>易错</strong>：不是"zero-shot 一定比 RL 强"——闭集设定下端到端 RL 仍 dominate；只是工业部署需要 zero-shot，所以前者更受关注。延迟敏感场景（如人形实时反应）frontier+LLM 路线仍有挑战。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q41</b> · PIRLNav 的 IL+RL 两阶段：IL warm-up 解决什么？RL fine-tune 又解决什么？</summary>
+<p><strong>答</strong>：PIRLNav（Ramrakhya CVPR 2023）针对纯 RL 在 ObjectNav 上不收敛——<strong>reward 稀疏</strong>（只在终点给）+ 探索空间大。</p>
+<p><strong>两阶段</strong>：① <strong>IL warm-up</strong>：在 70k 人类演示上 behavior cloning，先学"基础行走 + 看到物体停下"；② <strong>RL fine-tune</strong>：PPO 在 IL 检查点继续 1B steps，reward = 成功 + 接近 + 探索。</p>
+<p><strong>为什么必须两阶段</strong>：纯 IL 模仿专家但 OOD 崩；纯 RL reward 太稀疏（500 步 episode 通常 0 reward）；IL 提供可执行 baseline，RL 扩张优化效率。</p>
+<p><strong>结果</strong>：HM3D <strong>closed-set</strong> ObjectNav SR 65%（IL+RL 工作 SOTA）。</p>
+<p><strong>易错</strong>：PIRLNav 是<strong>闭集</strong> SOTA，不是 zero-shot——和 VLFM / OpenFMNav 不在同一赛道。两路"SR 数字"不可直比（PIRLNav 训练见过 chair，VLFM 没见过）。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×3</span> <b>Q42</b> · 零样本 ObjectNav 在真实机器人上的核心瓶颈是什么？sim-to-real 最大 gap 在哪？</summary>
+<p><strong>答</strong>：三大瓶颈：① <strong>深度感知</strong>（仿真 GT depth vs 真实 RealSense 噪声 / 反光 / 黑色物体丢深度 → VLFM value map 投影直接受影响）；② <strong>场景结构</strong>（HM3D 真实扫描但<strong>无动态物体</strong>，真机场景常变，frontier 探索逻辑要重设计）；③ <strong>语义检测</strong>（Grounding DINO 仿真 mAP ~50，真机相机畸变/光照下掉 10-15pt，错传到上层选 frontier）。</p>
+<p><strong>次级</strong>：控制器 sim2real（PointNav 仿真 95% → 真机 70-80%）、指令歧义（"那个红色杯子"agent 不知道哪个房间）、长程可靠性（500 步真机 5-10 分钟，传感器漂移 / 电量 / 网络）。</p>
+<p><strong>缓解</strong>：VLM 真机相机微调（域适应）、保守 frontier 策略、failure 检测 + recover。</p>
+<p><strong>易错</strong>：不要以为"零样本"就 sim2real 友好——VLM 在网络图像训练，<strong>与真机相机仍有 gap</strong>；零样本只是不需要场景级训练，但 VLM 训练分布仍重要。</p>
+</details>
+<h2 id="7-embodied-vlm10-题">§7 Embodied VLM（10 题）</h2>
+<blockquote><p>用户研究方向第三核心节。VLM 是 zero-shot 导航 / 操作的"通用感知器官"——本节聚焦怎么在 embodied pipeline 里<strong>正确调用 VLM</strong>，避免幻觉、延迟、误检三大坑。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×6</span> <b>Q43</b> · CLIP 和 SigLIP 在 embodied 里的角色？为什么 SigLIP 在小 batch 下更好？</summary>
+<p><strong>答</strong>：</p>
+<p><strong>CLIP</strong>（Radford OpenAI 2021）：图文对比预训练 + softmax；4 亿图文对（OpenCLIP/LAION 系 2B+）；图文 encoder 独立。</p>
+<p><strong>SigLIP</strong>（Zhai Google 2023）：把 softmax 换成 <strong>sigmoid 二分类</strong>——每对图文独立判断 match，不再相互归一化。</p>
+<p><strong>为什么 SigLIP 小 batch 更好</strong>：CLIP softmax 的 partition function 在 batch 内归一化，需超大 batch（32k+）；SigLIP 每对独立计算，batch 影响小，小 batch 下 ImageNet 0-shot 高 CLIP 5-10pt。</p>
+<p><strong>embodied 应用</strong>：大批量预训练 → CLIP / OpenCLIP；实时 query / 端侧 → SigLIP（推理快、batch=1 稳）；多语长文 → SigLIP-So400m / SigLIP2。</p>
+<p><strong>易错</strong>：SigLIP <strong>不是 CLIP 升级版</strong>——大 batch 充足时 CLIP 仍持平；embodied 圈用 CLIP 多是因生态成熟，不是 SigLIP 更弱。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×5</span> <b>Q44</b> · Grounding DINO 是怎么做开放词汇检测的？vs OWL-ViT 区别？</summary>
+<p><strong>答</strong>：</p>
+<p><strong>Grounding DINO</strong>（Liu IDEA 2023，arXiv 2303.05499）：基于 DINO 检测器（Zhang ICLR 2023，与 Caron 自监督 DINO 同名不同），文本 prompt 经 BERT 编码后在 backbone + transformer 多层与图像做 <strong>deep fusion</strong>。</p>
+<p><strong>OWL-ViT</strong>（Minderer Google 2022）：ViT + DETR 头，<strong>晚期融合</strong>——CLIP 预训练 + detection 微调，编码器独立最后点积；OWL-v2 加 self-training 提升。</p>
+<table><thead><tr><th></th><th>Grounding DINO</th><th>OWL-ViT/v2</th></tr></thead><tbody><tr><td>融合</td><td>多层 cross-attention</td><td>最后点积</td></tr><tr><td>LVIS mAP</td><td>~40</td><td>~36</td></tr><tr><td>速度</td><td>150-300 ms</td><td>50-100 ms</td></tr></tbody></table>
+<p><strong>实务</strong>：高精度离线 → GD 1.5；实时机器人 → OWL-v2 / GD-Tiny。</p>
+<p><strong>易错</strong>：开放词汇检测 ≠ zero-shot 分类——前者要 bbox。Grounding DINO 也不是"任意 prompt 都行"，长 phrase / 抽象概念（"舒适的椅子"）效果差。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q45</b> · SAM 2 相比 SAM v1 的核心进步？视频 / 流式怎么做？</summary>
+<p><strong>答</strong>：</p>
+<p><strong>SAM v1</strong>（Kirillov Meta 2023）：单图像分割，prompt（点/框/mask）→ mask；1B+ mask 训练。</p>
+<p><strong>SAM 2</strong>（Ravi Meta 2024，SA-V 数据集 5 万视频 + 60 万 masklets）加 <strong>memory bank + streaming attention</strong>：</p>
+<ul><li>前帧 mask + features 入 memory，下一帧 decoder 通过 cross-attention 访问 → <strong>时序一致</strong></li><li>第 1 帧给 prompt，后续帧自动 propagate；单帧 ~30 ms（v1 ~100 ms）</li></ul>
+<p><strong>embodied 应用</strong>：物体跟踪（teleop / VLN 长程记忆）、地面分割（locomotion controller 输入）。</p>
+<p><strong>易错</strong>：SAM 2 仍<strong>需要 prompt</strong>，不主动检测——要 open-vocab 自动分割得配 Grounding DINO（Grounded-SAM 2 组合）。memory bank 是隐式特征 cache，不是显式物体级 ID，多个相似物体易 mask 混淆。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q46</b> · VLMaps 是怎么构建的？landmark indexing 怎么做？</summary>
+<p><strong>答</strong>：VLMaps（Huang ICRA 2023）核心：<strong>把 LSeg/CLIP 的 pixel-level 特征反投影到 BEV 体素地图</strong>。</p>
+<p><strong>构建步骤</strong>：</p>
+<ol><li>agent 走过环境采 RGB-D</li><li>每帧 RGB 过 <strong>LSeg</strong>（CLIP 像素级版本）得 pixel-level 特征图</li><li>depth + camera pose 反投影 3D → 压到 BEV grid</li><li>多帧累积：同一 cell 多帧特征加权平均（按视角置信度）</li></ol>
+<p><strong>landmark indexing</strong>：给文本 query（"go to the sofa"），CLIP 文本编码 → BEV map 每个 cell 算 cos similarity → top-K cell 作 landmark，规划器走到 max 处。</p>
+<p><strong>强项</strong>：零样本开放词汇 + 空间结构化（BEV 可直接规划） + 跨任务通用（landmark / region / spatial relation 都能查）。</p>
+<p><strong>易错</strong>：VLMaps 特征聚合是<strong>简单平均</strong>，不分前/背景——天花板地板会污染同一 cell；ConceptFusion / OpenScene 用 mask-aware 聚合改进。LSeg 训练数据小，long-tail 物体仍弱。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q47</b> · ConceptFusion：open-set 3D map 怎么把多模态特征融合进去？</summary>
+<p><strong>答</strong>：ConceptFusion（Jatavallabhula RSS 2023）思路：<strong>多基础模型（CLIP / DINO / AudioCLIP）特征统一融合到 3D map</strong>。</p>
+<p><strong>做法</strong>：走环境采 RGB-D → 每帧用 Mask2Former 分割，每个 instance 用 CLIP 抽特征 + 全图 CLIP global feature → pixel 特征 = global + per-mask 加权（防背景污染）→ 反投影 3D 体素，多帧累积。</p>
+<p><strong>multimodal 查询</strong>：text / image / audio / 3D click 全部映射到同一特征空间做 cos similarity。</p>
+<p><strong>对比 VLMaps</strong>：VLMaps BEV 2.5D，只 CLIP 文本；ConceptFusion 完整 3D + 多模态查询 + mask-aware 聚合。</p>
+<p><strong>易错</strong>：ConceptFusion <strong>离线建图</strong>——非实时增量，建图后查询很快但建图本身需要走全场景。multimodal 主要是<strong>查询模态多样</strong>，存储仍是 CLIP 特征；audio query 先转 CLIP-aligned vector 再查。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q48</b> · Grounded-SAM (DINO + SAM) 在 embodied pipeline 里典型用法？</summary>
+<p><strong>答</strong>：<strong>Grounded-SAM</strong>（IDEA 2023）= Grounding DINO 给 bbox + SAM 给 mask 的级联：</p>
+<pre><code>RGB → Grounding DINO(&quot;the red cup&quot;) → bbox →
+SAM (prompt=bbox) → pixel-precise mask</code></pre>
+<p><strong>embodied 典型用法</strong>：</p>
+<ol><li><strong>抓取目标定位</strong>：text → mask → mask 内点云均值作抓取中心</li><li><strong>导航语义地图</strong>：每帧 detect + segment → 投影到 BEV semantic map</li><li><strong>遥操作辅助</strong>：人指 "拿那个杯子"，自动框选 + 提示</li><li><strong>数据标注</strong>：teleop 数据后处理时自动给物体 mask</li></ol>
+<p><strong>vs Grounded-SAM 2</strong>：SAM v1 → SAM 2 升级后视频流式 mask 跟踪，对<strong>连续操作 / VLN</strong>更友好。</p>
+<p><strong>易错</strong>：Grounded-SAM 是<strong>两次模型调用</strong>，单帧延迟 300-800 ms（GPU），实时场景需要 model distillation 或 cache。Grounding DINO 给的 bbox 不准时，SAM 的 mask 也跟着错——上下游都有失效模式。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q49</b> · VLM 在 zero-shot nav 里的幻觉问题怎么处理？常见缓解策略</summary>
+<p><strong>答</strong>：VLM 幻觉两类典型场景：① 目标不存在但 VLM 说存在（把茶几误判为 sofa → frontier 偏向假目标）；② 指令偏差（"绿色马克杯"被 VLM 关注"绿色"忽略"马克杯"找到绿色背包）。</p>
+<p><strong>缓解策略</strong>：</p>
+<ul><li><strong>多帧验证</strong>：同物体 K 帧一致检测才确认</li><li><strong>几何先验</strong>：sofa 高度 0.4-0.8 m，与 depth-derived 高度矛盾就拒</li><li><strong>多 prompt ensemble</strong>：<code>&quot;a photo of a sofa&quot;</code> / <code>&quot;sofa in a living room&quot;</code> 取平均</li><li><strong>score 阈值</strong>：cos sim &lt; 0.25 直接不算</li><li><strong>VLM 二次确认</strong>：找到候选后让 GPT-4V "is this {goal}? yes/no"</li><li><strong>闭环 verification</strong>：靠近后再确认</li></ul>
+<p><strong>实务</strong>：VLFM / OpenFMNav 默认用前 2-3 个策略；真机部署加入 VLM 二次确认。</p>
+<p><strong>易错</strong>：幻觉<strong>不能完全消除</strong>——VLM 内在限制；只能降低概率到可接受水平。调试时优先看 false positive（看到不存在的目标）而非 false negative，因 FP 直接导致任务失败。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q50</b> · VLM 推理延迟 vs 准确率 trade-off：cloud-edge 协同 / cache / batched query 怎么取舍？</summary>
+<p><strong>答</strong>：<strong>延迟</strong>：Grounding DINO 单帧 150-300 ms（A100）；BLIP-2 / SigLIP 50-100 ms；GPT-4V API 1-3 s。</p>
+<p><strong>策略</strong>：</p>
+<table><thead><tr><th>策略</th><th>收益</th><th>代价</th></tr></thead><tbody><tr><td>小模型蒸馏</td><td>5-10× 速度</td><td>5-15pt 精度损失</td></tr><tr><td>cloud-edge 协同</td><td>准 + 低端侧算力</td><td>网络抖动 / 隐私</td></tr><tr><td>frame skip</td><td>线性加速</td><td>错过快速变化</td></tr><tr><td>VLM cache</td><td>同场景同 query 重用</td><td>动态场景失效</td></tr><tr><td>batched query</td><td>多 frontier 一次过</td><td>跨帧不行</td></tr><tr><td>Cascade 早退</td><td>简单帧用小模型</td><td>复杂度判断难</td></tr></tbody></table>
+<p><strong>实务架构</strong>：高频感知（30 Hz）用蒸馏小 VLM；低频规划（1 Hz）用大 VLM / LLM；二者通过 semantic map 解耦。</p>
+<p><strong>易错</strong>：不是"VLM 越大越准"——小 VLM + 任务微调反而更稳。<strong>真实瓶颈往往不是 VLM</strong>：相机 IO（USB 30 FPS）、网络（云端 200+ ms）、控制频率上限。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×3</span> <b>Q51</b> · prompt 工程在 zero-shot nav 中的重要性？chain-of-thought 真的有用吗？</summary>
+<p><strong>答</strong>：<strong>prompt 工程</strong>对 zero-shot nav 收益<strong>显著</strong>：<code>&quot;a photo of a {goal}&quot;</code> 比裸 <code>&quot;{goal}&quot;</code> 在 VLFM 上 +5-10pt SR；<code>&quot;the goal is in {room_type}&quot;</code>（加 room context）+3-5pt；多 prompt ensemble +2-4pt。</p>
+<p><strong>CoT 在导航里</strong>：</p>
+<ul><li><strong>有用</strong>：高层任务规划——"bedroom 先看床、kitchen 先看橱柜"；NaVILA / NaviLLM 都用 CoT-style prompt</li><li><strong>无用 / 有害</strong>：低层动作选择——"前进 0.25 m 还是 0.5 m" 用 CoT 反而引入噪声 + 延迟</li><li><strong>VLN-R1 / Nav-R1 (2025)</strong>：把 CoT 蒸馏到 SFT 阶段，推理时无需显式 CoT 效果保留</li></ul>
+<p><strong>关键判断</strong>：CoT 用于<strong>语义推理</strong>有效，用于<strong>几何 / 控制</strong>无效——LLM 不擅长空间数值推理。</p>
+<p><strong>易错</strong>：CoT 不是免费午餐——token 数翻倍 → 延迟翻倍；CoT 输出可能"圆滑而错"。生产代码 CoT 通常<strong>离线评估</strong>保留，在线折叠成 SFT 数据。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q52</b> · open-vocabulary 检测 vs 闭集检测在导航里：什么时候必须开放词汇？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th></th><th><strong>闭集</strong>（COCO 80 / LVIS 1200）</th><th><strong>open-vocabulary</strong></th></tr></thead><tbody><tr><td>类别</td><td>训练集固定</td><td>任意文本 prompt</td></tr><tr><td>精度</td><td>高（per-class fine-tuned）</td><td>略低</td></tr><tr><td>速度</td><td>快（YOLO 5-30 ms）</td><td>慢（150-500 ms）</td></tr><tr><td>训练</td><td>一次性</td><td>不需要</td></tr></tbody></table>
+<p><strong>必须开放词汇</strong>：REVERIE/SOON 含未知物体（"我的眼镜"）；自由形式 ObjectNav；长 tail 操作（古董花瓶）。</p>
+<p><strong>闭集够用</strong>：家庭服务（类别预定义）；实时性硬约束（自驾 30 Hz）；嵌入式资源受限。</p>
+<p><strong>实务混合</strong>：高频通道闭集快速检测（YOLO），低频通道（1-2 Hz）开放词汇兜底新类别——zero-shot ObjectNav 常见工程方案。</p>
+<p><strong>易错</strong>：开放词汇<strong>不等于"无所不知"</strong>——Grounding DINO 在 long tail / 抽象概念上仍弱。"开放词汇 → 解决一切"是误区；闭集 + 大量训练在已知任务上仍最强。</p>
+</details>
+<h2 id="8-端到端-vln-vla-与前沿判断5-题">§8 端到端 VLN-VLA 与前沿判断（5 题）</h2>
+<blockquote><p>2026 视角的前沿题——多是开放判断题，没有标准答案；面试官关心你能否<strong>有依据地表达立场</strong>。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×3</span> <b>Q53</b> · Habitat vs AI2-THOR vs iGibson 三大仿真器的区别？为什么 ObjectNav 主流用 Habitat？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th></th><th><strong>Habitat 2/3</strong></th><th><strong>AI2-THOR</strong></th><th><strong>iGibson 2.0</strong></th></tr></thead><tbody><tr><td>场景</td><td>MP3D / HM3D 真实扫描</td><td>Unity 交互式资产场景（ProcTHOR 是程序化扩展）</td><td>真实 + 程序混合</td></tr><tr><td>物理 / 交互</td><td>简化（Habitat 3 加 humanoid）</td><td>符号化交互强</td><td>PyBullet 完整物理</td></tr><tr><td>渲染速度</td><td><strong>10000+ FPS</strong></td><td>100-1000 FPS</td><td>10-100 FPS</td></tr><tr><td>主用</td><td>ObjectNav / VLN-CE</td><td>任务规划 / 长程交互</td><td>操作 + 导航联合</td></tr></tbody></table>
+<p><strong>为什么 ObjectNav 主流用 Habitat</strong>：① 渲染速度（RL 需 1B+ frames，唯一可大规模）；② HM3D 1000+ 真实房屋扫描，规模/真实/标注最优；③ Habitat Challenge 每年办，CVPR Embodied AI 默认平台。</p>
+<p><strong>易错</strong>：Habitat 3 加 humanoid + 物理交互，已追赶 AI2-THOR；别按 2020 旧知识答"Habitat 不能交互"。NeurIPS 2024 / 2025 Embodied AI 主流仍 Habitat-Lab。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×3</span> <b>Q54</b> · VLN 在真实机器人 vs 仿真的最大 gap 在哪？哪些 trick 能拉近？</summary>
+<p><strong>答</strong>：四大 gap：① <strong>视觉</strong>（仿真渲染 vs 真实相机：曝光、白平衡、运动模糊、畸变）；② <strong>空间结构</strong>（仿真静态整洁，真实动态：人 / 宠物 / 物品移位）；③ <strong>底层控制</strong>（PointNav 仿真完美，真机有打滑、不平、轮速误差）；④ <strong>指令分布</strong>（R2R 指令风格统一，真实用户随意：停顿、口误、省略）。</p>
+<p><strong>拉近 trick</strong>：域随机化（光照/纹理/噪声）、真机 demo 微调 VLM、保守 controller（容差放宽到 1.5-2 m）、failure recovery、闭环 VLM verification、panorama → 单目蒸馏。</p>
+<p><strong>实务</strong>：2024-2025 真机 VLN 论文（NaVid 实机、Mobile-ALOHA + VLN）仿真 → 真机 SR 掉 20-40pt 是常态；OK-Robot / VoxPoser 做了更激进 zero-shot 真机方案。</p>
+<p><strong>易错</strong>：sim-to-real 不只是"加噪声重训"——要从<strong>任务定义</strong>层面缩 gap（成功阈值放宽、step 上限拉长）；不要假设"仿真 SR 60% 真机也 60%"。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×3</span> <b>Q55</b> · VLMnav / Nav-CoT / RoboFlamingo：端到端 VLN-VLA 真的可行吗？2026 年的判断</summary>
+<p><strong>答</strong>：<strong>端到端 VLN-VLA</strong>：图像 + 指令 → 大 VLM → 动作或路径，不用 frontier / waypoint / semantic map 中间表征。</p>
+<p><strong>代表</strong>：VLMnav (2024) GPT-4V zero-shot；Nav-CoT / Nav-R1 (2025) CoT 推理 + 动作；RoboFlamingo (ICLR 2024) OpenFlamingo 导航 + 操作；NaVid / Uni-NaVid 视频 VLM 端到端 VLN-CE。</p>
+<p><strong>2026 判断</strong>：</p>
+<ul><li><strong>学术</strong>：端到端是趋势，VLN-R1 / Uni-NaVid 在 R2R-CE 上接近 panorama 方法</li><li><strong>工程离工业部署还差</strong>：延迟（VLM 0.5-3 s）、可解释性差（黑盒 debug 难）、错误归因难（感知错还是规划错？）</li><li><strong>混合架构仍是 2026 主流</strong>：VLM 出 high-level 决策 + 经典 controller 落地（如 NaVILA）</li></ul>
+<p><strong>易错</strong>：不要把"端到端 = 更强"绑定——算力 + 数据充裕时端到端能逆袭模块化，但当前阶段模块化在真机部署 dominate。RT-2 / OpenVLA 是 manipulation 端到端好例子，VLN 还差几步。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×2 (破例)</span> <b>Q56</b> · VLFM vs OpenFMNav 选哪个作 zero-shot baseline？</summary>
+<p><strong>答</strong>：实务推荐 <strong>VLFM</strong> 作首选 baseline，OpenFMNav 在以下情况下用：</p>
+<table><thead><tr><th>选择</th><th>理由</th></tr></thead><tbody><tr><td><strong>VLFM 优先</strong></td><td>① 单 VLM 调用（BLIP-2），延迟稳定；② 代码极简，复现快；③ HM3D zero-shot SR 52.5% 已经够 benchmark</td></tr><tr><td><strong>OpenFMNav 优先</strong></td><td>① 自由形式指令（属性 + 关系）；② 罕见类别需要开放词汇检测；③ 不在意延迟（OpenFMNav 单步 1-3 s）</td></tr></tbody></table>
+<p><strong>复现成本</strong>：VLFM 在 Habitat 上 1-2 周可复现 → 论文 baseline 大部分都引用 VLFM。</p>
+<p><strong>易错</strong>：不要在文章里写"我们的 baseline 是 VLFM"然后用 OpenFMNav 设置 evaluate ——两者<strong>任务定义和数据 split 都需对齐</strong>才能公平比较。HM3D ObjectNav 与 HM3D-Sem <strong>不是同一个评测</strong>——有些工作混用。</p>
+<p><strong>破例说明</strong>：本题频次 2 但来自论文 baseline 选择实务问题，权威工作（VLFM ICRA 2024 / OpenFMNav NAACL 2024）双独立来源，主表保留。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×2 (破例)</span> <b>Q57</b> · 未来 2 年（2026-2028）导航方向的 3 个预测：world model 介入？多机器人协作？VLA 一统？</summary>
+<p><strong>答</strong>：3 个有依据的预测：</p>
+<ol><li><strong>World Model 进入导航</strong>：当前 frontier / VLM 是<strong>反应式</strong>；未来 agent "在心里走一遍"（类似 Dreamer / V-JEPA 2）。Genie / 1X 世界模型 / GR00T 正向导航延伸，2026-2027 大概率出现"导航 dreamer"。</li><li><strong>多机协作 / 人机协同</strong>：单机导航接近天花板；下阶段是无人机 + 地面机器人协作探索、人机协作 VLN。</li><li><strong>VLA 一统</strong>：OpenVLA / π0 / Helix / GR00T-N2 追求"一模型做导航 + 操作"。短期 (2026) 不会完全统一（长程 vs 精控差异大）；中期 (2027-2028) 可能基于 video-VLM + 真机数据出现强统一模型。</li></ol>
+<p><strong>反预测</strong>：经典栈（Nav2 + 闭集检测）<strong>不会消亡</strong>，与 VLM-driven 长期共存。</p>
+<p><strong>易错</strong>：开放题没标答；面试<strong>有依据 + 自洽</strong> &gt; 猜对，引用论文 / 数据支持立场显得专业。</p>
+<p><strong>破例说明</strong>：开放预测题面试常见（特别是顶级 lab / startup），频次 2 但代表整类题型，主表保留。</p>
+</details>
+<h2 id="9-低频备选3-题">§9 低频备选（3 题）</h2>
+<blockquote><p>频次 1-2，但来源权威或前沿话题；备查不强求。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×2 (低频)</span> <b>N1</b> · NICE-SLAM / Gaussian-SLAM 把 NeRF/GS 当地图表征：实务上是否取代 ORB-SLAM3？</summary>
+<p><strong>答</strong>：<strong>短期不会取代</strong>。</p>
+<p><strong>NICE-SLAM / Co-SLAM / SplaTAM</strong>：在线 NeRF/GS-SLAM，能产生<strong>稠密 + 可渲染</strong>地图，对比 ORB-SLAM3 稀疏点云优势在重建。</p>
+<p><strong>短板</strong>：</p>
+<ul><li>鲁棒性：ORB-SLAM3 在快速运动 / 弱纹理 / 长隧道经过 7 年迭代，工业稳定；NeRF/GS-SLAM 在挑战场景仍易崩</li><li>实时：SplaTAM ~10 Hz；ORB-SLAM3 30+ Hz</li><li>资源：NeRF/GS-SLAM 显存 10+ GB；ORB-SLAM3 1-2 GB</li><li>回环 / 多地图：传统 SLAM 工具链成熟，NeRF/GS-SLAM 还在演进</li></ul>
+<p><strong>适用场景</strong>：</p>
+<ul><li>离线建图 + 重建 → NeRF/GS-SLAM 优势</li><li>实时定位 + 控制 → ORB-SLAM3 / VINS-Fusion</li></ul>
+<p><strong>易错</strong>：Gaussian-SLAM 不等于 ORB + Gaussian map ——它把 GS 当<strong>前端 odometry</strong>而不只是后端 map；这种端到端神经 SLAM 仍是研究阶段。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×2 (低频)</span> <b>N2</b> · ETPNav（R2R-CE SOTA）：拓扑图 + 局部 metric 混合表征怎么落地？</summary>
+<p><strong>答</strong>：ETPNav（An et al. TPAMI 2024，arXiv 2304.03047）核心：<strong>evolving topological + local panorama predictor</strong>。</p>
+<p><strong>架构</strong>：① 拓扑图在线构建——agent 走过节点 + 边，每节点存 panorama embedding；② waypoint predictor 在 panorama 上预测 12 个候选 waypoint；③ 跨模态决策：指令 + obs + topology → transformer → "去哪个 waypoint" 或 "回退"；④ 回溯：走错可回到老节点重选。</p>
+<p><strong>为什么强</strong>：拓扑记忆避免重复探索；回溯能力处理复杂指令；混合粒度（拓扑粗规划 + 局部 waypoint 精控）。</p>
+<p><strong>结果</strong>：R2R-CE val-unseen SR 57%——2024 上半年 panorama-based 方法 SOTA。</p>
+<p><strong>易错</strong>：拓扑图<strong>在线生长</strong>——非先验地图，新场景从空图开始。回溯机制带来推理开销，<strong>单步可达 0.5 s</strong>，真机部署需要权衡。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×2 (低频)</span> <b>N3</b> · DROID-SLAM / DPVO 端到端神经 SLAM 当前的工业可用度？</summary>
+<p><strong>答</strong>：<strong>DROID-SLAM</strong>（Teed NeurIPS 2021）：端到端学习的稠密 BA SLAM，光流 + 几何整体网络化。优势：弱纹理 / 重复纹理 / 长基线显著优于 ORB-SLAM3。短板：显存 10+ GB、推理 &lt; 10 Hz。</p>
+<p><strong>DPVO</strong>（Teed 2023）：DROID-SLAM 轻量后继，单 GPU 实时 30+ Hz、显存 &lt; 4 GB。</p>
+<p><strong>工业可用度</strong>：学术 benchmark（TUM RGB-D / EuRoC）DPVO 持平甚至超过 ORB-SLAM3；真机部署仍少见——主要瓶颈是<strong>无回环检测</strong>（DPVO 只是 VO 不是 SLAM）+ GPU 依赖；特定场景（白墙、玻璃）有不可替代优势。</p>
+<p><strong>预测</strong>：2026-2027 神经 SLAM 在 Jetson Orin 等嵌入式 GPU 普及后会扩大份额；ORB-SLAM3 在 IMU + 多传感器融合方向仍领先。</p>
+<p><strong>易错</strong>：DROID/DPVO 是<strong>视觉 odometry</strong>，回环检测要外挂传统 BoW / NetVLAD；现代工业方案通常<strong>神经 VO + 传统 loop closure</strong> 混合。</p>
+</details>
+
+<footer class="aris-footer">
+  Generated by <a href="https://github.com/wanshuiyin/Auto-claude-code-research-in-sleep/blob/main/skills/render-html/SKILL.md">ARIS <code>/render-html</code></a> ·
+  source path <code>docs/interviews/07_perception_nav.md</code> ·
+  SHA256 <code>25e3585b1c53</code> ·
+  generated at 2026-05-21 18:08 UTC.
+  This is a generated view — edit the source Markdown, then re-render.
+</footer>
+</main>
+
+</div>
+</body>
+</html>

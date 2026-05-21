@@ -62,11 +62,11 @@
 
 2024-2026 是具身智能（Embodied AI）行业的窗口期——VLA、人形、四足、灵巧操作算法岗的招聘量井喷，但**面试题源散乱在牛客、知乎、小红书、一亩三分地等多个平台**，没有一个专门针对这一方向、可在手机上随时翻的题库。
 
-本项目把公开面经里**真实被反复问到的题目**整理成六卷，每题给出 **≤350 字的精简答案 + "易错"一句**——面试前 30 分钟过一遍补盲区，不是看长篇教程的时机。
+本项目把公开面经里**真实被反复问到的题目**整理成七卷，每题给出 **≤350 字的精简答案 + "易错"一句**——面试前 30 分钟过一遍补盲区，不是看长篇教程的时机。
 
 ---
 
-## 六卷目录
+## 七卷目录
 
 | 卷 | 主题 | 题数 | 一句话 |
 |---|---|---:|---|
@@ -76,8 +76,9 @@
 | [四](https://winstonjq.github.io/embodied-interview-qa/interviews/04_world_sim.html) | **世界模型 / Sim2Real** | 31 | Dreamer / V-JEPA / 域随机化 / Isaac Lab，人形和四足公司重点 |
 | [五](https://winstonjq.github.io/embodied-interview-qa/interviews/05_engineering.html) | **工程落地** | 39 | VLA 怎么塞进 Jetson、FSDP/ZeRO、teleop 数据飞轮、开放题与系统设计 |
 | [六](https://winstonjq.github.io/embodied-interview-qa/interviews/06_legged_control.html) | **腿足机器人控制 / 遥操作** | 48 | 浮动基座、MPC / WBC、RL-locomotion、AVP teleop、HumanPlus、actuator network sim2real |
+| [七](https://winstonjq.github.io/embodied-interview-qa/interviews/07_perception_nav.html) | **3D 感知 / SLAM / VLN / ObjectNav / Embodied VLM** | 60 | 点云 / 深度估计 / NeRF / 3DGS / ORB-SLAM3 / VINS / Nav2 / HAMT / DUET / NaVid / Uni-NaVid / VLFM / OpenFMNav / Grounding DINO / SAM 2 / VLMaps，投 VLN / 导航 / VLM 算法岗专用 |
 
-**主表共 257 题**，另含 ~16 题低频备选（每卷末单列）。
+**主表共 317 题**，另含 ~19 题低频备选（每卷末单列）。
 
 ---
 
@@ -134,11 +135,11 @@
 
 ## 项目幕后 · Vibe Coding 实战记录
 
-本项目本身就是一次完整的 **vibe coding** 实践案例——6 卷题库的题源调研、答案起草、跨模型审查、HTML 渲染、Git 发布**全部在维护者睡眠期间由 AI agent 自动完成**。维护者醒来只做最终验收和文案微调。
+本项目本身就是一次完整的 **vibe coding** 实践案例——7 卷题库的题源调研、答案起草、跨模型审查、HTML 渲染、Git 发布**全部在维护者睡眠期间由 AI agent 自动完成**。维护者醒来只做最终验收和文案微调。
 
 **调度模式**：
 
-- 主控 Claude Code（Opus 4.7 · 1M context）串行派遣多个 subagent，每个 agent 独立完成 1 卷的完整 7 阶段工作流（调研 → 起草 → 跨模型审查 → 渲染 → 发布）
+- 主控 Claude Code（Opus 4.7 · 1M context）串行派遣多个 subagent，每个 agent 独立完成 1 卷的完整 7 阶段工作流（调研 → 起草 → 跨模型审查 → 渲染 → 发布）；当前已完成 7 卷题库
 - 每个 agent 在 fresh context 里工作，互不污染——避免了"长上下文导致质量衰退"和"需要手动 /clear"两个痛点
 - 跨模型审查由独立的 Codex（GPT-5.5 xhigh）通过 MCP 协议完成，每轮 fresh-thread，多轮收敛
 - 执行者（Claude）≠ 审查者（GPT-5.5），是题库可信度的核心不变量

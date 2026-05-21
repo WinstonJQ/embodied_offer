@@ -1,0 +1,169 @@
+{
+  "volume": "07_perception_nav",
+  "title": "卷七 · 3D 感知 / SLAM / VLN / 零样本 ObjectNav / Embodied VLM",
+  "question_count": 60,
+  "main_table": 57,
+  "supplemental": 3,
+  "difficulty_distribution": {
+    "L1": 10,
+    "L2": 37,
+    "L3": 13
+  },
+  "review_rounds": 5,
+  "final_verdict": "WARN",
+  "verdict_rationale": "10/11 checks PASS; only citation_check residual WARN (benchmark numbers lack table-level refs — accepted as known interview-bank format limitation). No blocking issues.",
+  "reviewer": {
+    "model": "gpt-5.5",
+    "reasoning_effort": "xhigh",
+    "sandbox": "read-only"
+  },
+  "rounds": [
+    {
+      "round": 1,
+      "verdict": "FAIL",
+      "fixes_applied": 0,
+      "blocking_issues": [
+        "answer_conciseness: 47/60 answers >500 chars",
+        "Header difficulty distribution stale (declared L1=8/L2=34/L3=15, actual L1=10/L2=35/L3=12)",
+        "Q24 + N2 ETPNav venue inconsistent (CVPR 2023 vs 2024; actual An et al. TPAMI 2024)",
+        "Q44 Grounding DINO mixes DETR-DINO with ImageNet self-supervised DINO",
+        "Q39 CLIP scale 1B+ vs Q43 4 亿 — inconsistent",
+        "Q12 ORB-SLAM3 license wording 'closed-source GPL-3' is wrong (GPL is open-source)",
+        "Q35 ZSON vs CoW result comparison not setting-aligned"
+      ]
+    },
+    {
+      "round": 2,
+      "verdict": "WARN",
+      "fixes_applied": 7,
+      "fixes_summary": [
+        "Header difficulty distribution corrected (L1=10/L2=35/L3=12 main + L2×2/L3×1 supplemental)",
+        "ETPNav attribution fixed to An et al. TPAMI 2024 / arXiv 2304.03047",
+        "Grounding DINO wording: distinguished from Caron 2021 self-supervised DINO",
+        "CLIP scale unified to 4 亿（OpenCLIP/LAION 2B+）",
+        "ORB-SLAM3 license: GPLv3 copyleft 而非 closed-source",
+        "ZSON vs CoW: clarified different settings, numbers not directly comparable",
+        "Answer compression: all 60 bodies ≤500 chars (47/60 → 0/60 FAIL; 59/60 in WARN range)"
+      ],
+      "warnings": [
+        "Q23 RxR languages should be 英语+印地语+泰卢固语",
+        "Q24 VLN-CE action description: 离散 action set + 连续 state space",
+        "Q38 OpenFMNav HM3D SR 应核到 54.9%"
+      ]
+    },
+    {
+      "round": 3,
+      "verdict": "WARN",
+      "fixes_applied": 3,
+      "fixes_summary": [
+        "Q23 RxR languages: 英 + 印 + 泰 → 英语 + 印地语 + 泰卢固语",
+        "Q24 VLN-CE action description clarified (低层离散动作；动作集离散，状态空间连续)",
+        "Q38 OpenFMNav HM3D SR: 54.6 → ~54.9% with setting variation note"
+      ],
+      "warnings": [
+        "Q34 SemExp goal policy is RL/PPO trained Goal-Oriented Semantic Policy, not IL",
+        "Q38 OpenFMNav map: VSSM (Versatile Semantic Score Map) not '3D voxel value map'"
+      ]
+    },
+    {
+      "round": 4,
+      "verdict": "WARN",
+      "fixes_applied": 2,
+      "fixes_summary": [
+        "Q34 SemExp: 'IL 学 long-term goal' → 'Goal-Oriented Semantic Policy 用 RL（PPO）学'",
+        "Q38 OpenFMNav: 'Voxel-based value map' → 'VSSM（Versatile Semantic Score Map）'"
+      ],
+      "warnings": [
+        "Q11: 'GS 不可微' wording too strong — GS rendering IS differentiable; the difficulty is densification/pruning/online map update + policy joint optimization",
+        "Q53: AI2-THOR 'Unity 程序化' is imprecise; ProcTHOR is the procedural extension"
+      ]
+    },
+    {
+      "round": 5,
+      "verdict": "WARN",
+      "fixes_applied": 2,
+      "fixes_summary": [
+        "Q11: 'GS 不可微 / 慢更新' → 'GS 可微渲染但 densification / pruning / 在线 map 更新与策略联合优化困难'",
+        "Q53: AI2-THOR 'Unity 程序化' → 'Unity 交互式资产场景（ProcTHOR 是程序化扩展）'"
+      ],
+      "blocking_issues": [],
+      "warnings": [
+        "citation_check: benchmark/latency numbers attributed by method name but not tied to exact paper tables — accepted as residual WARN for interview-bank format"
+      ]
+    }
+  ],
+  "key_facts_verified": [
+    "ETPNav: An et al. TPAMI 2024, arXiv 2304.03047 (NOT Hong CVPR 2023/2024) — https://arxiv.org/abs/2304.03047",
+    "VLFM: Yokoyama et al. ICRA 2024, arXiv 2312.03275 — HM3D zero-shot SR 52.5% — https://arxiv.org/abs/2312.03275",
+    "OpenFMNav: Kuang et al. NAACL 2024 Findings, HM3D SR ~54.9% — https://aclanthology.org/2024.findings-naacl.24/",
+    "NaVid: Zhang et al. RSS 2024, video-VLM 510k traj SFT, R2R-CE val-unseen SR ~37% — https://arxiv.org/abs/2402.15852",
+    "Uni-NaVid: Zhang et al. RSS 2025, arXiv 2412.06224, 3.6M multi-task, 5 Hz on A100",
+    "NaVILA: Lin et al. RSS 2025, UC San Diego, legged-robot VLN, two-level (VLM mid-level + RL low-level)",
+    "VLN-R1: Qi et al. 2025, arXiv 2506.17221, GRPO RFT + Time-Decayed Reward, SR 41 → 49%",
+    "ZSON: Majumdar NeurIPS 2022, HM3D ObjectNav zero-shot SR 25.5%",
+    "SemExp: Chaplot NeurIPS 2020, Goal-Oriented Semantic Policy trained with RL/PPO (NOT IL), Habitat 2020 ObjectNav Challenge winner SR 17.85%",
+    "L3MVN: Yu IROS 2023, HM3D zero-shot SR 35.2%",
+    "CoW (CLIP-on-Wheels): Gadre CVPR 2023, arXiv 2203.10421, HM3D SR 12-25%",
+    "PIRLNav: Ramrakhya CVPR 2023, HM3D closed-set ObjectNav SR 65%",
+    "PointNet: Qi CVPR 2017, T-Net + shared MLP + max pool",
+    "PointNet++: Qi NeurIPS 2017, FPS + ball-query + hierarchical, ScanNet mIoU 64% (vs PN 53%)",
+    "Depth Anything v2: Yang et al. 2024, 0.6M annotated + 62M unannotated, ViT-L AbsRel 0.074 / δ₁ 0.946 on KITTI",
+    "ZoeDepth: Bhat et al. 2023, arXiv 2302.12288",
+    "ORB-SLAM3: Campos et al. 2021, GPLv3 copyleft",
+    "VINS-Fusion: Qin et al. 2019, GPLv3",
+    "DROID-SLAM: Teed NeurIPS 2021; DPVO: Teed 2023, 30+ Hz single GPU",
+    "Grounding DINO: Liu IDEA 2023, arXiv 2303.05499, based on DINO detector (Zhang ICLR 2023; distinct from Caron 2021 self-supervised DINO)",
+    "OWL-ViT: Minderer Google 2022; OWL-v2 adds self-training",
+    "SAM 2: Ravi Meta 2024, SA-V dataset 50K videos + 600K masklets, streaming memory bank",
+    "VLMaps: Huang ICRA 2023, LSeg + CLIP pixel features → BEV grid",
+    "ConceptFusion: Jatavallabhula RSS 2023, arXiv 2302.07241, multimodal open-set 3D map",
+    "GaussianGrasper: Zheng et al. IEEE RA-L 2024, arXiv 2403.09637, ~10 view RGB-D",
+    "F3RM: Shen CoRL 2023, ~50 view requirement for stable NeRF",
+    "CLIP: Radford OpenAI 2021, 400M image-text pairs; OpenCLIP/LAION-2B 2B+",
+    "SigLIP: Zhai Google 2023, sigmoid loss replaces softmax",
+    "Habitat 3.0: now supports humanoid + physical interaction (addresses '不能交互' outdated claim)",
+    "AI2-THOR: Unity interactive asset scenes (procedural extension is ProcTHOR)",
+    "VLN-CE: Krantz ECCV 2020, discrete low-level actions in continuous state space",
+    "R2R: Anderson CVPR 2018; RxR: Ku EMNLP 2020 (English/Hindi/Telugu); REVERIE: Qi CVPR 2020; SOON: Zhu CVPR 2021"
+  ],
+  "sources_consulted": [
+    "arxiv.org/abs/2402.15852 (NaVid)",
+    "arxiv.org/abs/2412.06224 (Uni-NaVid)",
+    "arxiv.org/abs/2304.03047 (ETPNav)",
+    "arxiv.org/abs/2312.03275 (VLFM)",
+    "aclanthology.org/2024.findings-naacl.24/ (OpenFMNav)",
+    "arxiv.org/abs/2506.17221 (VLN-R1)",
+    "arxiv.org/abs/2203.10421 (CoW)",
+    "arxiv.org/abs/2206.12403 (ZSON)",
+    "arxiv.org/abs/2007.00643 (SemExp)",
+    "arxiv.org/abs/2304.05501 (L3MVN)",
+    "arxiv.org/abs/2403.09637 (GaussianGrasper)",
+    "arxiv.org/abs/2406.09414 (Depth Anything v2)",
+    "arxiv.org/abs/2302.12288 (ZoeDepth)",
+    "arxiv.org/abs/2302.07241 (ConceptFusion)",
+    "arxiv.org/abs/2303.05499 (Grounding DINO)",
+    "arxiv.org/abs/2501.05750 (Semantic Mapping Survey)",
+    "arxiv.org/abs/1907.03739 (PVCNN)",
+    "prior.allenai.org/projects/ai2thor (AI2-THOR)",
+    "procthor.allenai.org (ProcTHOR)",
+    "aihabitat.org/datasets/hm3d-semantics/ (HM3D-Sem)",
+    "github.com/devendrachaplot/Object-Goal-Navigation (SemExp code)",
+    "github.com/jonyzhang2023/awesome-embodied-vla-va-vln",
+    "github.com/sonia-raychaudhuri/awesome-semantic-maps",
+    "zhuanlan.zhihu.com/p/19435123237 (VLN 综述)",
+    "zhuanlan.zhihu.com/p/488476275 (HAMT 解读)",
+    "blog.csdn.net/v_JULY_v/article/details/149672064 (NaVid 解读)",
+    "blog.csdn.net/v_JULY_v/article/details/152573075 (Uni-NaVid 解读)",
+    "blog.csdn.net/slender_1031 (SLAM 秋招面试题 2024)",
+    "zxl19.github.io/slam-interview/ (SLAM 面试题归档)",
+    "shenlanxueyuan.com/interview (深蓝学院 SLAM 面试题库)",
+    "gankinterview.cn embodied-ai-interview (具身 AI 12 大面试问题)",
+    "牛客网 / 知乎 具身导航 / VLN / SLAM 面经讨论",
+    "blog.csdn.net occupancy network 面试 / nav2 教程"
+  ],
+  "unresolved_warnings": [
+    "citation_check: benchmark numbers attributed by method but not by exact paper table line — typical interview-bank limitation, not a blocker"
+  ],
+  "max_rounds_reached": false,
+  "notes": "用户已豁免 Phase 0 题目清单审过；研究笔记保存在 /tmp/perception_nav_questions_research.md（仓库外）。最终 WARN 在 Round 5 达成（无 blocking issues）。Round 1 → 5 共 16 个 fix；最 thorny 是 Round 1 的 47/60 answers >500 chars（通过 Round 2 系统压缩降到 0/60 >500），ETPNav 归属（Round 2 一次性修正为 An et al. TPAMI 2024），SemExp 策略训练方法（Round 4 把 IL 改为 RL/PPO），OpenFMNav map 名称（Round 4 改为 VSSM）。用户重点章节 §5 (10) + §6 (10) + §7 (10) = 30 题，达 ≥25 题目标。信心较低章节：§8 端到端 VLN-VLA 前沿判断（多为开放题，答案的"自洽 > 标答"由面试官评判）；Q11 端到端 GS-policy 是 2025 研究阶段方向（信心 medium）。已知 caveat：低频备选 N1-N3 频次均为 2 但来源权威破例入选；OpenFMNav 不同 setting 下 HM3D SR 略有出入（54.6 / 54.9），文中已标注。"
+}
