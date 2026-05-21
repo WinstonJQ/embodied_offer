@@ -1,6 +1,6 @@
 # CLAUDE.md — 具身智能高频面试题库 项目工作指令
 
-> 当 Claude Code 在 `/home/scut/embodied_offer` 目录启动时自动加载此文件。
+> 当 Claude Code 在本仓库（`embodied-interview-qa`）目录启动时自动加载此文件。
 > 用户输入"做卷 X / 做 XXX 卷 / 继续下一卷"时，按本文件的工作流执行。
 
 ## 0. 项目定位
@@ -119,7 +119,7 @@ mcp__codex__codex(
     model="gpt-5.5",
     config={"model_reasoning_effort": "xhigh"},
     sandbox="read-only",
-    cwd="/home/scut/embodied_offer",
+    cwd="<repo-root>",  # 用当前 cwd，不要写绝对路径
     prompt="""FRESH THREAD — review of docs/interviews/<XX_slug>.md (面试题库).
 
 # 10 checks
@@ -131,7 +131,7 @@ mcp__codex__codex(
 6. details_block_well_formed：每个 <details><summary> 结构闭合
 7. duplicate_detection：无未合并的同义题（70% 相似视为重复）
 8. citation_check：题目引用的论文/数字正确
-9. personal_info_leak：无 SJTU / JHC / Server5 / /Users/ 等
+9. personal_info_leak：无 SJTU / SCUT / JHC / Server5 / /home/scut / /Users/ 等
 10. length_target：卷长度合理（不刻意凑题，但 <30 或 >100 警告）
 
 Return JSON:
@@ -151,7 +151,7 @@ Return JSON:
 ## 8. 关键文件路径
 
 ```
-/home/scut/embodied_offer/                  ← 本仓库 (cwd)
+<repo-root>/                                ← 本仓库 (cwd)
 ├── CLAUDE.md                                ← 本文件
 ├── README.md                                ← 仓库主页
 ├── docs/
@@ -197,7 +197,7 @@ git push origin master
 - ❌ 不要在 codex 审查时复用 threadId
 - ❌ 不要忘记 push GitHub 就报告完成
 - ❌ 不要写超过 400 字的答案（拆段或精简）
-- ❌ 不要保留 SJTU / JHC / Server5 / /Users/ 等个人信息
+- ❌ 不要保留 SJTU / SCUT / JHC / Server5 / /home/scut / /Users/ 等个人信息（仓库已开源）
 - ❌ 不要 force push 到 master
 - ❌ 不要复活旧 pi_series / rl_foundations / ppo_sac 内容
 
