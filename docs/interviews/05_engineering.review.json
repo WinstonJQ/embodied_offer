@@ -1,0 +1,139 @@
+{
+  "volume": "05_engineering",
+  "title": "卷五 · 工程落地 / 系统设计 / 开放题",
+  "question_count": 42,
+  "main_table": 39,
+  "supplemental": 3,
+  "review_rounds": 5,
+  "final_verdict": "WARN",
+  "rounds": [
+    {
+      "round": 1,
+      "verdict": "FAIL",
+      "model": "gpt-5.5",
+      "reasoning_effort": "xhigh",
+      "fixes_applied": 0,
+      "blocking_issues": [
+        "Q15 把"7B 模型 = 7 GB"称为 FP16 推理估算，实际 7B FP16 权重约 14 GB；7 GB 对应 INT8",
+        "Q06 的"7B 模型 ~40 GB → ~10 GB"量化描述不一致",
+        "Q24 把 R3M 说成 Something-Something 预训练，实际 R3M 论文明确为 Ego4D",
+        "Q22 的 DROID 描述不符合官方数据（应为 76K/564 scenes/86 tasks/50 collectors）",
+        "Q18/Q19/Q20/Q29/Q31 超过普通题 >500 字 FAIL 阈值"
+      ]
+    },
+    {
+      "round": 2,
+      "verdict": "FAIL",
+      "model": "gpt-5.5",
+      "reasoning_effort": "xhigh",
+      "fixes_applied": 8,
+      "fixes_summary": [
+        "Q06：INT8 量化描述改为 FP16 ~14GB → INT8 ~7GB，推理显存约 8-10 GB",
+        "Q15：易错修正"7B=7GB 是 INT8 权重估算，FP16 约 14GB"",
+        "Q18：删除"反传路径变长导致梯度不稳定"错误说法，改为"重计算增加约 30% 计算量，梯度数值不变"",
+        "Q22：DROID 改为 76K 轨迹、564 场景、86 任务、50 名采集者",
+        "Q23：时间同步改为"< 1ms 需硬件触发或 PTP；NTP 只做毫秒级粗同步"",
+        "Q24：R3M 预训练数据改为 Ego4D（非 Something-Something）",
+        "Q37：删除"π0.7 在家庭任务 > 90% SR"无出处数字",
+        "Q18/Q19/Q20/Q29/Q31：压缩至 ≤500 字"
+      ],
+      "remaining_blocking": [
+        "文首难度分布统计错误：实际主表 L1=3、L2=31、L3=5",
+        "Q18 仍超过普通题 >500 字 FAIL 阈值"
+      ]
+    },
+    {
+      "round": 3,
+      "verdict": "FAIL",
+      "model": "gpt-5.5",
+      "reasoning_effort": "xhigh",
+      "fixes_applied": 5,
+      "fixes_summary": [
+        "文首难度分布改为 L1=3 / L2=31 / L3=5（与实际计数一致）",
+        "Q18 再次压缩",
+        "Q10 删除"PaliGemma 本身是蒸馏产物"不准确说法",
+        "Q17 "必须用" → "几乎是标配/强烈推荐"",
+        "Q13 speculative decoding 与 GR00T N1 类比改弱"
+      ],
+      "remaining_blocking": [
+        "Q06 和 Q17 作为普通题均超过 500 字 FAIL 阈值"
+      ]
+    },
+    {
+      "round": 4,
+      "verdict": "WARN",
+      "model": "gpt-5.5",
+      "reasoning_effort": "xhigh",
+      "fixes_applied": 3,
+      "fixes_summary": [
+        "Q06 压缩至约 340 字",
+        "Q17 标题改为"为何几乎是标配"，答案压缩至约 380 字",
+        "Q10 对 PaliGemma 表述进一步规范为"π0 系列使用 PaliGemma/SigLIP+Gemma 作为预训练 VLM backbone""
+      ],
+      "blocking_issues": [],
+      "remaining_warnings": [
+        "超阈值 WARN 题较多（无 FAIL）",
+        "Q35/Q37 开放题进入 WARN 区间",
+        "Q36 资源表述有歧义",
+        "Q37 路线图建议明确为预测"
+      ]
+    },
+    {
+      "round": 5,
+      "verdict": "PASS",
+      "model": "gpt-5.5",
+      "reasoning_effort": "xhigh",
+      "fixes_applied": 2,
+      "fixes_summary": [
+        "Q13：明确区分 GR00T N1 扩散式并行动作生成与 speculative decoding，两者原理不同",
+        "Q37：路线图改为明确标注"预判"，避免确定性断言；"2025（当前）"改为"2025（已发生/回顾）""
+      ],
+      "blocking_issues": [],
+      "remaining_warnings": [
+        "30 道普通题处于 350-500 字 WARN 区间（无 >500 字 FAIL）",
+        "Q35 开放题约 513 字，进入开放题 WARN 区间（但未超 700）",
+        "Q37 "2025（已发生/回顾）"时间锚点已修正",
+        "Q06 GR00T N1 表述方向已修正"
+      ]
+    }
+  ],
+  "key_facts_verified": [
+    "Flash Attention：Dao et al., NeurIPS 2022；IO-aware tiling，HBM 读写 O(L²) → O(L)；数学等价 — https://papers.nips.cc/paper_files/paper/2022/hash/67d57c32e20fd0a7a302cb81d36e40d5-Abstract-Conference.html",
+    "Jetson Orin AGX 64GB：275 TOPS INT8，204 GB/s LPDDR5，功耗 15-60W — https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/",
+    "DROID 数据集：76K 轨迹、约 350 小时、564 场景、86 个任务、50 名采集者，Franka Panda 平台 — https://droid-dataset.github.io/",
+    "R3M：Nair et al., 2022；使用 Ego4D 人类活动视频预训练（非 Something-Something）— https://openreview.net/forum?id=tGbpgz6yOrI",
+    "Open-X-Embodiment：1M+ 轨迹，22 种机器人 embodiment — https://arxiv.org/abs/2310.08864",
+    "GR00T N1：NVIDIA 2025，扩散式并行动作生成（非 speculative decoding） — https://research.nvidia.com/publication/2025-03_nvidia-isaac-gr00t-n1-open-foundation-model-humanoid-robots",
+    "π0-FAST：Physical Intelligence，DCT + BPE 动作 token 压缩 — https://www.physicalintelligence.company/research/fast",
+    "Figure Helix：快慢双系统架构，VLA（slow）+ 专用控制器（fast 1kHz） — https://www.figure.ai/news/helix",
+    "π0.7：Physical Intelligence，2026-04 发布 — https://www.pi.website/pi07",
+    "KI（Knowledge Insulation）：π0.5 配套工作，stop-gradient 隔离 VLM 与 Action Expert — https://www.pi.website/research/knowledge_insulation",
+    "7B FP16 权重约 14 GB；INT8 约 7 GB；训练 Adam 状态总约 16 bytes/param = ~112 GB",
+    "ROS2 / DDS：实时性限制（DDS 序列化开销 50-200 µs），生产控制路径需共享内存 + PREEMPT-RT",
+    "PTP (IEEE 1588)：µs 级同步；NTP：毫秒级；硬件触发：最精确（< 1 µs）"
+  ],
+  "sources_consulted": [
+    "arxiv.org/abs/2310.08864 (Open-X-Embodiment)",
+    "droid-dataset.github.io (DROID)",
+    "ego4d-data.org (Ego4D)",
+    "openreview.net/forum?id=tGbpgz6yOrI (R3M / Ego4D)",
+    "papers.nips.cc (Flash Attention NeurIPS 2022)",
+    "nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/ (Jetson Orin)",
+    "research.nvidia.com/publication/2025-03_nvidia-isaac-gr00t-n1-open-foundation-model-humanoid-robots (GR00T N1)",
+    "physicalintelligence.company/research/fast (π0-FAST)",
+    "physicalintelligence.company/pi07 (π0.7)",
+    "pi.website/research/knowledge_insulation (KI)",
+    "figure.ai/news/helix (Figure Helix)",
+    "openvla-oft.github.io (OpenVLA-OFT)",
+    "知乎 Flash Attention / KV cache / DDP FSDP 技术文章",
+    "CSDN 具身智能部署 / Jetson / TensorRT 系列",
+    "牛客网 具身算法岗面试汇编",
+    "github.com/WeThinkIn/AIGC-Interview-Book",
+    "developer.nvidia.com/blog TensorRT Edge-LLM for Robotics"
+  ],
+  "unresolved_warnings": [
+    "30 道普通题处于 350-500 字 WARN 区间（无 >500 字 FAIL，按阈值规则可接受）",
+    "Q35 开放题约 513 字，进入开放题 WARN 区间（< 700 字，可接受）"
+  ],
+  "max_rounds_reached": false
+}

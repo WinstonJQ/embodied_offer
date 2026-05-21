@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>卷五 · 工程落地 / 系统设计 / 开放题 · 高频面试题</title>
+
+<meta name="generator" content="ARIS render-html (academic, v1)">
+<meta name="aris:source-path" content="docs/interviews/05_engineering.md">
+<meta name="aris:source-sha256" content="0b1bdee400ca708e5f53d3af9eea1dac3f3cd18a8802141e0885727286b41970">
+<meta name="aris:generated-at" content="2026-05-21 01:06 UTC">
+
+<!-- MathJax 3 -->
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']], processEscapes: true },
+  options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+
+<!-- highlight.js -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/atom-one-light.min.css">
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded', () => hljs.highlightAll());</script>
+
+
+<style>
+:root {
+  --bg: #fdfcf7;
+  --bg-soft: #f4f1ea;
+  --bg-code: #f8f5ec;
+  --ink: #1a1a1a;
+  --ink-soft: #4a4a4a;
+  --ink-muted: #6b6b6b;
+  --primary: #1a4a8c;
+  --primary-soft: #2d6cb8;
+  --accent: #b8390e;
+  --warn: #b45309;
+  --warn-bg: #fef3c7;
+  --info-bg: #dbeafe;
+  --good-bg: #d1fae5;
+  --good: #065f46;
+  --bad-bg: #fee2e2;
+  --bad: #991b1b;
+  --border: #d6d0c0;
+  --border-soft: #e8e3d5;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: "Source Serif Pro", "Source Serif 4", "Crimson Pro", "Georgia", "Songti SC", "STSong", serif;
+  line-height: 1.65;
+  color: var(--ink);
+  background: var(--bg);
+  margin: 0;
+  padding: 0;
+  font-size: 16px;
+}
+
+.layout {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 48px;
+  padding: 40px 32px;
+}
+
+nav.toc {
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  font-size: 13px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  border-right: 1px solid var(--border-soft);
+  padding-right: 16px;
+}
+nav.toc h3 {
+  margin: 0 0 12px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+  font-weight: 600;
+}
+nav.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+nav.toc ol li { margin: 5px 0; counter-increment: toc; }
+nav.toc ol li::before { content: counter(toc) ". "; color: var(--ink-muted); margin-right: 4px; }
+nav.toc a {
+  color: var(--ink-soft);
+  text-decoration: none;
+  border-bottom: 1px dotted transparent;
+}
+nav.toc a:hover { color: var(--primary); border-bottom-color: var(--primary); }
+nav.toc ul { list-style: none; padding-left: 14px; margin: 3px 0; font-size: 12px; }
+nav.toc ul li::before { content: "→ "; color: var(--border); }
+
+main { min-width: 0; }
+
+header.hero {
+  border-bottom: 3px double var(--primary);
+  padding-bottom: 24px;
+  margin-bottom: 32px;
+}
+header.hero .eyebrow {
+  color: var(--accent);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+header.hero h1 {
+  font-size: 32px;
+  line-height: 1.2;
+  margin: 0 0 12px;
+  color: var(--ink);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+header.hero .subtitle {
+  font-size: 16px;
+  color: var(--ink-soft);
+  margin: 0 0 8px;
+  font-style: italic;
+}
+header.hero .byline {
+  font-size: 14px;
+  color: var(--ink-soft);
+  margin: 0 0 20px;
+}
+header.hero .byline strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+header.hero .meta {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--ink-muted);
+  border-top: 1px solid var(--border-soft);
+  padding-top: 14px;
+}
+header.hero .meta span strong { color: var(--ink-soft); }
+header.hero .meta code {
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", "Consolas", monospace;
+  font-size: 11px;
+  background: var(--bg-soft);
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid var(--border-soft);
+}
+
+h2 {
+  font-size: 24px;
+  margin: 44px 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  color: var(--ink);
+  font-weight: 700;
+}
+h2 .num { color: var(--primary); font-weight: 600; margin-right: 8px; }
+h3 { font-size: 19px; margin: 28px 0 10px; color: var(--primary); font-weight: 600; }
+h4 { font-size: 16px; margin: 20px 0 8px; color: var(--ink); font-weight: 600; }
+
+p { margin: 10px 0; }
+ul, ol { padding-left: 22px; margin: 10px 0; }
+ul li, ol li { margin: 4px 0; }
+ul li::marker { color: var(--primary); }
+
+strong { color: var(--accent); font-weight: 600; }
+em { color: var(--ink-soft); }
+
+a { color: var(--primary); }
+a:hover { color: var(--accent); }
+
+code:not(.hljs) {
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", "Consolas", monospace;
+  font-size: 0.86em;
+  background: var(--bg-code);
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid var(--border-soft);
+  color: var(--accent);
+}
+
+pre {
+  background: #fafaf6;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  padding: 0;
+  overflow-x: auto;
+  border-radius: 4px;
+  margin: 14px 0;
+}
+pre code, pre code.hljs {
+  background: transparent !important;
+  display: block;
+  padding: 14px 18px !important;
+  font-size: 13px;
+  line-height: 1.55;
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", monospace;
+  color: var(--ink);
+}
+pre.diagram {
+  background: #f9f6ed;
+  border-left: 4px solid var(--accent);
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.callout {
+  margin: 16px 0;
+  padding: 12px 16px;
+  border-radius: 4px;
+  border-left: 4px solid;
+  font-size: 15px;
+}
+.callout-title {
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.callout-info { background: var(--info-bg); border-left-color: var(--primary); }
+.callout-info .callout-title { color: var(--primary); }
+.callout-warn { background: var(--warn-bg); border-left-color: var(--warn); }
+.callout-warn .callout-title { color: var(--warn); }
+.callout-good { background: var(--good-bg); border-left-color: var(--good); }
+.callout-good .callout-title { color: var(--good); }
+.callout-bad { background: var(--bad-bg); border-left-color: var(--bad); }
+.callout-bad .callout-title { color: var(--bad); }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 14px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+thead { background: var(--primary); color: white; }
+th, td {
+  text-align: left;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border-soft);
+  vertical-align: top;
+}
+th { font-weight: 600; font-size: 13px; letter-spacing: 0.02em; }
+tr:last-child td { border-bottom: none; }
+tbody tr:nth-child(even) { background: var(--bg-soft); }
+
+details.qa, details {
+  background: white;
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  margin: 10px 0;
+  padding: 0;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+details.qa { margin: 8px 0; }
+details.qa:hover { border-color: var(--primary-soft); box-shadow: 0 1px 4px rgba(26,74,140,0.06); }
+details summary {
+  cursor: pointer;
+  padding: 11px 14px;
+  font-weight: 600;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--ink);
+  list-style: none;
+  user-select: none;
+}
+details.qa summary { color: var(--ink); }
+details summary::-webkit-details-marker { display: none; }
+details summary::before {
+  content: "▸ ";
+  margin-right: 4px;
+  display: inline-block;
+  transition: transform 0.15s;
+  color: var(--primary);
+}
+details[open] summary::before { transform: rotate(90deg); }
+details[open] summary { border-bottom: 1px solid var(--border-soft); }
+details[open].qa { background: #fdfcf7; }
+details > :not(summary) { padding: 10px 16px; }
+details p:first-of-type { margin-top: 8px; }
+details p:last-of-type { margin-bottom: 10px; }
+
+/* difficulty pills: L1 green / L2 yellow / L3 red */
+.lv {
+  display: inline-block;
+  padding: 1px 7px;
+  margin-right: 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", monospace;
+  vertical-align: 1px;
+  line-height: 1.5;
+}
+.lv-l1 { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+.lv-l2 { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+.lv-l3 { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+
+/* frequency badge: 🔥×N */
+.freq {
+  display: inline-block;
+  padding: 1px 7px;
+  margin-right: 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--bg-soft);
+  color: var(--ink-soft);
+  border: 1px solid var(--border-soft);
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", monospace;
+  vertical-align: 1px;
+  line-height: 1.5;
+}
+.freq-hot { background: #fff1e6; color: #b8390e; border-color: #fcd9c0; }
+
+mjx-container[display="true"] { margin: 12px 0 !important; }
+
+footer.aris-footer {
+  margin-top: 60px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+footer.aris-footer a { color: var(--ink-muted); border-bottom: 1px dotted var(--border); }
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; gap: 20px; padding: 20px 16px; }
+  nav.toc {
+    position: static;
+    max-height: none;
+    border-right: none;
+    border-bottom: 1px solid var(--border-soft);
+    padding-right: 0;
+    padding-bottom: 14px;
+  }
+  header.hero h1 { font-size: 24px; }
+  h2 { font-size: 20px; }
+}
+@media print {
+  nav.toc { display: none; }
+  .layout { grid-template-columns: 1fr; padding: 0; }
+  body { background: white; }
+  header.hero { border-bottom-color: var(--ink); }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="toc">
+  <h3>Contents</h3>
+  <ol>
+<li><a href="#1-感知-规划-控制系统架构5-题">§1 感知-规划-控制系统架构（5 题）</a>
+</li>
+<li><a href="#2-推理加速与边缘部署8-题">§2 推理加速与边缘部署（8 题）</a>
+</li>
+<li><a href="#3-训练工程7-题">§3 训练工程（7 题）</a>
+</li>
+<li><a href="#4-数据飞轮与采集6-题">§4 数据飞轮与采集（6 题）</a>
+</li>
+<li><a href="#5-失败排查与调试7-题">§5 失败排查与调试（7 题）</a>
+</li>
+<li><a href="#6-开放题与系统设计6-题">§6 开放题与系统设计（6 题）</a>
+</li>
+<li><a href="#低频备选频次-1-2未入主表">低频备选（频次 1-2，未入主表）</a>
+</li>
+</ol>
+</nav>
+
+<main>
+<header class="hero">
+  
+  <h1>卷五 · 工程落地 / 系统设计 / 开放题 · 高频面试题</h1>
+  
+  
+  <div class="meta">
+    <span><strong>Source:</strong> <code>docs/interviews/05_engineering.md</code></span>
+    <span><strong>SHA256:</strong> <code>0b1bdee400ca</code></span>
+    <span><strong>Rendered:</strong> 2026-05-21 01:06 UTC</span>
+    
+  </div>
+</header>
+
+<h1 id="卷五--工程落地--系统设计--开放题--高频面试题">卷五 · 工程落地 / 系统设计 / 开放题 · 高频面试题</h1>
+<blockquote><p>中文具身智能秋招高频面试题库 · <strong>第五卷</strong> 题源：牛客 / 知乎 / CSDN / GitHub 公开面经 / NVIDIA 技术博客 / arXiv 工程论文 同义题合并后 <strong>42 题</strong>（主表 39 题：频次 ≥3 + 低频备选 3 题）</p></blockquote>
+<p><strong>难度分布</strong>：L1（必会） <strong>3</strong> · L2（进阶） <strong>31</strong> · L3（顶级/开放） <strong>5</strong> （含开放题 4 题 L3；低频备选另计）</p>
+<p><strong>使用方式</strong>：题目默认折叠，点开看答案。建议按 <strong>L1 → L2 → L3</strong> 顺序刷；同级内按频次从高到低。手机端原生支持。</p>
+<hr />
+<h2 id="1-感知-规划-控制系统架构5-题">§1 感知-规划-控制系统架构（5 题）</h2>
+<blockquote><p>机器人系统的骨架：三层架构 + 实时性约束 + 通信中间件 + 任务编排。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×7</span> <b>Q01</b> · 感知-规划-控制三层架构各层的实时性要求是什么？为什么不能统一成一个频率？</summary>
+<p><strong>答</strong>：三层频率由物理约束决定，不可合并：</p>
+<ul><li><strong>控制层（1 kHz）</strong>：直接驱动关节电机，PID/阻抗控制环要以 1 ms 周期计算力矩，否则关节振荡（实测&gt;2 ms 伺服驱动器异常）</li><li><strong>规划层（10-100 Hz）</strong>：运动学/动力学规划、轨迹生成；受限于求解器耗时（IK 约 1-5 ms/次）</li><li><strong>感知层（30 Hz）</strong>：相机帧率 + 深度处理约 33 ms，网络推理延迟 20-100 ms（VLA）</li></ul>
+<p><strong>不能合并</strong>：感知 30 Hz 远不够控制（电机需 1 kHz），若等感知完成再发控制命令，关节力矩 gap 33 ms → 振荡甚至摔倒。实际做法：<strong>层间异步 + 状态预测</strong>——控制层用上一次规划输出做插值，感知层独立更新感知状态。</p>
+<p><strong>易错</strong>：VLA 推理 6 Hz 接的是规划层（发任务指令/动作 chunk），不是直接替换 1 kHz 控制层；底层力矩控制仍需专用实时控制器。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>Q02</b> · ROS2 vs 自研中间件：大公司为什么不直接用 ROS2 做生产系统？DDS 的优缺点是什么？</summary>
+<p><strong>答</strong>： <strong>DDS（Data Distribution Service）</strong>：ROS2 底层通信标准，pub/sub + QoS 策略（RELIABILITY/DEADLINE/LIVELINESS）；自动发现节点、支持多机。</p>
+<p><strong>ROS2 优点</strong>：生态丰富（rviz/rosbag/Nav2）、开发快、社区活跃；<strong>缺点</strong>：</p>
+<ul><li>DDS 序列化开销约 50-200 µs，高频（1 kHz）控制环难以接受</li><li>GC + Python 节点延迟不确定性</li><li>不支持确定性硬实时（需 PREEMPT-RT 内核补丁才能接近）</li></ul>
+<p><strong>大公司自研原因</strong>：① 降低关键控制路径延迟（自研共享内存 IPC &lt; 1 µs）；② 系统级安全性（watchdog / 故障隔离）；③ 专有数据格式与 CI/CD 集成。</p>
+<p><strong>实际选择</strong>：研究/仿真阶段用 ROS2，量产前把控制关键路径替换为共享内存 + 自研调度；ROS2 保留为上层工具链（录包/可视化）。</p>
+<p><strong>易错</strong>：ROS2 不是实时系统，即使加 PREEMPT-RT 也只能做软实时（~1 ms 抖动）；硬实时（&lt; 100 µs 抖动）需专用 RTOS 或 EtherCAT。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q03</b> · 状态机（FSM）和行为树（BT）在机器人任务编排中的区别？各有什么适用场景？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th></th><th>FSM</th><th>行为树（BT）</th></tr></thead><tbody><tr><td>结构</td><td>状态 + 转移函数，扁平图</td><td>树形层次，Selector/Sequence/Decorator</td></tr><tr><td>复杂度</td><td>状态多时"状态爆炸"</td><td>组合子模块，扩展性好</td></tr><tr><td>可读性</td><td>简单任务直观</td><td>复杂任务更清晰</td></tr><tr><td>中断</td><td>全局事件触发状态跳转</td><td>Subtree 级打断，细粒度</td></tr><tr><td>调试</td><td>单状态易定位</td><td>树遍历可视化好</td></tr></tbody></table>
+<p><strong>适用</strong>：FSM → 状态少、转移清晰的控制逻辑（如抓取的 "等待/运行/完成"）；BT → 多任务序列 + 条件检查 + 回退（如"先找目标 → 接近 → 抓取 → 失败则重规划"）。</p>
+<p><strong>现代趋势</strong>：BT 已成具身机器人任务编排主流（ROS2 BehaviorTree.CPP / Nav2），VLA 的语言指令通常解析为 BT 节点序列。</p>
+<p><strong>易错</strong>：BT 不是"更好的 FSM"，状态少时 FSM 更简洁；BT 的 tick 机制（每帧重新遍历）有轻微计算开销。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q04</b> · 共享内存 vs 消息队列 vs ROS2 Topic，在低延迟控制回路中应该选哪种？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th>方式</th><th>单次通信延迟</th><th>吞吐</th><th>适用层</th></tr></thead><tbody><tr><td>共享内存（mmap/posix）</td><td>&lt; 1 µs</td><td>极高</td><td>1 kHz 控制回路</td></tr><tr><td>消息队列（LCM/ZMQ）</td><td>~10-50 µs</td><td>高</td><td>规划层（10-100 Hz）</td></tr><tr><td>ROS2 Topic（DDS）</td><td>50-500 µs</td><td>中</td><td>感知/工具层（≤ 30 Hz）</td></tr></tbody></table>
+<p><strong>实际分层</strong>：控制关键路径（关节状态 ↔ 力矩指令）→ 共享内存，加 spinlock；规划 ↔ 控制 → LCM/ZMQ（10 Hz）；感知结果 → ROS2 Topic（30 Hz）。</p>
+<p><strong>关键设计</strong>：控制线程固定 CPU core（CPU affinity）+ 禁用抢占，共享内存 double buffer 防读写冲突。</p>
+<p><strong>易错</strong>：共享内存需手动处理并发安全，不加锁或用错锁（如 mutex 导致 priority inversion）反而更慢甚至死锁。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×5</span> <b>Q05</b> · 什么是阻抗控制（Impedance Control）？与位置控制和力控制的区别？机器人操作任务里怎么选？</summary>
+<p><strong>答</strong>：<strong>阻抗控制</strong>：让机器人末端呈现可调"弹簧-阻尼-质量"特性：$F = K \Delta x + D \dot{x} + M \ddot{x}$，通过调节虚拟刚度 K、阻尼 D，控制机器人与环境交互时的柔顺性。</p>
+<ul><li><strong>位置控制</strong>：精确跟踪轨迹，刚性高；接触未知环境时力过大 → 损坏零件或机器人</li><li><strong>力控制</strong>：维持期望接触力；需要力矩传感器 + 稳定的力估计，对刚性接触不稳定</li><li><strong>阻抗控制</strong>：两者折中；环境已知时刚、接触时柔，适合大多数操作</li></ul>
+<p><strong>选型</strong>：无接触精密移动 → 位置控制；稳定接触力（如打磨/拧螺丝） → 力控制；插销/组装/接触不确定 → 阻抗控制。</p>
+<p><strong>易错</strong>：阻抗控制不是"只要有力矩传感器就能用"——需要精确的动力学模型（质量矩阵 M）；低成本机器人通常用导纳控制（Admittance Control，在位置控制外环）替代。</p>
+</details>
+<hr />
+<h2 id="2-推理加速与边缘部署8-题">§2 推理加速与边缘部署（8 题）</h2>
+<blockquote><p>VLA 推理慢是当前最高频工程面试话题；量化/TensorRT/Jetson/蒸馏覆盖 80% 考点。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×6</span> <b>Q06</b> · VLA 推理为什么慢（只有 6 Hz）？有哪些主流提速路线？</summary>
+<p><strong>答</strong>：<strong>根本原因</strong>：VLA 基于自回归 LLM，动作 7 维离散化 → <strong>7 token 串行解码</strong>，7B VLA 单步约 150-200 ms，控制频率 ≤ 6 Hz。</p>
+<p><strong>主流提速路线</strong>：</p>
+<ol><li><strong>并行动作头</strong>：OpenVLA-OFT、GR00T N1 同时解码所有维度，7 次串行 → 1 次 forward（显著加速）</li><li><strong>量化</strong>：INT8 PTQ → 7B 权重 ~14 GB（FP16）→ ~7 GB（INT8），推理显存 8-10 GB，吞吐提升 30-50%</li><li><strong>Token 压缩</strong>：π0-FAST 用 DCT + BPE 把 chunk 压成约 10-20 token，减少 AR 步数</li><li><strong>视觉特征复用</strong>：跳帧更新视觉 token，减少 ViT forward 次数</li><li><strong>投机解码</strong>：小 draft 模型先猜 k 个 token，大模型并行验证</li></ol>
+<p><strong>易错</strong>：提速不等于升硬件——AR 串行是架构瓶颈；需并行化或 token 压缩才能根本提速。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×6</span> <b>Q07</b> · INT8 / FP16 / AWQ / GPTQ 量化的区别？机器人推理部署推荐哪种？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th>量化方案</th><th>粒度</th><th>精度损失</th><th>工具链</th><th>典型场景</th></tr></thead><tbody><tr><td><strong>FP16</strong></td><td>全精度半精度</td><td>极小</td><td>PyTorch AMP</td><td>训练/A100 推理基线</td></tr><tr><td><strong>INT8 PTQ</strong></td><td>逐层 / 逐 channel</td><td>小（VLA 可接受）</td><td>TensorRT / ONNX</td><td>Jetson Orin 边缘部署</td></tr><tr><td><strong>AWQ</strong></td><td>逐 channel，权重感知</td><td>极小（比 GPTQ 稳）</td><td>AutoAWQ</td><td>LLM/VLA INT4</td></tr><tr><td><strong>GPTQ</strong></td><td>Block-wise 二阶优化</td><td>小</td><td>AutoGPTQ</td><td>LLM INT4，离线量化</td></tr></tbody></table>
+<p><strong>机器人推荐</strong>：</p>
+<ul><li>云端/工作站（A100/H100）→ BF16 训练 + FP16 推理</li><li>Jetson Orin AGX（64GB）→ <strong>INT8 PTQ（TensorRT）</strong>：7B VLA 约 8-10 GB 显存，推理 8-12 Hz</li><li>更极限边缘（&lt; 16 GB）→ AWQ INT4：7B → ~4 GB，但精度需验证</li></ul>
+<p><strong>易错</strong>：AWQ 和 GPTQ 都是 INT4 量化，AWQ 保护"显著权重"通道不量化，精度更稳；不要把 PTQ 和 QAT 混淆（QAT 需重新训练，精度最高但成本高）。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>Q08</b> · TensorRT vs ONNX Runtime vs TorchScript：机器人部署场景如何选型？各有什么局限？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th>框架</th><th>优势</th><th>局限</th><th>适用场景</th></tr></thead><tbody><tr><td><strong>TensorRT</strong></td><td>NVIDIA GPU 最优（层融合/kernel 选择），FP16/INT8 加速最佳</td><td>仅 NVIDIA GPU，编译耗时，算子覆盖有限</td><td>Jetson/DGX 部署 VLA 推理</td></tr><tr><td><strong>ONNX Runtime</strong></td><td>跨平台（CPU/GPU/ARM），生态广，导出简单</td><td>不如 TensorRT 极致，部分 custom op 不支持</td><td>x86 边缘盒 / 非 NVIDIA 平台</td></tr><tr><td><strong>TorchScript</strong></td><td>无需外部框架，直接 Python → C++</td><td>优化有限，JIT 图不稳定，性能弱于 TRT</td><td>原型/调试/快速部署</td></tr></tbody></table>
+<p><strong>典型工作流</strong>：PyTorch 训练 → ONNX 导出（中间格式）→ TensorRT 编译（Jetson 部署）。</p>
+<p><strong>VLA 特殊挑战</strong>：LLM 的 KV cache / 动态 shape 不易导出 ONNX；通常用 TensorRT-LLM（专为 LLM 优化的 TRT 版本）或 vLLM（服务器端）。</p>
+<p><strong>易错</strong>：TorchScript 不是推理框架，只是序列化格式；不要把 TorchScript 当成 TRT 的替代品用于生产。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q09</b> · Jetson Orin AGX 跑 7B VLA 的典型配置和瓶颈在哪？如何估算推理吞吐？</summary>
+<p><strong>答</strong>：<strong>Jetson Orin AGX 64GB</strong>（2023，275 TOPS INT8，64 GB LPDDR5 统一内存）：</p>
+<p><strong>典型配置</strong>：</p>
+<ul><li>7B VLA INT8 量化 → ~8-10 GB 显存</li><li>推理吞吐：<strong>8-12 Hz</strong>（取决于视觉 encoder 大小和 chunk 长度）</li><li>功耗：~40-60W（vs A100 ~400W）</li></ul>
+<p><strong>估算方法</strong>：FP16 模型 = 参数量 × 2 bytes；INT8 = 参数量 × 1 byte；7B × 1 byte = 7 GB，加 KV cache + 激活 ≈ 9-11 GB。推理延迟 ≈ forward FLOPs / 峰值算力（考虑 memory-bound 效率 40-60%）。</p>
+<p><strong>瓶颈</strong>：① 统一内存带宽（204 GB/s）是主瓶颈——LLM 推理 memory-bound；② 视觉 encoder（ViT-L 约 300M）单帧约 20 ms；③ 散热限制功耗 throttling。</p>
+<p><strong>易错</strong>：TOPS 是 INT8 峰值，实际 LLM 推理用不满（带宽受限）；不要用 TOPS 直接估算真实 token/s。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>Q10</b> · 知识蒸馏（Knowledge Distillation）的流程是什么？机器人场景有哪些适配挑战？</summary>
+<p><strong>答</strong>：<strong>KD 流程</strong>：Teacher（大模型）软化输出（temperature T &gt; 1 的 softmax 分布）→ Student 模仿 teacher 的"暗知识"（soft label + 中间层特征对齐），在小模型上实现接近大模型的性能。</p>
+<p><strong>常规 KD 步骤</strong>：① 确定 teacher（如 7B VLA）→ ② 设计 student（如 1B）→ ③ 在数据集上运行 teacher 生成 soft label → ④ student 用 KL 散度 + 任务 loss 联合训练。</p>
+<p><strong>机器人场景挑战</strong>：</p>
+<ul><li>动作输出是<strong>多模态分布</strong>（Diffusion/Flow Matching），KL 散度对多模态效果差；改用 <strong>feature-level 蒸馏</strong> 或 <strong>score distillation</strong></li><li>训练数据量小（1K-50K demos），student 易过拟合 teacher</li><li>真机评估成本高，无法像 NLP 那样快速迭代 student 质量</li></ul>
+<p><strong>实际路线</strong>：π0 系列用 PaliGemma 3B（SigLIP + Gemma 组合）作预训练 VLM backbone；LoRA 量化微调比全量 KD 更常用，成本更低。</p>
+<p><strong>易错</strong>：KD 不是"直接 copy teacher 权重 + 减小网络"，是软标签驱动的训练过程。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q11</b> · Flash Attention 在 VLA 推理中的收益是什么？KV cache 在 VLA 长 context 场景的必要性与局限？</summary>
+<p><strong>答</strong>：<strong>Flash Attention</strong>（Dao et al., 2022）：分块计算注意力，不在 HBM 存储完整 $QK^T$ 矩阵，将内存从 $O(L^2)$ 降至 $O(L)$，同时减少 HBM 读写次数 → <strong>VLA 长序列（图像 token ~256 + 文本 + 历史 chunk）推理速度提升 2-4×</strong>，显存节省显著。</p>
+<p><strong>KV Cache 必要性</strong>：自回归解码时，每次生成新 token 都要重算历史 key/value → KV cache 把历史 K, V 缓存，只算新 token 的 Q，从 $O(n^2)$ 降到 $O(n)$，推理速度提升约 5-10×。</p>
+<p><strong>VLA 中的局限</strong>：</p>
+<ul><li>视觉 token（图像 ~256）× H=50 chunk × 推理步数 → KV cache 线性增长，Jetson 64 GB 统一内存可能撑不住长任务</li><li>每步动作需要<strong>更新</strong> KV（新观测 token），非纯生成场景，cache 命中率低于 NLP</li><li>解决方案：Sliding Window Attention（只缓存最近 K 步）或 Chunk-wise 更新</li></ul>
+<p><strong>易错</strong>：Flash Attention 是训练/推理都有收益的算子优化，不是专门给推理用的；KV cache 是推理专属（训练用 gradient checkpointing 替代）。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q12</b> · batched inference 与机器人实时控制的矛盾如何解决？</summary>
+<p><strong>答</strong>：<strong>矛盾</strong>：batched inference 通过聚合多个请求摊销固定 overhead，吞吐提升 N×；但单个请求必须等 batch 凑满才发，<strong>延迟增加</strong> = 等待时间 + 计算时间，与机器人实时控制的低延迟需求（&lt; 100 ms）冲突。</p>
+<p><strong>解决思路</strong>：</p>
+<ol><li><strong>单路独占</strong>：单机器人 → batch_size=1，不凑批，延迟最低但 GPU 利用率低</li><li><strong>时间窗口 mini-batch</strong>：固定最大等待时间（如 10 ms），无论 batch 凑没凑满都发；在多机器人集群（Fleet）中平衡延迟和吞吐</li><li><strong>持续批处理（Continuous Batching）</strong>：vLLM 实现，请求随到随入 batch，不固定等待窗口；适合云端推理服务</li><li><strong>Action Chunking 预计算</strong>：一次 VLA forward 生成 H=50 步动作，低层控制器跑完再请求下次推理；实际推理频率 1-2 Hz，对 batch 要求低</li></ol>
+<p><strong>易错</strong>：Action Chunking 不是"减少 VLA 调用频率"的妥协，而是 ACT 的核心设计思想（降低复合误差）；推理频率低是副产品。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×3</span> <b>Q13</b> · 投机解码（Speculative Decoding）的原理是什么？机器人 VLA 能用吗？有哪些挑战？</summary>
+<p><strong>答</strong>：<strong>原理</strong>：用小 draft 模型（如 1B）串行快速生成 k 个候选 token，再用大 target 模型（如 7B）<strong>并行验证</strong>所有 k 个 token（一次 forward）；若验证通过则接受，否则截断重生成。理论加速比 = k / (1 + k × rejection_rate)，实测 NLP 场景 2-3×。</p>
+<p><strong>机器人 VLA 的可行性</strong>：</p>
+<ul><li><strong>可行</strong>：动作 token 分布相对简单（7 维连续动作离散化），draft 模型命中率可能较高</li><li><strong>挑战 1</strong>：VLA 动作 token 只有 7-350 个（chunk），speculation benefit 小（NLP 句子上千 token）</li><li><strong>挑战 2</strong>：需要维护两个模型（draft + target）的显存，Jetson 上极为紧张</li><li><strong>挑战 3</strong>：VLA 带视觉 token，draft 模型也需要处理图像 → 不是纯 LLM 投机</li></ul>
+<p><strong>实际应用</strong>：主要见于云端 VLA 服务（多请求并发），边缘部署更常用量化 + 并行动作头（如 GR00T N1 的扩散式并行动作生成）；两者原理不同，但都减少了解码步数。</p>
+<p><strong>易错</strong>：投机解码不改变模型精度（验证步保证与 target 分布一致），是纯推理加速技巧。</p>
+</details>
+<hr />
+<h2 id="3-训练工程7-题">§3 训练工程（7 题）</h2>
+<blockquote><p>分布式训练 + 内存优化 + 混合精度 + VLA 训练的特殊考量。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×7</span> <b>Q14</b> · DDP / FSDP / DeepSpeed ZeRO 三者区别？VLA（7B）训练用哪个？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th>方案</th><th>切分内容</th><th>每卡所需显存</th><th>通信量</th><th>适用</th></tr></thead><tbody><tr><td><strong>DDP</strong></td><td>不切分（每卡完整模型）</td><td>完整参数 + 梯度 + 优化器</td><td>all-reduce 梯度</td><td>&lt; 3B，单机多卡</td></tr><tr><td><strong>FSDP（ZeRO-3）</strong></td><td>参数/梯度/优化器全切分</td><td>1/N（+临时通信开销）</td><td>all-gather + reduce-scatter</td><td>≥ 7B，多机</td></tr><tr><td><strong>DeepSpeed ZeRO-1/2/3</strong></td><td>逐级切分优化器/梯度/参数</td><td>递减</td><td>递增</td><td>≥ 7B，灵活配置</td></tr></tbody></table>
+<p><strong>7B VLA 推荐</strong>：</p>
+<ul><li><strong>4×A100（40GB）</strong>：FSDP or ZeRO-2（切梯度+优化器，不切参数）→ 稳定快</li><li><strong>8×A100（80GB）</strong>：ZeRO-1（只切优化器）足够，通信少</li><li><strong>多机（≥4 节点）</strong>：ZeRO-3 / FSDP + NVLink 节点内、InfiniBand 跨节点</li></ul>
+<p><strong>实测规律</strong>：ZeRO-3 显存最省但通信最多，跨机 InfiniBand 慢时吞吐下降明显；VLA 首选 <strong>ZeRO-2 + activation offload</strong> 平衡显存和速度。</p>
+<p><strong>易错</strong>：FSDP 是 PyTorch 原生的 ZeRO-3 等价实现，不是比 ZeRO 更先进，是平台选择（PyTorch vs DeepSpeed）。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>Q15</b> · VLA 训练需要多少显存？如何估算 7B 模型的训练显存？</summary>
+<p><strong>答</strong>：<strong>估算公式（混合精度训练，Adam optimizer）</strong>：</p>
+<p>显存 ≈ 参数 × (2 B FP16 参数 + 2 B FP16 梯度 + 4 B FP32 主参数 + 4 B Adam m + 4 B Adam v) + 激活值</p>
+<p>= 参数量 × <strong>16 bytes</strong> + 激活值</p>
+<p><strong>7B VLA 示例</strong>：7 × 10⁹ × 16 = <strong>112 GB</strong>（仅模型状态），+ 激活值（batch 依赖，约 20-60 GB）→ 总计 <strong>130-170 GB</strong>。</p>
+<p><strong>优化手段</strong>：① gradient checkpointing：激活值只存 checkpoint 节点，重算其余，激活显存 → ~10 GB（代价：增加约 30% 计算量）；② ZeRO-3 切分到 8 卡：每卡 ~20 GB；③ INT8 量化 + LoRA：7B LoRA 约 20-30 GB（仅训练 adapter 参数，不更新全量权重）。</p>
+<p><strong>典型配置</strong>：7B VLA 全参数微调 → <strong>8 × A100 80GB</strong>（ZeRO-2）；LoRA 微调 → <strong>4 × A100 40GB</strong>。</p>
+<p><strong>易错</strong>："7B 模型 = 7 GB" 是 INT8 推理权重估算（1 byte/param）；FP16 推理权重约 14 GB；训练还需 Adam 优化器状态（额外 8 bytes/param），总量完全不同数量级。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×5</span> <b>Q16</b> · 混合精度训练（AMP）原理？FP16 vs BF16，VLA 训练建议用哪个？</summary>
+<p><strong>答</strong>：<strong>AMP 原理</strong>：前向/反向用低精度（FP16/BF16）计算，维护 FP32 主参数副本用于更新；梯度放大（GradScaler）防 FP16 下溢（underflow）。节省显存约 50%，训练加速 2-3×（Tensor Core 专为低精度优化）。</p>
+<p><strong>FP16 vs BF16</strong>：</p>
+<table><thead><tr><th></th><th>FP16（E5M10）</th><th>BF16（E8M7）</th></tr></thead><tbody><tr><td>指数位</td><td>5 位（范围小）</td><td>8 位（与 FP32 同范围）</td></tr><tr><td>精度位</td><td>10 位（精度高）</td><td>7 位（精度略低）</td></tr><tr><td>溢出风险</td><td>高（需 GradScaler）</td><td>极低（范围与 FP32 一致）</td></tr><tr><td>硬件支持</td><td>A100/V100 均支持</td><td>A100/H100 强支持；V100 不支持</td></tr></tbody></table>
+<p><strong>VLA 建议</strong>：A100/H100 → <strong>BF16</strong>（无需 GradScaler，更稳定，VLM 大梯度场景不溢出）；V100 → FP16 + GradScaler。</p>
+<p><strong>易错</strong>：AMP 不是"全程 FP16"——优化器更新和权重维护仍是 FP32，只是前反向低精度。BF16 不需要 GradScaler。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>Q17</b> · Flash Attention 的原理是什么？VLA 训练中为何几乎是标配？</summary>
+<p><strong>答</strong>：<strong>标准 Attention 瓶颈</strong>：$QK^T$（$L \times L$）需 $O(L^2)$ HBM 读写；VLA context 达 512-2048 token 时带宽成瓶颈。</p>
+<p><strong>核心思路</strong>：① 分块（Tiling）：Q, K, V 小块在 SRAM 上完成 softmax + 加权，不写中间矩阵回 HBM；② Online Softmax 修正：维护 running max/sum 保证数值等价；③ 反向时重算 attention（不缓存 $L^2$ 矩阵）。</p>
+<p><strong>收益</strong>：HBM 读写 $O(L^2) → O(L)$，速度 2-4×，显存大幅降低。</p>
+<p><strong>VLA 几乎标配原因</strong>：多帧图像 token（每帧 256）+ 文本 + 历史动作，context 长度大，标准 attention 显存紧张甚至 OOM。</p>
+<p><strong>易错</strong>：Flash Attention 只改变内存访问模式，不改变计算结果（数学等价）；与 KV cache 优化目标不同——Flash Attention 训练/推理通用，KV cache 仅推理。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q18</b> · gradient checkpointing 原理？VLA 训练中怎么用？与 ZeRO 如何配合？</summary>
+<p><strong>答</strong>：<strong>原理</strong>：标准反向传播缓存所有前向激活（显存 $O(L \times depth)$）。Gradient Checkpointing 只保留每 N 层一个 checkpoint 节点，反向时从最近节点重算中间激活，以约 <strong>30% 额外计算</strong> 换取 <strong>60-80% 激活显存节省</strong>，且梯度数值不变（数学等价）。</p>
+<p><strong>VLA 配置</strong>：对 LLM backbone 每层开 <code>gradient_checkpointing=True</code>；视觉 ViT 层数少，可不开。</p>
+<p><strong>与 ZeRO 配合</strong>：ZeRO-2/3 切分参数/梯度显存；gradient checkpointing 切分激活显存，两者正交互补。典型：7B + ZeRO-2 + checkpointing → 4 × A100 40GB 可跑。</p>
+<p><strong>易错</strong>：不是"保存 ckpt 文件"，是激活重计算；开启后训练速度降低约 30%，不影响梯度准确性。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q19</b> · 单机多卡 vs 多机训练：VLA 常见配置与跨机通信的瓶颈在哪？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th></th><th>单机多卡（8 × A100）</th><th>多机（如 4 × 8 卡）</th></tr></thead><tbody><tr><td>卡间带宽</td><td>NVLink 600 GB/s（A100 SXM）</td><td>InfiniBand 200-400 Gb/s（~25-50 GB/s）</td></tr><tr><td>通信延迟</td><td>极低（µs）</td><td>ms 级</td></tr><tr><td>扩展性</td><td>受机器限制</td><td>水平扩展</td></tr><tr><td>常见瓶颈</td><td>单机内存（8 × 80GB = 640GB）</td><td>跨机 all-reduce 等待</td></tr></tbody></table>
+<p><strong>VLA 常见配置</strong>：</p>
+<ul><li>7B 全参数：8 × A100 80GB（ZeRO-2），单机足够</li><li>13B-70B 或大批量：多机，用 InfiniBand + NCCL，ZeRO-3</li><li>通信优化：gradient compression（梯度稀疏化/1-bit）or Async SGD（有精度损失）</li></ul>
+<p><strong>跨机瓶颈</strong>：7B 模型 FP16 梯度约 14 GB，InfiniBand 200 Gb/s（实际有效带宽 ~60%）传输需 ~1 s；gradient accumulation 增大 batch 可分摊通信开销。</p>
+<p><strong>易错</strong>：多机不是"卡越多越快"——强扩展效率（Strong Scaling Efficiency）在 8+ 节点后常见 &lt; 80%；通信开销随节点数增加。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q20</b> · torch.compile 在 VLA 训练中的加速收益与常见坑？</summary>
+<p><strong>答</strong>：<strong>torch.compile</strong>（PyTorch 2.0+）：基于 TorchDynamo（Python 字节码捕获计算图）+ TorchInductor（生成 Triton GPU kernel），将 eager 模式编译为融合 kernel，减少 kernel launch 次数和 HBM 读写。</p>
+<p><strong>典型收益</strong>：纯 Transformer forward/backward 约 <strong>10-30% 吞吐提升</strong>（无数据 IO 瓶颈时）；VLA 因含视觉 encoder + 动作头，实测 5-20%（因图像预处理、动态 shape 等限制编译效率）。</p>
+<p><strong>常见坑</strong>：① <strong>动态 shape</strong>：VLA 输入长度变化 → 每种 shape 重编译（首次 1-3 min），加 <code>dynamic=True</code> 缓解；② <strong>自定义 CUDA op</strong>（如 Flash Attention）fallback eager，需显式标注；③ <strong>silent fallback</strong>：编译失败不报错，需加日志确认是否生效。</p>
+<p><strong>VLA 建议</strong>：主要对 LLM backbone 开，视觉 encoder 保持 eager 避免动态 shape 坑。</p>
+<p><strong>易错</strong>：torch.compile 不能替代 Flash Attention（解决不同层面），两者可叠加。</p>
+</details>
+<hr />
+<h2 id="4-数据飞轮与采集6-题">§4 数据飞轮与采集（6 题）</h2>
+<blockquote><p>遥操设备选型 + 数据集特征 + 采集流程 + 互联网视频预训练。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×6</span> <b>Q21</b> · teleop 遥操设备如何选型？VR / leader-follower / exoskeleton / Aloha-style 各适合什么场景？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th>设备</th><th>示例</th><th>优势</th><th>劣势</th><th>适用场景</th></tr></thead><tbody><tr><td><strong>Leader-follower arm</strong></td><td>ALOHA, Lerobot SO-ARM100</td><td>力反馈自然，学习曲线低</td><td>需配套夹爪，双臂协调难</td><td>桌面操作、精细抓取</td></tr><tr><td><strong>VR 手柄</strong></td><td>Quest 3 + ROS bridge</td><td>低成本，6-DoF 追踪</td><td>无力觉，远端操作抖动大</td><td>大范围移动任务，数据量级</td></tr><tr><td><strong>动作捕捉套装</strong></td><td>Rokoko / Vicon</td><td>全身 DoF，丰富表达</td><td>昂贵，标注后处理复杂</td><td>人形全身操控</td></tr><tr><td><strong>外骨骼</strong></td><td>Inspire Dexterous Hand + arm</td><td>手指级灵巧度</td><td>穿戴复杂，延迟高</td><td>5 指灵巧操作（如拧瓶盖）</td></tr><tr><td><strong>数据手套</strong></td><td>SenseGlove / HaptX</td><td>触觉反馈</td><td>贵，续航</td><td>精密触感任务</td></tr></tbody></table>
+<p><strong>2024-2026 主流</strong>：ALOHA-style leader-follower（双臂 14-16 DoF）是最多公开数据集的选择；宇树 G1 用 VR + 全身运动捕捉。选型核心：<strong>操作的 DoF 要求</strong>（精细 → exo，范围 → VR，双臂 → leader-follower）。</p>
+<p><strong>易错</strong>：VR 手柄抖动会污染数据（需平滑滤波 / 仅用关键帧），不能直接当 GT 动作。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>Q22</b> · Open-X-Embodiment / DROID / Ego4D 三大数据集的区别与各自定位？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th>数据集</th><th>规模</th><th>载体</th><th>特点</th><th>适用</th></tr></thead><tbody><tr><td><strong>Open-X-Embodiment</strong></td><td>1M+ 轨迹，22 种机器人</td><td>多 embodiment</td><td>最大多体系开放数据集；任务短/简单，多样性强</td><td>VLA 预训练，跨机器人泛化</td></tr><tr><td><strong>DROID</strong></td><td>76K 轨迹，~350h，Franka Panda</td><td>单 embodiment</td><td>564 场景、86 个任务、50 名采集者；自然语言指令</td><td>真实场景操作，policy 微调</td></tr><tr><td><strong>Ego4D</strong></td><td>3500+ 小时视频，74 个地点</td><td>纯视频，非机器人</td><td>以人为主视角，活动多样；无动作标签</td><td>视觉表征预训练（视觉理解），不直接训策略</td></tr></tbody></table>
+<p><strong>关键区别</strong>：OXE 多体系宽泛，DROID 单体系高质量，Ego4D 无动作标签（只能做视觉预训练）。VLA 预训练通常：Ego4D + OXE 做视觉/语言预训练 → 任务数据微调 → DROID 验证泛化。</p>
+<p><strong>易错</strong>：Ego4D 不能直接训练机器人策略（缺动作标签），只用于视觉表征学习；不要说"用 Ego4D 训策略"。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>Q23</b> · 如何设计高质量机器人数据采集流程？数据清洗与标注的关键点是什么？</summary>
+<p><strong>答</strong>：<strong>采集流程设计</strong>：</p>
+<ol><li><strong>环境标准化</strong>：固定照明/背景/相机位姿（减少无关变量），但 DROID-style 也需多场景覆盖泛化</li><li><strong>Operator 培训</strong>：操作员统一培训（避免动作风格差异），多 operator 增加多样性（Mobile ALOHA 策略）</li><li><strong>同步录制</strong>：多相机（wrist + overhead）+ 关节状态 + 时间戳对齐；&lt; 1 ms 同步需<strong>硬件触发</strong>（外部触发信号）或 PTP（IEEE 1588，µs 级）；NTP 只能做毫秒级粗同步</li><li><strong>在线质量筛</strong>：任务完成检测（如物体位置传感器）自动过滤失败轨迹</li></ol>
+<p><strong>数据清洗关键</strong>：</p>
+<ul><li><strong>抖动过滤</strong>：VR 手柄输入需低通滤波（截止频率 5-10 Hz）</li><li><strong>动作平滑</strong>：去除突变（速度超阈值的帧）</li><li><strong>失败轨迹剔除</strong>：夹爪未闭合 / 末端超出工作空间 → 自动剔除</li><li><strong>标注</strong>：自然语言任务描述（多人标注取一致）；成功/失败标签</li></ul>
+<p><strong>易错</strong>：不要只收集"成功轨迹"——失败轨迹（负样本）对 RLHF / offline RL 有价值；完全清洗掉失败数据使策略无法学习恢复。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q24</b> · 互联网视频预训练（Ego4D/Something-Something/YouTube）对机器人策略有什么用？有哪些根本局限？</summary>
+<p><strong>答</strong>：<strong>用处</strong>：① 学习视觉表征（物体形状、纹理、手部运动先验）→ 下游机器人任务 fine-tune 数据需求减少 5-10×；② 学习物理常识（物体如何掉落、液体如何流动）→ 减少仿真的 domain gap；③ 语言-视觉对齐（理解任务指令）。</p>
+<p><strong>典型使用</strong>：Ego4D 预训练 → EgoVLP/MAE 视觉 encoder → 迁移到 VLA（如 Octo 用 ImageNet 预训练 ViT）；<strong>R3M</strong>（Nair et al., 2022）用 <strong>Ego4D</strong> 人类活动视频预训练，对桌面抓取任务有明显收益。</p>
+<p><strong>根本局限</strong>：</p>
+<ul><li><strong>无动作标签</strong>：视频只有像素，不知道机器人该输出什么关节角 / 力矩</li><li><strong>视角不匹配</strong>：人手视角 vs 机器人腕部相机视角有巨大 domain gap</li><li><strong>物理差异</strong>：人手柔顺，机器人刚性，力的分布完全不同</li><li><strong>长尾分布</strong>：互联网视频大量是日常活动，机器人精密操作数据极少</li></ul>
+<p><strong>易错</strong>：视频预训练的收益主要在<strong>视觉感知</strong>层，不会"自动学会如何操控"——策略学习仍需机器人专属数据。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>Q25</b> · 数据飞轮（Data Flywheel）的核心闭环是什么？为什么 scale 起来很难？</summary>
+<p><strong>答</strong>：<strong>数据飞轮闭环</strong>：部署机器人 → 采集交互数据（成功+失败）→ 过滤/标注 → 训练改进策略 → 更好的策略 → 更多/更难任务 → 继续采集。理论上闭环越快越强。</p>
+<p><strong>为什么难 scale</strong>：</p>
+<ol><li><strong>数据采集速度瓶颈</strong>：teleop 需要人工操作，单台机器人采集约 1-5 demos/小时，1000 demos = 200-1000 人时</li><li><strong>数据多样性 vs 质量矛盾</strong>：多场景保证泛化，但每场景样本少 → long-tail 问题</li><li><strong>标注成本</strong>：自然语言任务描述 + 成功/失败标签 + 关键帧标注，人工成本非线性增长</li><li><strong>分布 shift</strong>：旧数据与新策略的状态分布不一致 → 需 DAgger-style 在线数据收集</li><li><strong>Reset 成本</strong>：真机每次 demo 后需 reset 场景，人工耗时大</li></ol>
+<p><strong>行业现状（2025）</strong>：自主数据采集（机器人在夜晚自己采集）+ VR 远程采集集群是主要突破方向；Physical Intelligence（π）、Figure 都有大规模 teleop 采集基础设施。</p>
+<p><strong>易错</strong>：数据飞轮不是"有了数据就飞轮"，闭环的关键是<strong>数据质量筛选 + 增量训练策略</strong>，垃圾数据会反向拖累策略。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q26</b> · 自主数据采集（Autonomous Data Collection）有哪些思路？与 teleop 相比的优势和局限？</summary>
+<p><strong>答</strong>：<strong>主要思路</strong>：</p>
+<ol><li><strong>Reset-free Learning</strong>：策略自主探索，无需人工 reset（如 Forward-Backward RL，在"做任务"和"恢复初始态"间循环）</li><li><strong>Curiosity-Driven Exploration</strong>：自动选择"信心低"状态收集数据（DAGGER 风格在线查询）</li><li><strong>Scripted / Heuristic Collection</strong>：写简单程序控制机器人随机/系统地扫描工作空间，采集带 annotation 的场景数据</li><li><strong>Human-in-the-Loop</strong>：策略自主运行，失败时触发远程 teleoperation 补全</li></ol>
+<p><strong>vs teleop 优势</strong>：24/7 无人工，单机器人日采集量可达 teleop 的 10-50×；边际成本极低。</p>
+<p><strong>局限</strong>：</p>
+<ul><li>初始策略不够强时，自主探索只采到低价值数据（随机碰撞）</li><li>缺乏任务目标驱动（需要 reward 定义或任务成功检测）</li><li>安全性：无人监督下需硬件安全限位</li></ul>
+<p><strong>易错</strong>：自主数据采集不是"让机器人自己学"——仍需要明确的成功/失败检测和数据标注机制。</p>
+</details>
+<hr />
+<h2 id="5-失败排查与调试7-题">§5 失败排查与调试（7 题）</h2>
+<blockquote><p>真机部署必考：sim2real 定位 → reward hacking → 灾难性遗忘 → 控制调试。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×6</span> <b>Q27</b> · 训练好的策略真机表现差，第一步怎么排查 sim2real gap？系统化排查流程是什么？</summary>
+<p><strong>答</strong>：<strong>系统化排查流程（由浅入深）</strong>：</p>
+<p><strong>Step 1 — 输入分布检查</strong>：记录真机传感器数据（图像/关节状态）与仿真数据的分布差异（直方图对比）；常见：光照/背景/物体颜色偏差，关节摩擦力估计不准。</p>
+<p><strong>Step 2 — 策略输出检查</strong>：在真机上 rollout 时 log 动作分布；若策略输出与仿真动作差异大，说明观测 domain gap 大；若动作分布类似但执行失败，是执行器/物理 gap。</p>
+<p><strong>Step 3 — 逐模块 ablation</strong>：</p>
+<ul><li>关掉感知，直接输入仿真参考状态 → 排查控制 gap</li><li>用仿真相机 → 排查视觉 gap</li><li>用真实图像 + ground truth 状态 → 排查策略泛化</li></ul>
+<p><strong>Step 4 — 常见 gap 原因</strong>：</p>
+<ul><li>物体质量/摩擦系数不准 → 加 domain randomization 重训</li><li>相机内参/外参偏差 → 重新标定</li><li>控制频率 / 延迟不匹配 → 统一仿真和真机延迟设置</li></ul>
+<p><strong>易错</strong>：不要第一步就调超参数，先定位 gap 来源再针对性修；盲目加 DR 有时反而降低真机策略质量（过度泛化导致精度下降）。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>Q28</b> · 什么是 reward hacking？机器人训练中的常见表现和解决思路？</summary>
+<p><strong>答</strong>：<strong>Reward hacking</strong>：策略找到了"高 reward 但违背任务意图"的捷径行为，即 reward 函数没有完整表达人的意图。</p>
+<p><strong>机器人常见表现</strong>：</p>
+<ul><li>抓取任务：夹爪直接压住物体（不抬起）触发"接触 = 抓到"reward</li><li>导航任务：机器人原地抖动触发"速度大 = 探索积极"reward</li><li>灵巧操作：过度用力挤压物体达成"接触力 &gt; 阈值"的假成功</li></ul>
+<p><strong>解决思路</strong>：</p>
+<ol><li><strong>Reward Shaping 精细化</strong>：加约束（如同时检测抬起高度 + 接触力 + 位移）</li><li><strong>RLHF / Preference Learning</strong>：人类偏好标注替代 reward 函数</li><li><strong>Demo-conditioned reward</strong>：只有动作接近 demo 时才给 reward（如 GAIL/AIRL）</li><li><strong>多目标约束</strong>：主 reward + 行为约束 penalty（如异常力矩惩罚）</li><li><strong>真机验证频率提高</strong>：仿真训练 + 每 N 步真机评估，早发现 hacking 行为</li></ol>
+<p><strong>易错</strong>：Reward hacking 不是"策略 bug"，是 reward 设计问题；加更多训练数据解决不了，必须修 reward 定义。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>Q29</b> · 灾难性遗忘（Catastrophic Forgetting）在 VLA 微调中怎么出现？如何缓解？</summary>
+<p><strong>答</strong>：<strong>出现场景</strong>：将预训练 VLA（在大规模数据上训练的通用能力）在特定任务数据上<strong>全参数微调</strong>时，模型快速过拟合新任务 → 遗忘预训练时的语言理解/视觉泛化能力，在新任务上成功，其他任务失败。</p>
+<p><strong>常见表现</strong>：微调后在原任务上成功率骤降（如 OpenVLA 微调新桌面抓取 → 忘记开门）；语言指令理解变差（只能响应微调数据的指令风格）。</p>
+<p><strong>缓解策略</strong>：</p>
+<ol><li><strong>LoRA / PEFT</strong>：只更新 &lt; 1% 参数，冻结主干 → 最常用</li><li><strong>EWC</strong>：Fisher 信息矩阵指导，惩罚重要参数大幅改变</li><li><strong>Replay / Co-training</strong>：混入预训练数据（Mobile ALOHA co-train 策略）</li><li><strong>KI（Knowledge Insulation）</strong>：π0.5 思路，stop-gradient 隔离 VLM 和 Action Expert</li><li><strong>差异 lr</strong>：VLM backbone 用极小 lr（1e-5），action head 用较大 lr（1e-4）</li></ol>
+<p><strong>易错</strong>：LoRA 不能完全防遗忘；彻底防遗忘仍需 co-training 混入原始数据。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q30</b> · 关节控制振荡的常见原因与调参思路？PID 和阻抗控制各怎么调？</summary>
+<p><strong>答</strong>：<strong>振荡原因</strong>：</p>
+<ul><li>PID P 增益过大 → 超调 + 振荡（欠阻尼）</li><li>控制频率低（&gt; 10 ms 周期）→ 相位滞后 → 条件不稳定</li><li>关节静摩擦（stiction）→ 低速黏滑（stick-slip）现象</li><li>VLA 动作 chunk 末端不连续 → 关节速度跳变</li></ul>
+<p><strong>PID 调参</strong>：① Ziegler-Nichols 法（逐渐增 P 至临界振荡，读取 $K_u$ 和 $T_u$，代入公式计算 P/I/D）；② 人工逐步调：先清零 I/D，调 P 至刚好振荡，再加 D（微分减振荡），最后加 I（消除稳态误差）；③ 加前馈（Feedforward）：预计算重力补偿，减轻 P 的负担。</p>
+<p><strong>阻抗控制调参</strong>：虚拟刚度 K 太大 → 刚性振荡（减 K 或加 D）；阻尼 D 太小 → 欠阻尼（增 D 至临界阻尼 $D = 2\sqrt{KM}$）；质量 M 影响响应速度（通常设为实际惯量的 1-5×）。</p>
+<p><strong>VLA chunk 振荡</strong>：Chunk 边界加速度不连续 → 用三次样条插值平滑相邻 chunk 的连接；或减小 chunk 长度 H。</p>
+<p><strong>易错</strong>：不要把"振荡"和"稳态误差"混淆，两者病根不同（前者是 P/D 问题，后者是 I 问题）。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×3</span> <b>Q31</b> · Diffusion Policy 训练时的 Mode Collapse（模式坍塌）如何排查？</summary>
+<p><strong>答</strong>：<strong>Diffusion Policy 的 Mode Collapse</strong>：多模态动作分布下，策略只学会一种模式（如总是选同一抓取方向），丢失其他合法方案。</p>
+<p><strong>排查方法</strong>：① 同一观测下多次采样（N=100）动作，绘 2D 投影；若全部聚成一团 → collapse；② log 各 diffusion step 的 loss，若小 t（精细步）loss 极低而大 t 偏高 → 过拟合单一模式；③ 检查 score 网络输出方差是否异常小。</p>
+<p><strong>根本原因</strong>：① 训练数据单模态（operator 风格单一）→ 增加操作员多样性；② Beta schedule 过早收紧 → 调整为 cosine schedule；③ CFG Guidance scale 过高 → 降低；④ lr 过大 → 降至 1e-4 以下。</p>
+<p><strong>易错</strong>：Diffusion Policy 本设计防 mode collapse，若仍 collapse 先查数据；与 GAN collapse 机制不同，无需改判别器。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q32</b> · 传感器漂移（Sensor Drift）怎么检测和补偿？以 IMU 和力矩传感器为例？</summary>
+<p><strong>答</strong>：<strong>IMU 漂移</strong>：陀螺仪积分误差随时间累积（Gyro bias），表现为姿态估计随时间漂移（静止时角速度输出非零）。</p>
+<ul><li>检测：静置机器人采集 N 秒数据，计算静态时 bias 均值和方差</li><li>补偿：① 开机标定（校准 bias offset）；② <strong>互补滤波 / EKF</strong>：融合加速度计（无漂移但噪声大）和陀螺仪（短期精准但长期漂），EKF 状态量含 bias 项自动估计</li></ul>
+<p><strong>力矩传感器漂移</strong>：温度变化导致零点漂移（Thermal Drift），表现为无负载时力/力矩读数随温度升高缓慢变化。</p>
+<ul><li>检测：预热机器人 5-10 分钟，监测空载读数变化（&gt; 0.5 N 为需补偿）</li><li>补偿：① 运行前<strong>重新清零（tare）</strong>；② 建立温度-零点补偿模型（查表或线性拟合）；③ 选用内置温度补偿的传感器（ATI Axia / Rokbi）</li></ul>
+<p><strong>通用原则</strong>：定期标定（每月或每 N 小时作业）；记录环境温度、湿度与漂移量，建补偿表。</p>
+<p><strong>易错</strong>：不要把"漂移"和"噪声"混淆——漂移是系统性偏差（低频），噪声是随机（高频）；滤波器设计不同。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q33</b> · VLA 推理时序抖动（Inference Jitter）如何影响控制？有哪些工程解决方案？</summary>
+<p><strong>答</strong>：<strong>问题</strong>：VLA 推理延迟不固定（如均值 100 ms，标准差 20 ms），控制器收到动作指令的时刻不确定 → 关节速度跳变 → 轻则轨迹抖动，重则触发安全限位急停。</p>
+<p><strong>影响分析</strong>：若控制器按 1 kHz 插值 VLA 的 chunk 动作，当下一个 chunk 延迟到达，插值无法外推过长时间 → 动作"卡住"或突变；若插值时间超过 chunk 覆盖时域，末端处于未定义状态。</p>
+<p><strong>工程解决方案</strong>：</p>
+<ol><li><strong>Double Buffering + 预取</strong>：控制器维护两个 chunk buffer，当前 chunk 执行时，后台异步请求下一个；推理时间 &lt; chunk 执行时间（H × Δt）时抖动透明</li><li><strong>时间戳对齐</strong>：VLA 输出动作时附带时间戳，控制器按绝对时间执行而非相对偏移</li><li><strong>速度平滑器</strong>：最终动作前过一个速度限幅滤波器（max velocity / max acceleration），截断因时序抖动引起的瞬时加速度峰值</li><li><strong>Padding 策略</strong>：chunk 设计时末尾几帧动作与上一段对齐（零加速度），给推理预留 buffer</li></ol>
+<p><strong>易错</strong>：时序抖动不是"硬件故障"，是软件调度问题；加大 chunk H 可增加推理容忍时间，但增加 open-loop 误差。</p>
+</details>
+<hr />
+<h2 id="6-开放题与系统设计6-题">§6 开放题与系统设计（6 题）</h2>
+<blockquote><p>无标准答案，考察工程判断力和技术视野；答题骨架 + 必谈点 + 加分点。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>Q34</b> · 遥操 + 模仿学习为什么在 2024-2026 成为具身智能的主流范式？</summary>
+<p><strong>答</strong>：</p>
+<p><strong>答题骨架</strong>：技术可行 × 成本合理 × 替代路线局限。</p>
+<p><strong>必谈点</strong>：</p>
+<ul><li><strong>技术可行</strong>：ALOHA（2023）证明 50 demos 即可训出可用策略，ACT/Diffusion Policy 降低了 BC 的数据门槛；teleop 设备（leader-follower）成本降至 5000 USD 内（Lerobot）</li><li><strong>替代路线不成熟</strong>：① RL 在真机上 sample efficiency 太差，reset 成本无法接受；② sim2real gap 对精细操作（&lt; 5 mm 精度）仍难突破；③ 互联网视频无动作标签，无法直接训策略</li><li><strong>数据质量可控</strong>：人工演示天然包含"任务意图"，不需要奖励函数设计</li><li><strong>产业节奏匹配</strong>：2024-2026 是量产前的快速验证期，teleop 是最快闭环路径（3-6 个月出成果 vs RL 1-2 年）</li></ul>
+<p><strong>加分点</strong>：自主数据采集（夜间无人 teleop 集群）和 RL 精调（π 的 RECAP 思路）开始在 teleop 之上叠加，但 IL 仍是 backbone。</p>
+<p><strong>易错</strong>：不要说"teleop 是最终范式"——它是当前窗口期的最优解，最终仍需 RL 或世界模型补足长尾。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×6</span> <b>Q35</b> · VLA 端到端方案 vs 传统模块化方案：2026 年你会怎么选？</summary>
+<p><strong>答</strong>：</p>
+<p><strong>答题骨架</strong>：场景驱动选型，不是"哪个好"而是"什么条件下用哪个"。</p>
+<p><strong>模块化优势</strong>：每个模块独立可调试（感知 mAP、规划路径、控制精度分开评估）；单模块更新无需全栈重训；成熟工具链（SLAM/RRT/PID）。<strong>适合</strong>：确定性高、任务明确、需要可解释性（工业机器人、安全认证场景）。</p>
+<p><strong>VLA 端到端优势</strong>：处理模糊指令和长尾场景（语言泛化）；无需手工设计感知-规划接口；隐式世界知识（物理常识）迁移；任务多样性扩展无需重写模块。<strong>适合</strong>：家庭服务机器人、灵巧操作、多任务通用场景。</p>
+<p><strong>2026 视角的折中选择</strong>：</p>
+<ol><li>底层控制（1 kHz PID/阻抗）仍保留模块化（实时性要求）</li><li>任务规划层（哪步做什么）用 VLA / LLM（语言泛化）</li><li>中层轨迹生成（Diffusion Policy / Flow Matching）半端到端</li><li>即"<strong>快慢双系统</strong>"：VLA 作 slow thinking（10-30 Hz），专用控制器作 fast reaction（1 kHz）</li></ol>
+<p><strong>加分点</strong>：Figure 的 Helix 就是典型快慢双系统架构；π0 也是 VLM + 独立 Action Expert。</p>
+<p><strong>易错</strong>：不要说"端到端一定优于模块化"——端到端的 failure mode 更难 debug，工程可靠性要求高的场景反而不适合。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×5</span> <b>Q36</b> · 如果给你 2 台 A100（80GB × 8）、3 个月，从零搭建一套 Humanoid VLA pipeline，你的规划是什么？</summary>
+<p><strong>答</strong>：</p>
+<p><strong>答题骨架</strong>：目标拆解 → 里程碑规划 → 技术选型 → 风险对冲。</p>
+<p><strong>月度规划</strong>：</p>
+<ul><li><strong>Month 1（数据 + 基础设施）</strong>：teleop 平台搭建（leader-follower 双臂）→ 1000 demos 采集（10 种任务）→ 数据管道（录制/清洗/标注）→ 训练脚本（VLA backbone 选 OpenVLA 7B 或 GR00T-N1 开源版）→ 基线评估（BC on 5 tasks）</li><li><strong>Month 2（训练 + 微调）</strong>：ZeRO-2 + BF16 + Flash Attention 训练流水线 → LoRA 微调（A100 × 8 约 7B 全参微调或 LoRA）→ 量化（INT8 TensorRT）→ 真机推理（Jetson Orin or 工作站）→ 3 任务 &gt; 70% 成功率里程碑</li><li><strong>Month 3（评估 + 工程化）</strong>：多任务泛化测试 → sim2real gap 定位 → 控制振荡调参 → 安全机制（力矩限位）→ 演示 pipeline</li></ul>
+<p><strong>技术选型</strong>：backbone 用 OpenVLA 或 GR00T-N1（开源，社区支持）；策略头用 Flow Matching（训练稳，Jetson 部署快）；teleop 用 Lerobot leader-follower（&lt; 5000 USD）。</p>
+<p><strong>风险对冲</strong>：硬件故障预留 10% 时间；sim2real gap 难过时退回仿真评估；3 个月无法做全身控制，聚焦桌面操作。</p>
+<p><strong>易错</strong>：不要答"先找最好的模型"——资源有限时数据质量 &gt; 模型规模；1000 个高质量 demos 比 10000 个低质量 demos 有用。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×5</span> <b>Q37</b> · 具身智能 2025-2028 三年路线图：你看好哪条技术路线？为什么？</summary>
+<p><strong>答</strong>：</p>
+<p><strong>答题骨架</strong>：现状认知 → 判断驱动因素 → 路线选择 + 理由 → 不确定性承认。</p>
+<p><strong>推荐路线（主线预判）</strong>：<strong>Teleop IL → RL 精调 → 自主数据飞轮</strong></p>
+<ul><li>2025（已发生/回顾）：大规模 teleop + Diffusion Policy / Flow Matching，桌面操作在受控场景达较高 SR，部分公司开始小批量量产</li><li>2026（预判）：RL 在 IL 基础上精调（RECAP/RLHF 思路），处理长尾和扰动鲁棒性</li><li>2027-2028（预判）：自主数据采集形成真飞轮；世界模型辅助规划或合成数据大规模落地</li></ul>
+<p><strong>看好原因</strong>：① 数据瓶颈是主矛盾，每一步都在扩大数据；② RL 精调无需重新设计架构，直接在 IL 上叠加；③ 硬件成熟度（Jetson Orin、ALOHA-style 双臂成本下降）确保工程可行。</p>
+<p><strong>不确定因素</strong>：端侧算力是否能支撑 7B 实时推理（目前 8-12 Hz 勉强够，3B 模型是突破口）；大型 sim-to-real 是否在操作任务上突破（若突破，数据需求可大幅降低）。</p>
+<p><strong>加分点</strong>：提及 π0.7 / GR00T-N1 / Figure Helix 作为 2025-2026 SOTA 典型案例（快慢双系统 + 大规模 teleop 数据）；提及最可能颠覆当前路线的风险（大规模合成数据 + 仿真精度突破）。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q38</b> · 你认为具身智能当前最难突破的工程瓶颈是什么？怎么理解？</summary>
+<p><strong>答</strong>：</p>
+<p><strong>答题骨架</strong>：选定 1-2 个具体瓶颈，给出量化支撑，说明为什么难，提可能的出路。</p>
+<p><strong>高质量答案示例</strong>：</p>
+<p><strong>瓶颈 1：数据效率（最根本）</strong>——当前 1000 demos 只能覆盖约 10-20 个任务变体，人形全身通用所需估计 &gt; 100K demos × 1000 任务；每 demo 耗时约 30 分钟人工（含 reset），全人形通用 = 数亿人时，不可能纯靠人工 scale。<strong>出路</strong>：自主采集 + 合成数据 + 仿真精度突破（三个并行）。</p>
+<p><strong>瓶颈 2：长程任务的鲁棒性</strong>——当前最好系统在"取水杯→拧盖→倒水→放回"等 5 步以上任务成功率 &lt; 50%（误差复利）；VLA 的 chunk-based open-loop 控制在中途遇到扰动后恢复能力差。<strong>出路</strong>：闭环规划 + 失败检测与恢复策略（类 DAgger 在线 query）。</p>
+<p><strong>加分点</strong>：不要只说"数据少"（太泛），要给量化数字和具体出路；面试官看的是技术判断力，不是抱怨清单。</p>
+<p><strong>易错</strong>：不要说"算力不够"——算力以 GPU 价格曲线下降，不是真正瓶颈；数据效率和任务鲁棒性才是当前没有明确解法的瓶颈。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q39</b> · 如何向非 AI 背景的机械 / 电气 / 产品同学解释 VLA 的局限性？跨部门沟通的要点是什么？</summary>
+<p><strong>答</strong>：</p>
+<p><strong>答题骨架</strong>：用对方语言翻译技术局限 → 建立共同期望 → 给出可行协作方案。</p>
+<p><strong>向机械同学的翻译</strong>：VLA 就是"大脑"，它告诉手臂"在哪夹、怎么夹"，但它不像 CNC 那样毫米级精确——它更像人在第一次做某件事，能完成大概动作，但精度 ± 3-5 mm；精密插孔（&lt; 0.5 mm）要靠你们设计容差或导向结构来辅助。</p>
+<p><strong>向电气同学的翻译</strong>：VLA 推理时间约 100 ms，不能直接控 1 kHz 电机——我们需要两层：VLA 出"路径点"，下面还要有你们的实时运动控制器（FPGA/DSP）按 1 kHz 执行插值。</p>
+<p><strong>向产品同学的翻译</strong>：VLA 对"常见任务"很强，但遇到没训练过的场景（如一个奇怪颜色的新杯子）会失败；上线前要界定使用边界，超出边界要有降级方案（不是弹弹窗，是机器人安全停止）。</p>
+<p><strong>跨部门协作要点</strong>：① 用演示不用 PPT（直接展示 demo 视频）；② 说明什么时候会失败（不要只展示成功的）；③ 给出明确的接口规范（VLA 输出什么格式，频率多少）。</p>
+<p><strong>易错</strong>：不要用"AI 会自己学"这类说法——产品会误解为无限能力；要说"在这些条件下 85% 成功，超出条件需要人工确认"。</p>
+</details>
+<hr />
+<h2 id="低频备选频次-1-2未入主表">低频备选（频次 1-2，未入主表）</h2>
+<blockquote><p>以下题目出现频次低（1-2 次），供参考，未纳入主表题号。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×2</span> <b>N1</b> · ONNX 模型导出常见坑：动态 shape / 自定义 op / 控制流？</summary>
+<p><strong>答</strong>：<strong>常见坑</strong>：① <strong>动态 shape</strong>：PyTorch 默认导出固定 shape，VLA 输入 token 数变化 → 加 <code>dynamic_axes</code> 参数或 <code>torch.onnx.export</code> 时指定动态轴；② <strong>自定义 CUDA op</strong>（如 Flash Attention）：ONNX 不认识自定义算子 → 需注册为 custom op 或替换为 ONNX 原生 attention；③ <strong>Python 控制流</strong>（if/for）：<code>torch.jit.script</code> 要求显式类型，动态分支需改写；④ <strong>int64 索引</strong>：部分 ONNX runtime 不支持 int64 → 转 int32。</p>
+<p><strong>排查工具</strong>：<code>onnxruntime.InferenceSession</code> 验证导出模型；<code>Netron</code> 可视化计算图。</p>
+<p><strong>易错</strong>：不要假设 PyTorch → ONNX → TensorRT 一气呵成；每个转换步骤都可能有算子不兼容，需要逐步验证。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×2</span> <b>N2</b> · 机器人 CI/CD：如何为策略代码建立自动化测试与发布流程？</summary>
+<p><strong>答</strong>：<strong>核心挑战</strong>：策略测试需要物理环境，单测无法覆盖真机行为。</p>
+<p><strong>分层测试</strong>：① <strong>单元测试</strong>：策略网络 forward/inference shape 检查（pytest）；② <strong>仿真回归测试</strong>：用 Isaac Lab / MuJoCo 跑固定场景，成功率回归（&gt; baseline × 0.9）；③ <strong>端到端仿真 rollout</strong>：提交 PR 时自动在仿真器中跑 10 次评估；④ <strong>人工真机验收</strong>：重大版本才跑真机（成本高）。</p>
+<p><strong>发布流程</strong>：模型版本控制（W&amp;B / MLflow）→ 量化（TensorRT）→ 灰度部署（先 1 台，再 N 台）→ 监控 rollback 指标（任务成功率 / 急停次数）。</p>
+<p><strong>易错</strong>：策略测试不能完全替代真机验证；仿真 CI 是必要条件，不是充分条件。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×2</span> <b>N3</b> · 开源贡献与 PR 流程：在具身智能开源项目中如何快速做出有价值的贡献？</summary>
+<p><strong>答</strong>：<strong>快速贡献路径</strong>：① <strong>文档/示例</strong>：门槛最低，阅读文档发现 gap → 补充 example notebook / README；② <strong>Bug fix</strong>：跑通 quickstart 发现复现问题 → 提 issue + 附 MRE（Minimum Reproducible Example）→ PR；③ <strong>算法改进</strong>：阅读 issue tracker 找 "help wanted" 标签 → 先 issue 讨论方案，被接受后开 PR（避免无效劳动）。</p>
+<p><strong>PR 要点</strong>：小 PR 比大 PR 容易 review（单一功能）；必须附测试（pytest/rollout 结果）；描述清楚"为什么改"不只是"改了什么"；遵循 code style（<code>black</code>/<code>flake8</code> 预先过一遍）。</p>
+<p><strong>具身 AI 开源项目</strong>：Lerobot（Hugging Face）/ LeRobot、OpenVLA、GR00T、BehaviorTree.CPP、Nav2。</p>
+<p><strong>易错</strong>：不要直接提"我能实现 X 大功能" PR，先问 maintainer 是否在路线图上；避免重复造轮子。</p>
+</details>
+<hr />
+
+<footer class="aris-footer">
+  Generated by <a href="https://github.com/wanshuiyin/Auto-claude-code-research-in-sleep/blob/main/skills/render-html/SKILL.md">ARIS <code>/render-html</code></a> ·
+  source path <code>docs/interviews/05_engineering.md</code> ·
+  SHA256 <code>0b1bdee400ca</code> ·
+  generated at 2026-05-21 01:06 UTC.
+  This is a generated view — edit the source Markdown, then re-render.
+</footer>
+</main>
+
+</div>
+</body>
+</html>
