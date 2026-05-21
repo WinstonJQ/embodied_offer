@@ -224,12 +224,11 @@ footer.foot a:hover { color: var(--primary); border-bottom-color: var(--primary)
 <header class="hero">
   <div class="eyebrow">Embodied AI Interview Prep · Open Source · Free</div>
   <h1>具身智能高频面试题库</h1>
-  <p class="subtitle">秋招冲刺向 · 题目来自公开面经 · 频次 ≥3 才入卷</p>
+  <p class="subtitle">秋招冲刺向 · 题目来自公开面经</p>
   <p class="tagline">
-    <strong>5 卷</strong> · 覆盖 VLA / 模仿学习 / RL / 世界模型 / 工程落地 ·
-    <strong>来源</strong>：牛客 / 知乎 / 小红书 / 一亩三分地 / GitHub ·
-    <strong>不分公司</strong>，频次驱动 ·
-    <strong>渲染</strong>：跨模型审查后发布
+    覆盖具身智能算法岗的 <strong>5 个核心方向</strong>：通识基础、RL 算法、VLA / 模仿学习、世界模型 / Sim2Real、工程落地。
+    题目来自牛客、知乎、小红书、一亩三分地等公开面经，<strong>同义题合并后频次 ≥3</strong> 才入卷。
+    每题答案经独立审查后发布。
   </p>
 </header>
 
@@ -242,10 +241,9 @@ footer.foot a:hover { color: var(--primary); border-bottom-color: var(--primary)
       <div class="vol-line">
         <span class="vol-id">VOL · 01</span>
         <span class="vol-title">通识基础</span>
-        <span class="vol-status s-done">DONE · 44 题</span>
+        <span class="vol-status s-done">44 题</span>
       </div>
-      <p class="vol-scope">DL 基础（梯度/BN/LN/优化器/Transformer/Flash Attention）· RL 基础（MDP / Bellman / Q-learning / PPO / SAC / Offline RL）· 机器人学（坐标系 / D-H / 雅可比 / 控制频率 / 阻抗控制）</p>
-      <div class="vol-meta">slug: 01_basics · L1 22 / L2 20 / L3 2 · Codex GPT-5.5 xhigh 4 轮跨模型审查 WARN</div>
+      <p class="vol-scope">深度学习的梯度、归一化、Transformer 等基本功；强化学习的 MDP、贝尔曼方程、Q-learning 等入门概念；以及机器人学绕不开的坐标变换、雅可比矩阵和控制频率。一面常从这里开题，建议先扫一遍补齐知识盲区。</p>
       </a>
     </div>
 
@@ -254,10 +252,9 @@ footer.foot a:hover { color: var(--primary); border-bottom-color: var(--primary)
       <div class="vol-line">
         <span class="vol-id">VOL · 02</span>
         <span class="vol-title">RL 算法</span>
-        <span class="vol-status s-done">DONE · 40 题</span>
+        <span class="vol-status s-done">40 题</span>
       </div>
-      <p class="vol-scope">策略梯度 / Actor-Critic / GAE · PPO / TRPO · SAC / TD3 / DDPG · DQN · Offline RL（CQL / IQL / BCQ / DT）· RLHF / DPO / GRPO · Reward Shaping / Curriculum / DR / HER</p>
-      <div class="vol-meta">slug: 02_rl_algo · L1 14 / L2 22 / L3 7 · Codex GPT-5.5 xhigh 4 轮跨模型审查 WARN</div>
+      <p class="vol-scope">把强化学习的主要算法挨个拆开来问——PPO、SAC、TD3、DDPG 的设计动机与取舍，CQL / IQL 等离线 RL 怎么解决分布外动作高估，RLHF 与 DPO / GRPO 在大模型对齐里的角色。技术深度比卷一高一档，二面三面常考的"为什么这么设计"集中在这里。</p>
       </a>
     </div>
 
@@ -266,10 +263,9 @@ footer.foot a:hover { color: var(--primary); border-bottom-color: var(--primary)
       <div class="vol-line">
         <span class="vol-id">VOL · 03</span>
         <span class="vol-title">VLA / 模仿学习</span>
-        <span class="vol-status s-done">DONE · 58 题</span>
+        <span class="vol-status s-done">58 题</span>
       </div>
-      <p class="vol-scope">OpenVLA · RT-2 · π0/π0.5/π0.6/π0.7 · Octo · RDT-1B · GR00T-N1 · Diffusion Policy · Flow Matching · BC / DAgger / GAIL · Action Chunking · ACT · FAST · OpenVLA-OFT · RECAP</p>
-      <div class="vol-meta">slug: 03_vla_il · L1 18 / L2 31 / L3 9 · Codex GPT-5.5 xhigh 6 轮跨模型审查 PASS</div>
+      <p class="vol-scope">具身智能 2024-2026 最热的方向——OpenVLA、RT-2、π 系列、GR00T-N1 等视觉-语言-动作模型的架构与差别；Diffusion Policy、ACT、Flow Matching 等动作生成方式的对比；模仿学习从行为克隆到 DAgger 的演进。投 VLA 算法岗几乎必问。</p>
       </a>
     </div>
 
@@ -278,10 +274,9 @@ footer.foot a:hover { color: var(--primary); border-bottom-color: var(--primary)
       <div class="vol-line">
         <span class="vol-id">VOL · 04</span>
         <span class="vol-title">世界模型 / Sim2Real</span>
-        <span class="vol-status s-done">DONE · 31 题</span>
+        <span class="vol-status s-done">31 题</span>
       </div>
-      <p class="vol-scope">PlaNet / Dreamer V1-V3 / RSSM / Latent Imagination · MuZero · TD-MPC2 · DayDreamer · Genie / V-JEPA 2 · Domain Randomization / ADR · Teacher-Student / RMA · Curriculum · SysID · Isaac Lab / MuJoCo / Genesis / ManiSkill · URDF/MJCF/USD · 人形/四足 Sim2Real</p>
-      <div class="vol-meta">slug: 04_world_sim · L1 9 / L2 18 / L3 4 · Codex GPT-5.5 xhigh 4 轮跨模型审查 WARN</div>
+      <p class="vol-scope">让机器人在脑子里"做梦"训练的世界模型流派——Dreamer 系列、TD-MPC2、V-JEPA 2 的设计思路；以及仿真到真机迁移的工程命题——域随机化、教师-学生蒸馏、Isaac Lab / MuJoCo / Genesis 的取舍。人形和四足公司这两年面试的重点。</p>
       </a>
     </div>
 
@@ -290,10 +285,9 @@ footer.foot a:hover { color: var(--primary); border-bottom-color: var(--primary)
       <div class="vol-line">
         <span class="vol-id">VOL · 05</span>
         <span class="vol-title">工程落地</span>
-        <span class="vol-status s-done">DONE · 39 题</span>
+        <span class="vol-status s-done">39 题</span>
       </div>
-      <p class="vol-scope">感知-规划-控制架构 · 推理优化（INT8/TensorRT/Jetson）· 分布式训练（DDP/FSDP/ZeRO）· 数据飞轮（teleop/DROID/Ego4D）· 失败排查（sim2real/reward hacking/灾难性遗忘）· 开放题与系统设计</p>
-      <div class="vol-meta">slug: 05_engineering · L1 3 / L2 31 / L3 5 · Codex GPT-5.5 xhigh 5 轮跨模型审查 WARN</div>
+      <p class="vol-scope">从算法到产品要踩的工程坑——VLA 怎么塞进 Jetson Orin 跑实时推理，FSDP / ZeRO 怎么选，teleop 数据采集流程，DROID 和 Ego4D 等数据集的位置；最后一节是开放题与系统设计，例如"给你一年时间和一支队伍，怎么做一台家务机器人"。</p>
       </a>
     </div>
 
@@ -318,7 +312,7 @@ footer.foot a:hover { color: var(--primary); border-bottom-color: var(--primary)
       <li>手机端原生支持折叠（HTML5 <code>&lt;details&gt;</code>，零 JS），公交地铁也能刷。</li>
       <li>建议按 <strong>L1 → L2 → L3</strong> 的顺序刷；同等级内按频次从高到低。</li>
       <li>答案 ≤200 字，便于背诵；超长的拆"答 / 易错 / 延伸"三段。</li>
-      <li>每题答案都经过 <strong>跨模型审查</strong>（Claude 写 / GPT-5.5 xhigh 审查）。</li>
+      <li>每题答案都经过另一组独立 AI 二次审查后发布，减少单一模型的事实错误。</li>
     </ol>
   </div>
 </section>
