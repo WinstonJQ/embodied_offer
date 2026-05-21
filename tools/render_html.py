@@ -561,11 +561,6 @@ def _render_blocks(
         t = b["type"]
         if t == "heading":
             level = b["level"]
-            if level == 1:
-                # H1 is the document title; the academic-template hero already
-                # shows it (TITLE slot). Skip to avoid the duplicate-heading
-                # the user reported. Markdown convention: one H1 per document.
-                continue
             text = b["text"]
             inline = render_inline(text)
             base_id = _slugify(text)

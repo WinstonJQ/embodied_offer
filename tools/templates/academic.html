@@ -375,18 +375,9 @@ footer.aris-footer a { color: var(--ink-muted); border-bottom: 1px dotted var(--
 </nav>
 
 <main>
-<header class="hero">
-  {{EYEBROW_BLOCK}}
-  <h1>{{TITLE}}</h1>
-  {{SUBTITLE_BLOCK}}
-  {{BYLINE_BLOCK}}
-  <div class="meta">
-    <span><strong>Source:</strong> <code>{{SOURCE_PATH}}</code></span>
-    <span><strong>SHA256:</strong> <code>{{SOURCE_SHA256_SHORT}}</code></span>
-    <span><strong>Rendered:</strong> {{GENERATED_AT}}</span>
-    {{EXTRA_META}}
-  </div>
-</header>
+{{EYEBROW_BLOCK}}
+{{SUBTITLE_BLOCK}}
+{{BYLINE_BLOCK}}
 
 {{BODY_HTML}}
 
