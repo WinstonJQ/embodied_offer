@@ -171,14 +171,14 @@ Return JSON:
 ## 9. GitHub 远程仓库
 
 - GitHub 用户：`WinstonJQ`
-- 仓库：`embodied_offer`
-- 远程：`https://github.com/WinstonJQ/embodied_offer.git`
+- 仓库：`embodied-interview-qa`
+- 远程：`https://github.com/WinstonJQ/embodied-interview-qa.git`
 - 默认分支：`master`
 - 可见性：public
 - Pages 配置：Source = `master / docs`
 - 发布 URL：
-  - 主册：`https://winstonjq.github.io/embodied_offer/`
-  - 卷 X：`https://winstonjq.github.io/embodied_offer/interviews/XX_<slug>.html`
+  - 主册：`https://winstonjq.github.io/embodied-interview-qa/`
+  - 卷 X：`https://winstonjq.github.io/embodied-interview-qa/interviews/XX_<slug>.html`
 
 **每卷完成后的 push**：
 

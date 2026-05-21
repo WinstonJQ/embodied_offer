@@ -3,16 +3,16 @@
 > 中文具身智能（Embodied AI）秋招高频面试题库 · 题目来自公开面经，频次合并后入卷，每题答案经独立 AI 二次审查  
 > *A Chinese-language interview question bank for Embodied-AI engineering roles (VLA / IL / RL / World Models / Engineering).*
 
-[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-2ea44f?logo=github)](https://winstonjq.github.io/embodied_offer/)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-2ea44f?logo=github)](https://winstonjq.github.io/embodied-interview-qa/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/WinstonJQ/embodied_offer/pulls)
-[![Stars](https://img.shields.io/github/stars/WinstonJQ/embodied_offer?style=social)](https://github.com/WinstonJQ/embodied_offer/stargazers)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/WinstonJQ/embodied-interview-qa/pulls)
+[![Stars](https://img.shields.io/github/stars/WinstonJQ/embodied-interview-qa?style=social)](https://github.com/WinstonJQ/embodied-interview-qa/stargazers)
 
 ---
 
 ## 📖 在线阅读
 
-**👉 <https://winstonjq.github.io/embodied_offer/>**
+**👉 <https://winstonjq.github.io/embodied-interview-qa/>**
 
 打开网页直接看；默认全部折叠，点击题目展开答案；手机端原生支持（地铁公交都能刷）。
 
@@ -30,11 +30,11 @@
 
 | 卷 | 主题 | 题数 | 一句话 |
 |---|---|---:|---|
-| [一](https://winstonjq.github.io/embodied_offer/interviews/01_basics.html) | **通识基础** | 44 | DL 基本盘 + RL 入门 + 机器人学，一面常从这里开题 |
-| [二](https://winstonjq.github.io/embodied_offer/interviews/02_rl_algo.html) | **RL 算法** | 40 | PPO / SAC / TD3 / 离线 RL / RLHF 的设计动机与取舍 |
-| [三](https://winstonjq.github.io/embodied_offer/interviews/03_vla_il.html) | **VLA / 模仿学习** | 58 | OpenVLA / RT-2 / π 系列 / Diffusion Policy，投 VLA 岗几乎必问 |
-| [四](https://winstonjq.github.io/embodied_offer/interviews/04_world_sim.html) | **世界模型 / Sim2Real** | 31 | Dreamer / V-JEPA / 域随机化 / Isaac Lab，人形和四足公司重点 |
-| [五](https://winstonjq.github.io/embodied_offer/interviews/05_engineering.html) | **工程落地** | 39 | VLA 怎么塞进 Jetson、FSDP/ZeRO、teleop 数据飞轮、开放题与系统设计 |
+| [一](https://winstonjq.github.io/embodied-interview-qa/interviews/01_basics.html) | **通识基础** | 44 | DL 基本盘 + RL 入门 + 机器人学，一面常从这里开题 |
+| [二](https://winstonjq.github.io/embodied-interview-qa/interviews/02_rl_algo.html) | **RL 算法** | 40 | PPO / SAC / TD3 / 离线 RL / RLHF 的设计动机与取舍 |
+| [三](https://winstonjq.github.io/embodied-interview-qa/interviews/03_vla_il.html) | **VLA / 模仿学习** | 58 | OpenVLA / RT-2 / π 系列 / Diffusion Policy，投 VLA 岗几乎必问 |
+| [四](https://winstonjq.github.io/embodied-interview-qa/interviews/04_world_sim.html) | **世界模型 / Sim2Real** | 31 | Dreamer / V-JEPA / 域随机化 / Isaac Lab，人形和四足公司重点 |
+| [五](https://winstonjq.github.io/embodied-interview-qa/interviews/05_engineering.html) | **工程落地** | 39 | VLA 怎么塞进 Jetson、FSDP/ZeRO、teleop 数据飞轮、开放题与系统设计 |
 
 **主表共 212 题**，另含 ~13 题低频备选（每卷末单列）。
 
@@ -53,7 +53,7 @@
 
 ## 使用建议
 
-1. **首次浏览**：直接点开[在线题库](https://winstonjq.github.io/embodied_offer/)，挑你最关心的方向（VLA / RL / 工程落地……）
+1. **首次浏览**：直接点开[在线题库](https://winstonjq.github.io/embodied-interview-qa/)，挑你最关心的方向（VLA / RL / 工程落地……）
 2. **复习顺序**：按 L1 → L2 → L3，同等级内按频次（🔥×N）从高到低
 3. **手机端**：地铁公交也能刷，HTML5 折叠原生支持，无需任何 app
 4. **快速过场**：面试前 30 分钟，只看每题的"易错"一句，刷过的题快速复盘
@@ -64,13 +64,13 @@
 
 **点个 Star 是对维护者最大的鼓励** —— 也能让算法群里其他在找具身岗的同学更容易发现这个题库。
 
-如果你在面试中真的被考到了里面的题，欢迎来 [Issue](https://github.com/WinstonJQ/embodied_offer/issues) 留言或私信——这是后续频次更新的一手依据。
+如果你在面试中真的被考到了里面的题，欢迎来 [Issue](https://github.com/WinstonJQ/embodied-interview-qa/issues) 留言或私信——这是后续频次更新的一手依据。
 
 ---
 
 ## 贡献
 
-发现答案错误、想补新题、想质疑某条结论——都欢迎 [开 Issue](https://github.com/WinstonJQ/embodied_offer/issues) 或 [提 PR](https://github.com/WinstonJQ/embodied_offer/pulls)。
+发现答案错误、想补新题、想质疑某条结论——都欢迎 [开 Issue](https://github.com/WinstonJQ/embodied-interview-qa/issues) 或 [提 PR](https://github.com/WinstonJQ/embodied-interview-qa/pulls)。
 
 **贡献新题的简单格式**（在对应卷的 Markdown 末尾追加即可）：
 
@@ -91,17 +91,27 @@
 
 ---
 
-## 项目幕后
+## 项目幕后 · Vibe Coding 实战记录
 
-这是一个"AI 协作写、另一个 AI 审查"的实验项目：
+本项目本身就是一次完整的 **vibe coding** 实践案例——5 卷题库的题源调研、答案起草、跨模型审查、HTML 渲染、Git 发布**全部在维护者睡眠期间由 AI agent 自动完成**。维护者醒来只做最终验收和文案微调。
 
-- **执行者**：Claude（题目调研、答案起草、HTML 渲染、Git 发布）
-- **审查者**：GPT-5.5 xhigh（10 项检查、多轮 fresh-thread 审查、隐私脱敏 banlist）
-- **核心不变量**：每题必须经过另一组独立 AI 审查后才发布，避免单一模型的事实错误
+**调度模式**：
 
-完整工作流详见 [`CLAUDE.md`](CLAUDE.md)。
+- 主控 Claude Code（Opus 4.7 · 1M context）串行派遣 4 个 subagent，每个 agent 独立完成 1 卷的完整 7 阶段工作流（调研 → 起草 → 跨模型审查 → 渲染 → 发布）
+- 每个 agent 在 fresh context 里工作，互不污染——避免了"长上下文导致质量衰退"和"需要手动 /clear"两个痛点
+- 跨模型审查由独立的 Codex（GPT-5.5 xhigh）通过 MCP 协议完成，每轮 fresh-thread，多轮收敛
+- 执行者（Claude）≠ 审查者（GPT-5.5），是题库可信度的核心不变量
 
-如果你对"AI 写 + AI 审"这种内容生成 pipeline 感兴趣，欢迎 fork 改造成其他方向的题库（金融 / 后端 / 系统设计 / 算法 …），MIT 自由。
+**展示的工程实践**：
+
+- **Multi-agent 编排**：subagent prompt 自包含、status code 协议（DONE / WARN / FAIL / BLOCKED）、用户审批回退路径
+- **跨模型协作 via MCP**：Codex MCP server 集成、`sandbox=read-only` + `approval-policy=never` 双权限层、隐私脱敏 banlist 硬编码在审查 prompt
+- **内容质量 SLO**：频次合并阈值（≥3 入主表）、字数 PASS/WARN/FAIL 阈值、强制收尾的容错策略（>7 轮无收敛即推当前最佳版本，避免单卷阻塞全局）
+- **经验沉淀回流**：每完成一卷的实战教训写回 [`CLAUDE.md`](CLAUDE.md) §11，下卷自动继承——形成可复用、可演化的 prompt 流程
+
+**致谢**：本项目的"睡眠期自动化研究"流水线灵感和 HTML 渲染脚本来自 [**ARIS · Auto-claude-code-research-in-sleep**](https://github.com/wanshuiyin/Auto-claude-code-research-in-sleep) —— 一个把 Claude Code 用作"研究协作 AI"的开源项目，感谢其提供的核心思路。
+
+如果你对"AI 写 + AI 审 + 自动发布"这种 pipeline 感兴趣，欢迎 fork 改造成其他方向题库（金融 / 后端 / 系统设计 / 算法 …），MIT 自由。
 
 ---
 
