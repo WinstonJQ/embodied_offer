@@ -16,6 +16,38 @@
 
 打开网页直接看；默认全部折叠，点击题目展开答案；手机端原生支持（地铁公交都能刷）。
 
+### 🖥️📱 桌面 / 手机都能刷
+
+<table>
+  <tr>
+    <td width="35%" align="center" valign="top">
+      <img src="images/mobile_page_overview_01.jpeg" alt="手机端主册" width="260"><br>
+      <sub><em>手机端主册 · 浏览器直接打开 · 无需 app</em></sub>
+    </td>
+    <td width="65%" align="center" valign="top">
+      <img src="images/computer_page_overview_03.png" alt="电脑端卷子页" width="520"><br>
+      <sub><em>电脑端卷子页 · 左侧 TOC + 「← 返回主册」按钮 · 锚点深链可分享</em></sub>
+    </td>
+  </tr>
+</table>
+
+### 📂 默认折叠 = 适合自测与复盘
+
+看到题目先在脑子里答一遍，答不上来再点开对答案——折叠交互天然就是一种**自测玩法**。
+
+<table>
+  <tr>
+    <td width="50%" align="center" valign="top">
+      <img src="images/mobile_page_overview_02.jpeg" alt="题目折叠态" width="280"><br>
+      <sub><em>默认折叠 · 只看题目和难度色标 · 自己先想答案</em></sub>
+    </td>
+    <td width="50%" align="center" valign="top">
+      <img src="images/mobile_page_overview_03.jpeg" alt="题目展开态" width="280"><br>
+      <sub><em>点开看答案 · 含对比表格 · 关键公式与「易错」一句</em></sub>
+    </td>
+  </tr>
+</table>
+
 ---
 
 ## 这是什么
