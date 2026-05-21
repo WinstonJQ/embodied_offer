@@ -1,0 +1,164 @@
+{
+  "volume": "06_legged_control",
+  "title": "卷六 · 腿足机器人运动控制 / 全身控制 / 遥操作",
+  "question_count": 48,
+  "main_table": 45,
+  "supplemental": 3,
+  "difficulty_distribution": {
+    "L1": 5,
+    "L2": 38,
+    "L3": 5
+  },
+  "review_rounds": 6,
+  "final_verdict": "PASS",
+  "reviewer": {
+    "model": "gpt-5.5",
+    "reasoning_effort": "xhigh",
+    "sandbox": "read-only"
+  },
+  "rounds": [
+    {
+      "round": 1,
+      "verdict": "FAIL",
+      "fixes_applied": 0,
+      "blocking_issues": [
+        "Q27 ASAP 机构写 Tsinghua+CMU，arXiv 列 CMU + NVIDIA",
+        "Q36 ExBody 写 UCSD+Berkeley，论文页列 UC San Diego 独家",
+        "Q13 五次多项式表述错误：六边界条件 ≠ 六阶解析",
+        "Q15-Q16 TSID/HQP 区分不准：TSID 不能直接等同 weighted QP"
+      ],
+      "warnings": [
+        "Q32 OmniH2O 升级表述",
+        "Q41 Hwangbo 鹅卵石/雪地表述模糊",
+        "Q45 软/硬接触表格 SAPIEN 误归类",
+        "Phase 1 调研文件不在仓库 vs 外部一致性无法核对"
+      ]
+    },
+    {
+      "round": 2,
+      "verdict": "WARN",
+      "fixes_applied": 7,
+      "fixes_summary": [
+        "Q27 ASAP 改为 CMU + NVIDIA",
+        "Q36 ExBody 改为 UC San Diego 独家",
+        "Q13 五次多项式：六个边界条件对应五次多项式 6 个系数（不是六阶）",
+        "Q15-Q16 TSID/HQP 重写：明确 TSID 是框架既可加权也可分层，HQP 特指严格层级",
+        "Q20 PD vs 阻抗 / 导纳因果方向修正",
+        "Q32 OmniH2O 升级点：通用接口 + dexterous + 自主 + OmniH2O-6 数据集",
+        "Q41 Hwangbo 效果改为 ANYmal 敏捷动态技能 + 起身（去掉鹅卵石/雪地）",
+        "Q45 接触模型：删除 SAPIEN，硬接触劣势改为冲量模型速度非连续"
+      ],
+      "warnings": [
+        "Q15/Q16 TSID 与 stack-of-tasks/tsid 表述仍可改进",
+        "Q03 摩擦锥 15% 表述不稳",
+        "Q01 欠驱动表述过窄",
+        "Q36 ExBody MIT coauthor 可能仍有争议"
+      ]
+    },
+    {
+      "round": 3,
+      "verdict": "WARN",
+      "fixes_applied": 4,
+      "fixes_summary": [
+        "Q15/Q16 TSID 框架：stack-of-tasks/tsid 内部用 HQP solver，同层可权重",
+        "Q03 摩擦锥：4 边内接金字塔保守且安全（约 36% 切平面缩小），外接矩形不保守",
+        "Q01 欠驱动：取决于接触模型 / 约束秩；飞行相 / 点足 / 动态步态欠驱动，平足刚性支撑近似全驱动",
+        "Q01 同步压缩字数"
+      ],
+      "warnings": [
+        "Q03 '4 边总是安全' 仍欠准确",
+        "Q16 表格 stack-of-tasks/tsid 列归类与首段不一致"
+      ]
+    },
+    {
+      "round": 4,
+      "verdict": "WARN",
+      "fixes_applied": 2,
+      "fixes_summary": [
+        "Q03 明确 4 边内接金字塔保守且安全；外接矩形角点超圆锥不保守",
+        "Q16 表格归类：strict HQP 列改为 tsid SolverHQP+OpenSoT 严格，加权列改为 OpenSoT 加权+Pink IK QP"
+      ],
+      "warnings": [
+        "Q16 Pink 不宜作 strict HQP 代表（已修正放入加权列）",
+        "N2 SEA 代表 ATLAS/ASIMO 不准（ATLAS 液压，ASIMO 位置伺服）"
+      ]
+    },
+    {
+      "round": 5,
+      "verdict": "FAIL",
+      "fixes_applied": 2,
+      "fixes_summary": [
+        "Q16 表格代表实现微调：OpenSoT 加权 / Pink IK QP vs tsid SolverHQP / OpenSoT 严格",
+        "N2 SEA 代表改为 NASA Valkyrie / IIT COMAN，明确 ATLAS 液压、ASIMO 位置伺服皆非 SEA"
+      ],
+      "blocking_issues": [
+        "N2 QDD 代表列仍包含 ANYmal-D（实际是 SEA 平台）"
+      ]
+    },
+    {
+      "round": 6,
+      "verdict": "PASS",
+      "fixes_applied": 1,
+      "fixes_summary": [
+        "N2 ANYmal-D 从 QDD 列移除，SEA 列改为 NASA Valkyrie / IIT COMAN / ANYmal 腿部；QDD 列改为 MIT Mini-Cheetah / 宇树 Go·G1 / Solo"
+      ],
+      "blocking_issues": [],
+      "warnings": []
+    }
+  ],
+  "key_facts_verified": [
+    "MIT Cheetah 3 Convex MPC: Di Carlo / Wensing / Katz / Bledt / Kim 2018, 0.5s horizon / 16 steps / 30Hz, LCM底层 1kHz — https://dspace.mit.edu/bitstream/handle/1721.1/138000/convex_mpc_2fix.pdf",
+    "RMA (Rapid Motor Adaptation): Kumar et al, RSS 2021, UC Berkeley + CMU + Facebook AI — https://arxiv.org/abs/2107.04034",
+    "Walk These Ways: Margolis & Agrawal, CoRL 2022 (arXiv 2212.03238), MIT — https://arxiv.org/abs/2212.03238",
+    "ASAP: arXiv 2502.01143, 2025-02, CMU + NVIDIA (非 Tsinghua) — https://arxiv.org/abs/2502.01143",
+    "HumanPlus: Stanford, arXiv 2406.10454, shadowing transformer + HIT — https://humanoid-ai.github.io/",
+    "ExBody (Expressive Whole-Body Control): UC San Diego, arXiv 2402.16796 — https://ar5iv.labs.arxiv.org/html/2402.16796",
+    "H2O / OmniH2O: CMU LeCAR Lab, arXiv 2403.04436 / 2406.08858 — https://arxiv.org/abs/2406.08858",
+    "OPEN-TeleVision: UCSD + MIT, arXiv 2407.01512 — https://arxiv.org/abs/2407.01512",
+    "Mobile ALOHA: arXiv 2401.02117, Stanford + UC Berkeley — https://mobile-aloha.github.io/",
+    "HoST (Humanoid Standing-up Control): SJTU + Shanghai AI Lab + HKU, arXiv 2502.08378 — https://arxiv.org/abs/2502.08378",
+    "PIM (Perceptive Internal Model): arXiv 2411.14386 — https://arxiv.org/abs/2411.14386",
+    "Hwangbo et al, Actuator Net: Science Robotics 2019, ANYmal — https://arxiv.org/abs/1901.08652",
+    "Pinocchio: Featherstone CRBA/ABA/RNEA + analytical derivatives, ~1µs 机械臂 / ~3µs 腿足 — https://laas.hal.science/hal-01866228/document",
+    "IsaacGym 4096 envs PPO 训练腿足: legged_gym / Humanoid-Gym 默认配置",
+    "TSID 框架: Saab 2013 + stack-of-tasks/tsid 库，内部 HQP solver 严格分层，同层可加权软化 — https://gepettoweb.laas.fr/doc/stack-of-tasks/tsid/",
+    "ANYmal 腿部关节 = series-elastic actuation (SEA) — ETH RSL: https://rsl.ethz.ch/robots-media/actuators.html",
+    "MIT Mini-Cheetah QDD design: low-inertia 高扭矩电机 + 小减速比 — https://news.mit.edu/2019/mit-mini-cheetah-first-four-legged-robot-to-backflip-0304",
+    "ATLAS: 液压驱动平台（电动 Atlas 是 2024 后续，非 SEA）— Boston Dynamics",
+    "ASIMO: 位置伺服 + 谐波减速 — Honda",
+    "ZMP / CoP / Capture Point / DCM 关系：ZMP = CoP 当 ZMP 在支撑多边形内；DCM 是 CP 的连续形式"
+  ],
+  "sources_consulted": [
+    "arxiv.org/abs/2502.01143 (ASAP)",
+    "arxiv.org/abs/2402.16796 (ExBody)",
+    "arxiv.org/abs/2406.10454 (HumanPlus)",
+    "arxiv.org/abs/2406.08858 (OmniH2O)",
+    "arxiv.org/abs/2403.04436 (H2O)",
+    "arxiv.org/abs/2407.01512 (OPEN-TeleVision)",
+    "arxiv.org/abs/2401.02117 (Mobile ALOHA)",
+    "arxiv.org/abs/2502.08378 (HoST)",
+    "arxiv.org/abs/2411.14386 (PIM)",
+    "arxiv.org/abs/2107.04034 (RMA)",
+    "arxiv.org/abs/2212.03238 (Walk These Ways)",
+    "arxiv.org/abs/2502.08844 (MuJoCo Playground)",
+    "arxiv.org/abs/2404.05695 (Humanoid-Gym)",
+    "dspace.mit.edu MIT Cheetah 3 Convex MPC",
+    "rsl.ethz.ch/robots-media/actuators.html (ANYmal actuator info)",
+    "stack-of-tasks/tsid 文档 (gepettoweb)",
+    "stephane-caron.github.io/pink/ (Pink IK QP)",
+    "牛客网 星海图 机器人系统工程师实习面经",
+    "牛客网 小米具身智能算法岗实习一面",
+    "牛客网 控制算法工程师面经",
+    "CSDN MPC+WBC 人形机器人控制框架（OpenLoong / yiwei1225 等多篇）",
+    "知乎 四足机器人 MPC+WBC、阻抗控制与导纳控制、Pinocchio / Drake 库对比",
+    "腾讯云 ZMP 零力矩点理论",
+    "GitHub: WeThinkIn/AIGC-Interview-Book 具身智能章节",
+    "GitHub: YanjieZe/awesome-humanoid-robot-learning",
+    "GitHub: StarCycle/Awesome-Embodied-AI-Job",
+    "宇树科技 2026 春招 JD（猎聘）",
+    "智元机器人、银河通用、星海图 公司主页 / 招聘 JD"
+  ],
+  "unresolved_warnings": [],
+  "max_rounds_reached": false,
+  "notes": "用户已豁免 Phase 0 题目清单审过；研究笔记保存在 /tmp/legged_control_questions_research.md（仓库外）。最终 PASS 在 Round 6 完成。Q16 TSID/HQP 经过 3 轮迭代才完全对齐（首段表述 vs 表格代表实现需一致）；N2 SEA/QDD 代表实现经过 2 轮迭代修正（ATLAS/ASIMO/ANYmal-D 都不该归在原列）。 章节偏离原计划 7 节大纲基本保持；微调：§4 RL-based 题量 8（比原计划略多，因为顶级 paper 多）、§6 Loco-manipulation 题量 5（少于原计划，因面试转化少）。 信心较低的章节：§5 teleop（高引用论文多但面经稀，Q34 延迟数据来自 OPEN-TeleVision 论文 + 经验估算，无独立面经多次出现）；§7 sim-to-real Q44 / Q45 （前沿题，2026 工业实践仍在演进）。 已知 caveat：低频备选 N1-N3 频次均为 2，依赖来源权威破例入选；面试中可能不会问到，但作为参考保留。"
+}

@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>卷六 · 腿足机器人运动控制 / 全身控制 / 遥操作 · 高频面试题</title>
+
+<meta name="generator" content="ARIS render-html (academic, v1)">
+<meta name="aris:source-path" content="docs/interviews/06_legged_control.md">
+<meta name="aris:source-sha256" content="724bf7dd6cdcc28f3b26d900ae6eda7187b9f0584c8523d9ae1b663340e61881">
+<meta name="aris:generated-at" content="2026-05-21 16:16 UTC">
+
+<!-- MathJax 3 -->
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']], processEscapes: true },
+  options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+
+<!-- highlight.js -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/atom-one-light.min.css">
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded', () => hljs.highlightAll());</script>
+
+
+<style>
+:root {
+  --bg: #fdfcf7;
+  --bg-soft: #f4f1ea;
+  --bg-code: #f8f5ec;
+  --ink: #1a1a1a;
+  --ink-soft: #4a4a4a;
+  --ink-muted: #6b6b6b;
+  --primary: #1a4a8c;
+  --primary-soft: #2d6cb8;
+  --accent: #b8390e;
+  --warn: #b45309;
+  --warn-bg: #fef3c7;
+  --info-bg: #dbeafe;
+  --good-bg: #d1fae5;
+  --good: #065f46;
+  --bad-bg: #fee2e2;
+  --bad: #991b1b;
+  --border: #d6d0c0;
+  --border-soft: #e8e3d5;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: "Source Serif Pro", "Source Serif 4", "Crimson Pro", "Georgia", "Songti SC", "STSong", serif;
+  line-height: 1.65;
+  color: var(--ink);
+  background: var(--bg);
+  margin: 0;
+  padding: 0;
+  font-size: 16px;
+}
+
+.layout {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 48px;
+  padding: 40px 32px;
+}
+
+nav.toc {
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  font-size: 13px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  border-right: 1px solid var(--border-soft);
+  padding-right: 16px;
+}
+nav.toc h3 {
+  margin: 0 0 12px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+  font-weight: 600;
+}
+nav.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+nav.toc ol li { margin: 5px 0; counter-increment: toc; }
+nav.toc ol li::before { content: counter(toc) ". "; color: var(--ink-muted); margin-right: 4px; }
+nav.toc a {
+  color: var(--ink-soft);
+  text-decoration: none;
+  border-bottom: 1px dotted transparent;
+}
+nav.toc a:hover { color: var(--primary); border-bottom-color: var(--primary); }
+nav.toc ul { list-style: none; padding-left: 14px; margin: 3px 0; font-size: 12px; }
+nav.toc ul li::before { content: "→ "; color: var(--border); }
+nav.toc a.back-home {
+  display: inline-block;
+  margin-bottom: 18px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+nav.toc a.back-home:hover {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+}
+
+main { min-width: 0; }
+
+header.hero {
+  border-bottom: 3px double var(--primary);
+  padding-bottom: 24px;
+  margin-bottom: 32px;
+}
+header.hero .eyebrow {
+  color: var(--accent);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+header.hero h1 {
+  font-size: 32px;
+  line-height: 1.2;
+  margin: 0 0 12px;
+  color: var(--ink);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+header.hero .subtitle {
+  font-size: 16px;
+  color: var(--ink-soft);
+  margin: 0 0 8px;
+  font-style: italic;
+}
+header.hero .byline {
+  font-size: 14px;
+  color: var(--ink-soft);
+  margin: 0 0 20px;
+}
+header.hero .byline strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+header.hero .meta {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--ink-muted);
+  border-top: 1px solid var(--border-soft);
+  padding-top: 14px;
+}
+header.hero .meta span strong { color: var(--ink-soft); }
+header.hero .meta code {
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", "Consolas", monospace;
+  font-size: 11px;
+  background: var(--bg-soft);
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid var(--border-soft);
+}
+
+h2 {
+  font-size: 24px;
+  margin: 44px 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  color: var(--ink);
+  font-weight: 700;
+}
+h2 .num { color: var(--primary); font-weight: 600; margin-right: 8px; }
+h3 { font-size: 19px; margin: 28px 0 10px; color: var(--primary); font-weight: 600; }
+h4 { font-size: 16px; margin: 20px 0 8px; color: var(--ink); font-weight: 600; }
+
+p { margin: 10px 0; }
+ul, ol { padding-left: 22px; margin: 10px 0; }
+ul li, ol li { margin: 4px 0; }
+ul li::marker { color: var(--primary); }
+
+strong { color: var(--accent); font-weight: 600; }
+em { color: var(--ink-soft); }
+
+a { color: var(--primary); }
+a:hover { color: var(--accent); }
+
+code:not(.hljs) {
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", "Consolas", monospace;
+  font-size: 0.86em;
+  background: var(--bg-code);
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid var(--border-soft);
+  color: var(--accent);
+}
+
+pre {
+  background: #fafaf6;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  padding: 0;
+  overflow-x: auto;
+  border-radius: 4px;
+  margin: 14px 0;
+}
+pre code, pre code.hljs {
+  background: transparent !important;
+  display: block;
+  padding: 14px 18px !important;
+  font-size: 13px;
+  line-height: 1.55;
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", monospace;
+  color: var(--ink);
+}
+pre.diagram {
+  background: #f9f6ed;
+  border-left: 4px solid var(--accent);
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.callout {
+  margin: 16px 0;
+  padding: 12px 16px;
+  border-radius: 4px;
+  border-left: 4px solid;
+  font-size: 15px;
+}
+.callout-title {
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.callout-info { background: var(--info-bg); border-left-color: var(--primary); }
+.callout-info .callout-title { color: var(--primary); }
+.callout-warn { background: var(--warn-bg); border-left-color: var(--warn); }
+.callout-warn .callout-title { color: var(--warn); }
+.callout-good { background: var(--good-bg); border-left-color: var(--good); }
+.callout-good .callout-title { color: var(--good); }
+.callout-bad { background: var(--bad-bg); border-left-color: var(--bad); }
+.callout-bad .callout-title { color: var(--bad); }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 14px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+thead { background: var(--primary); color: white; }
+th, td {
+  text-align: left;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border-soft);
+  vertical-align: top;
+}
+th { font-weight: 600; font-size: 13px; letter-spacing: 0.02em; }
+tr:last-child td { border-bottom: none; }
+tbody tr:nth-child(even) { background: var(--bg-soft); }
+
+details.qa, details {
+  background: white;
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  margin: 10px 0;
+  padding: 0;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+details.qa { margin: 8px 0; }
+details.qa:hover { border-color: var(--primary-soft); box-shadow: 0 1px 4px rgba(26,74,140,0.06); }
+details summary {
+  cursor: pointer;
+  padding: 11px 14px;
+  font-weight: 600;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--ink);
+  list-style: none;
+  user-select: none;
+}
+details.qa summary { color: var(--ink); }
+details summary::-webkit-details-marker { display: none; }
+details summary::before {
+  content: "▸ ";
+  margin-right: 4px;
+  display: inline-block;
+  transition: transform 0.15s;
+  color: var(--primary);
+}
+details[open] summary::before { transform: rotate(90deg); }
+details[open] summary { border-bottom: 1px solid var(--border-soft); }
+details[open].qa { background: #fdfcf7; }
+details > :not(summary) { padding: 10px 16px; }
+details p:first-of-type { margin-top: 8px; }
+details p:last-of-type { margin-bottom: 10px; }
+
+/* difficulty pills: L1 green / L2 yellow / L3 red */
+.lv {
+  display: inline-block;
+  padding: 1px 7px;
+  margin-right: 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", monospace;
+  vertical-align: 1px;
+  line-height: 1.5;
+}
+.lv-l1 { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+.lv-l2 { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+.lv-l3 { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+
+/* frequency badge: 🔥×N */
+.freq {
+  display: inline-block;
+  padding: 1px 7px;
+  margin-right: 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--bg-soft);
+  color: var(--ink-soft);
+  border: 1px solid var(--border-soft);
+  font-family: "JetBrains Mono", "SF Mono", "Menlo", monospace;
+  vertical-align: 1px;
+  line-height: 1.5;
+}
+.freq-hot { background: #fff1e6; color: #b8390e; border-color: #fcd9c0; }
+
+mjx-container[display="true"] { margin: 12px 0 !important; }
+
+footer.aris-footer {
+  margin-top: 60px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+footer.aris-footer a { color: var(--ink-muted); border-bottom: 1px dotted var(--border); }
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; gap: 20px; padding: 20px 16px; }
+  nav.toc {
+    position: static;
+    max-height: none;
+    border-right: none;
+    border-bottom: 1px solid var(--border-soft);
+    padding-right: 0;
+    padding-bottom: 14px;
+  }
+  header.hero h1 { font-size: 24px; }
+  h2 { font-size: 20px; }
+}
+@media print {
+  nav.toc { display: none; }
+  .layout { grid-template-columns: 1fr; padding: 0; }
+  body { background: white; }
+  header.hero { border-bottom-color: var(--ink); }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="toc">
+  <a class="back-home" href="../index.html">← 返回主册</a>
+  <h3>Contents</h3>
+  <ol>
+<li><a href="#1-浮动基座--动力学--接触建模7-题">§1 浮动基座 / 动力学 / 接触建模（7 题）</a>
+</li>
+<li><a href="#2-mpc-系列7-题">§2 MPC 系列（7 题）</a>
+</li>
+<li><a href="#3-全身控制-wbc6-题">§3 全身控制 WBC（6 题）</a>
+</li>
+<li><a href="#4-rl-based-locomotion8-题">§4 RL-based locomotion（8 题）</a>
+</li>
+<li><a href="#5-人形遥操作-teleop6-题">§5 人形遥操作 Teleop（6 题）</a>
+</li>
+<li><a href="#6-loco-manipulation--上下身解耦5-题">§6 Loco-manipulation / 上下身解耦（5 题）</a>
+</li>
+<li><a href="#7-sim-to-real-for-legged6-题">§7 Sim-to-Real for legged（6 题）</a>
+</li>
+<li><a href="#低频备选频次-1-2未入主表">低频备选（频次 1-2，未入主表）</a>
+</li>
+</ol>
+</nav>
+
+<main>
+
+
+
+
+<h1 id="卷六--腿足机器人运动控制--全身控制--遥操作--高频面试题">卷六 · 腿足机器人运动控制 / 全身控制 / 遥操作 · 高频面试题</h1>
+<blockquote><p>中文具身智能秋招高频面试题库 · <strong>第六卷</strong> 题源：牛客 / 知乎 / CSDN 公开面经 / OpenLoong 项目文档 / MIT-Cheetah 论文 / 各大人形项目 arXiv 论文 / 公司公开招聘 JD 同义题合并后 <strong>48 题</strong>（主表 45 题：频次 ≥3 + 低频备选 3 题）</p></blockquote>
+<p><strong>难度分布</strong>：L1（必会） <strong>5</strong> · L2（进阶） <strong>36</strong> · L3（顶级/前沿） <strong>4</strong> （低频备选另计：L2 ×2 / L3 ×1）</p>
+<p><strong>使用方式</strong>：题目默认折叠，点开看答案。建议按 <strong>L1 → L2 → L3</strong> 顺序刷；同级内按频次从高到低。手机端原生支持。</p>
+<p><strong>与其他卷的关系</strong>：本卷与卷二（RL 算法）在 PPO / curriculum / domain randomization 上有意保留少量重叠——视角不同：卷二讲算法本身，本卷讲算法<strong>怎么用在腿足上</strong>。</p>
+<hr />
+<h2 id="1-浮动基座--动力学--接触建模7-题">§1 浮动基座 / 动力学 / 接触建模（7 题）</h2>
+<blockquote><p>腿足机器人的物理基础：浮动基座意味着无法用固定机械臂的那套运动学/动力学公式，必须显式建模接触。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×5</span> <b>Q01</b> · 什么是浮动基座（floating base）？腿足机器人为什么不能直接用固定基座机器人的运动学 / 动力学公式？</summary>
+<p><strong>答</strong>：<strong>浮动基座</strong>：躯干在世界坐标系无固定连接，姿态由 6 自由度自由变量描述（3 平动 + 3 旋转），靠脚-地接触约束被动维持位置。</p>
+<p><strong>与固定基座区别</strong>：</p>
+<ul><li>固定机械臂：广义坐标 $q \in \mathbb{R}^n$；动力学 $M\ddot q + C\dot q + g = \tau$</li><li>浮动基座：$q = [q_b, q_j]$，前 6 维基座<strong>无主动驱动</strong>，需接触力"驱动"基座</li></ul>
+<p><strong>实务建模</strong>：base 作 6-DoF 虚拟关节挂到 world，用 Featherstone 浮动基 RNEA / ABA 求解——Pinocchio / Drake / RBDL 都这么做。</p>
+<p><strong>易错</strong>：不要把"浮动基座"和"欠驱动"混为一谈——浮动基座说的是建模方式，欠驱动说的是控制特性。是否欠驱动取决于接触模型 / 约束秩：飞行相、点足接触、动态步态通常欠驱动；平足刚性支撑可近似为受约束全驱动。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q02</b> · 雅可比矩阵在腿足机器人里的作用？接触雅可比和任务空间雅可比的区别？</summary>
+<p><strong>答</strong>：雅可比 $J(q)$ 把广义速度映射到笛卡尔速度。腿足里两类雅可比：</p>
+<table><thead><tr><th></th><th>接触雅可比 $J_c$</th><th>任务雅可比 $J_t$</th></tr></thead><tbody><tr><td>作用</td><td>把接触力反向映射到广义力 $\tau_c = J_c^\top \lambda$</td><td>描述足端 / 质心 / 躯干姿态速度</td></tr><tr><td>用途</td><td>浮动基座动力学约束 / MPC 摩擦锥</td><td>WBC / OSC 跟踪目标</td></tr></tbody></table>
+<p><strong>关键约束</strong>：脚不滑时 $J_c \dot{q} = 0$；微分得 $J_c \ddot{q} + \dot{J}_c \dot{q} = 0$，是 WBC 等式约束的标准形式。</p>
+<p><strong>易错</strong>：浮动基座的雅可比形状是 $J \in \mathbb{R}^{m \times (6+n_j)}$，前 6 列对应 base——不要只对关节求导；两类雅可比都必须包含 base 部分才能在浮动基座下成立。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q03</b> · 摩擦锥 friction cone 是什么？为什么在 MPC / WBC 里通常做成线性化金字塔约束？</summary>
+<p><strong>答</strong>：<strong>摩擦锥</strong>：地面接触力的物理可行域，约束法向力 $f_n \ge 0$（不能拉脚）和切向力 $|f_t| \le \mu f_n$（库伦摩擦不滑）。几何上是一个以法向为轴、半角 $\arctan\mu$ 的圆锥。</p>
+<p><strong>为什么线性化</strong>：原始摩擦锥是二阶圆锥约束（SOCP），求解器慢；常用 4 边或 8 边金字塔近似，把约束变成<strong>4 / 8 条线性不等式</strong>，整个优化变成 QP，OSQP / qpOASES 这类 QP 求解器可以 &lt; 1 ms 解。</p>
+<p><strong>线性化代价</strong>：4 边<strong>内接</strong>金字塔保守（切平面面积比圆锥小约 36%）但<strong>安全</strong>——不会让机器人违反真实摩擦；8 边内接更贴近圆锥；<strong>外接矩形</strong>（$|f_x|, |f_y| \le \mu f_z$）反而<strong>不保守</strong>，角点会超出圆锥。生产里 4 / 8 边内接是常见取舍。</p>
+<p><strong>易错</strong>：摩擦锥约束 $|f_t| \le \mu f_n$ 是非线性的，不是简单 $|f_t| \le \mu f_{n,\max}$；不要在写 QP 时把 $f_n$ 当常数。MIT Cheetah Convex MPC 通过同时把法向力和切向力作为决策变量、配合金字塔近似，把整个问题变 QP。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q04</b> · 质心动力学（centroidal dynamics）和单刚体模型（SRBM）有什么区别？为什么 MPC 常用 SRBM？</summary>
+<p><strong>答</strong>：两者都是<strong>简化模型</strong>，但抽象层次不同：</p>
+<table><thead><tr><th></th><th>单刚体模型 SRBM</th><th>质心动力学</th></tr></thead><tbody><tr><td>假设</td><td>把整机当一个刚体，惯量矩阵常数</td><td>用整机的质心动量 $h_G$ 描述系统状态</td></tr><tr><td>状态</td><td>质心位置 / 姿态 / 速度 / 角速度</td><td>线动量 + 角动量 + 质心位置</td></tr><tr><td>输入</td><td>各支撑足的接触力 $f_i$</td><td>同上（接触力直接产生动量变化率）</td></tr><tr><td>用途</td><td>MIT Cheetah 凸 MPC、Convex MPC</td><td>更精细的 NMPC / WBC 内的质心任务</td></tr></tbody></table>
+<p><strong>为什么 MPC 偏爱 SRBM</strong>：① 假设腿质量小 + 惯量近似常数后整个动力学<strong>变线性</strong>；② 加上摩擦锥金字塔近似后整个问题是 QP，可 100-500 Hz 解；③ 实测在四足上效果已经够好。</p>
+<p><strong>易错</strong>：SRBM <strong>忽略了腿的惯量</strong>——快速摆腿时会有几个百分点的建模误差；高动态任务（跳跃、奔跑）需要全身动力学或质心动力学补偿。质心动力学不等同于 SRBM，前者是更通用的降阶表达。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×3</span> <b>Q05</b> · 什么是 ZMP（零力矩点）？和 CoP、Capture Point、DCM 是什么关系？</summary>
+<p><strong>答</strong>：<strong>ZMP（Zero Moment Point）</strong>：地面上一个虚拟点，绕该点地面反力对水平面的力矩为零。<strong>当 ZMP 严格落在支撑多边形内</strong>，机器人不会绕支撑边沿翻倒；落到边沿则机器人即将倒下。</p>
+<p><strong>几个概念对比</strong>：</p>
+<ul><li><strong>CoP（压力中心）</strong>：实际地面反力的"加权重心"。<strong>ZMP = CoP 当 ZMP 落在支撑多边形内</strong>；落出去 ZMP 不再有物理意义，CoP 仍在边界上</li><li><strong>Capture Point</strong>：机器人当前状态下，若立即把脚踩到该点上，就能在不再迈步的情况下回到静止</li><li><strong>DCM（Divergent Component of Motion）</strong>：质心动量的发散分量，是 Capture Point 的通用化连续形式；DCM 轨迹规划可以反推质心 + 落脚点</li></ul>
+<p><strong>应用</strong>：传统人形（ASIMO/HRP）用 ZMP 离线规划质心轨迹；现代人形多用 DCM / Capture Point 做在线规划，对扰动响应更快。</p>
+<p><strong>易错</strong>：ZMP 是静态稳定性判据，对快速动态（如跑步飞行相）失效——飞行相没有 ZMP，需要质心动量守恒分析。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q06</b> · Pinocchio / Drake / RBDL 这几个动力学库各自的定位？为什么腿足机器人圈 Pinocchio 最常用？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th>库</th><th>定位</th><th>优势</th><th>劣势</th></tr></thead><tbody><tr><td><strong>Pinocchio</strong></td><td>Featherstone 体系 C++ / Python</td><td>浮动基座原生支持；ABA / RNEA / CRBA 全有；<strong>解析微分</strong>；快（约 1 µs 操作臂 / 3 µs 腿足）</td><td>学习曲线陡</td></tr><tr><td><strong>Drake</strong></td><td>TRI / MIT 大库</td><td>内建优化（MathematicalProgram）/ 仿真 / 控制一体</td><td>体量大、编译复杂</td></tr><tr><td><strong>RBDL</strong></td><td>轻量 C++ 实现</td><td>与 Featherstone 书完全对齐，易学</td><td>工具链生态弱</td></tr></tbody></table>
+<p><strong>为什么 Pinocchio 主流</strong>：① 速度最快（HPP 项目优化十年）；② <strong>解析雅可比 + 解析微分</strong> 让上层 MPC / WBC 的代价梯度可以闭式得到，比数值差分稳定；③ TSID / Crocoddyl 等主流腿足栈都以 Pinocchio 为基；④ Python 绑定方便快速原型。</p>
+<p><strong>易错</strong>：KDL（ROS 自带）<strong>不支持浮动基座</strong>——只能做固定基机械臂，所以 ROS 默认动力学库在腿足圈基本用不上。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q07</b> · RNEA、CRBA、ABA 三种动力学算法各自解决什么问题？复杂度怎么样？</summary>
+<p><strong>答</strong>：刚体动力学三大经典算法（Featherstone）：</p>
+<table><thead><tr><th>算法</th><th>问题</th><th>复杂度</th><th>用途</th></tr></thead><tbody><tr><td><strong>RNEA</strong></td><td>逆动力学 $\tau = f(q, \dot{q}, \ddot{q})$</td><td>$O(n)$</td><td>WBC 控制律</td></tr><tr><td><strong>CRBA</strong></td><td>求质量矩阵 $M(q)$</td><td>$O(n^2)$</td><td>KKT 系统 / 解析微分</td></tr><tr><td><strong>ABA</strong></td><td>正动力学 $\ddot{q} = f(q, \dot{q}, \tau)$</td><td>$O(n)$</td><td>仿真器内核</td></tr></tbody></table>
+<p><strong>三件套关系</strong>：WBC 需要 $M$（CRBA）+ 逆动力学算力矩（RNEA）；仿真器要正推状态（ABA）。</p>
+<p><strong>易错</strong>：RNEA 是<strong>逆动力学</strong>——给加速度算力矩，不是反过来；常见误用。复杂度 $n$ 是连杆数；腿足 30 关节场景下三者实测都在 µs 级。</p>
+</details>
+<h2 id="2-mpc-系列7-题">§2 MPC 系列（7 题）</h2>
+<blockquote><p>模型预测控制是腿足圈最经典的控制框架，从 MIT Cheetah 的 Convex MPC 开始统治了四足近 7 年。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×7</span> <b>Q08</b> · MIT Cheetah 提出的 Convex MPC 怎么把腿足运动控制问题做成凸优化？</summary>
+<p><strong>答</strong>：MIT Carlo &amp; Wensing 2018 的 Convex MPC（应用于 Cheetah 3）做了几个关键近似把非凸 NMPC 化简到 QP：</p>
+<ol><li><strong>单刚体模型 SRBM</strong>：忽略腿质量，整机当一个固定惯量的刚体</li><li><strong>小角度假设</strong>：在 hover frame 里把 roll/pitch 当小量，旋转动力学 $I\dot{\omega} = \tau - \omega \times I\omega$ 中的 $\omega \times I\omega$ 项忽略（线性化）</li><li><strong>接触序列预先给定</strong>：哪只脚什么时间落地由 gait scheduler 输出，不作为决策变量，避免组合优化</li><li><strong>摩擦锥金字塔近似</strong>：4-边线性化（见 Q03）</li></ol>
+<p>化简后状态线性、约束线性、代价二次，是标准 QP；用 dense QP 求解器约 1 ms 内可解，30 Hz 跑实时，时域 0.5 s / 10-16 步。</p>
+<p><strong>易错</strong>：原论文 30 Hz 是 MPC 重规划频率，<strong>底层关节力矩控制器跑 1 kHz 甚至更高</strong>——别把 MPC 频率和电机控制频率混为一谈。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>Q09</b> · MPC 的预测时域 / 控制时域怎么选？为什么腿足 MPC 一般 0.3-0.5 s、10-20 个时步？</summary>
+<p><strong>答</strong>：选时域的两个权衡：</p>
+<ul><li><strong>太短</strong>：看不到未来一个完整步态周期，控制器决策短视（脚还没落地就结束）</li><li><strong>太长</strong>：① 模型误差累积；② QP 规模 $\propto$ 时步数，10 步 vs 30 步求解时间差 5-10 倍</li></ul>
+<p><strong>腿足实务</strong>：典型步态周期 0.3-0.5 s，覆盖 1-2 个完整周期最佳，于是 10-20 步、每步 25-50 ms。MIT Cheetah 论文用 0.5 s / 16 步 / 30 Hz，是一个长期被沿用的配方。</p>
+<p><strong>控制时域 vs 预测时域</strong>：MPC 标准定义中"控制时域 ≤ 预测时域"——预测时域看远，控制时域内的控制变量做决策变量；腿足里通常<strong>两者相等</strong>简化实现。</p>
+<p><strong>易错</strong>：不要假设"时域越长越好"——长时域要求模型在 0.5 s 内仍准确，超过这个时间 SRBM 误差会显著上升。NMPC（非线性 MPC）可以用更长时域（1 s+），但算力代价大。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>Q10</b> · MPC 求解器对比：OSQP vs qpOASES vs HPIPM，腿足实时控制怎么选？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th>求解器</th><th>算法</th><th>优势</th><th>劣势</th></tr></thead><tbody><tr><td><strong>OSQP</strong></td><td>ADMM</td><td>稀疏问题快、warm-start 好、BSD 开源</td><td>一阶，迭代多</td></tr><tr><td><strong>qpOASES</strong></td><td>active-set</td><td>中小问题快、解精确</td><td>不适合超大稀疏</td></tr><tr><td><strong>HPIPM</strong></td><td>内点 + Riccati</td><td>对 MPC 时序结构最优</td><td>接口较复杂</td></tr></tbody></table>
+<p><strong>腿足典型选择</strong>：四足 Convex MPC → OSQP / qpOASES 都 &lt; 1 ms；人形 30 自由度 WBC → HPIPM / ProxQP 适配 MPC 时序；嵌入式 → 自研 ADMM。</p>
+<p><strong>实务</strong>：先用 OSQP（开源、接口干净），延迟不达再换 HPIPM。</p>
+<p><strong>易错</strong>：OSQP 是一阶方法，对 ill-conditioned 问题收敛慢——MPC 代价矩阵尺度差异大时要先做预处理 / 缩放。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q11</b> · LQR、PID、MPC 在腿足控制里各自的定位？为什么四足主流都是 MPC？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th></th><th>PID</th><th>LQR</th><th>MPC</th></tr></thead><tbody><tr><td>模型</td><td>不需要</td><td>线性，需 $A$、$B$</td><td>线性/非线性都行</td></tr><tr><td>约束</td><td>不支持</td><td>不支持</td><td><strong>原生支持</strong>（摩擦锥、力上下限）</td></tr><tr><td>计算</td><td>几乎免费</td><td>离线一次解 Riccati</td><td>每周期解 QP</td></tr><tr><td>时域</td><td>单点反馈</td><td>无限时域</td><td>有限滚动时域</td></tr></tbody></table>
+<p><strong>腿足偏爱 MPC 的原因</strong>：① 接触约束是<strong>硬约束</strong>（摩擦锥、不可拉脚），LQR / PID 没法直接处理；② 步态切换时接触序列变，需要重新优化，MPC 滚动天然适合；③ 现代算力 1 ms 解 QP 可行。</p>
+<p><strong>简单系统例外</strong>：质心动力学接近线性倒立摆、接触不切换的系统（如轮式平衡），LQR 一次离线解 Riccati 就够；详见低频备选 N3。</p>
+<p><strong>易错</strong>：PID 在腿足里<strong>仍然存在</strong>——但只用在最底层关节伺服（电流环、位置环），MPC / WBC 是上层。说"腿足只用 MPC"是不准确的。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q12</b> · 接触时序（contact schedule / gait scheduler）在 MPC 里是怎么编码进去的？热切换怎么避免抖动？</summary>
+<p><strong>答</strong>：<strong>接触时序</strong>：一个 0/1 矩阵 $s_i^k$，表示第 $k$ 个 MPC 时步、第 $i$ 只脚是否接触地面。Convex MPC 把它<strong>预先给定</strong>（gait scheduler 输出），不作为优化变量，这才能保持凸性。</p>
+<p><strong>怎么用</strong>：</p>
+<ul><li>$s_i^k = 1$（支撑相）：摩擦锥 + 力上限约束生效；摆动相约束变为 $f_i^k = 0$</li><li>与 swing-leg 控制器协作：摆动期 $f_i^k = 0$，足端轨迹由独立的 swing leg 控制器（如五次多项式插值）执行</li></ul>
+<p><strong>避免抖动</strong>：① 落地 / 离地切换瞬间，QP 解会有跳变 → <strong>力的差分项</strong>加入代价（$\| f^{k+1} - f^k \|^2$）；② 接触序列由 finite state machine 维护，不允许中途修改；③ 接触检测用低通滤波 + 滞回。</p>
+<p><strong>易错</strong>：步态切换时（如 trot → bound）整张时序表会重写，热切换需要把"未来 0.3 s"的接触模式一次性更新，否则 MPC 看着旧时序解出错误力。生产代码里通常做"phase 锁定"，切换在某只脚刚落地时执行。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q13</b> · 摆动腿（swing leg）轨迹一般怎么设计？为什么常用五次多项式或 Bezier？</summary>
+<p><strong>答</strong>：摆动腿轨迹要求：① 起飞点与落地点匹配；② 起飞 / 落地速度 = 0（避免冲击）；③ 中间有抬腿高度（避障）。</p>
+<p><strong>为什么五次多项式（quintic / minimum-jerk）</strong>：六个边界条件（起 / 落各一对 位置 / 速度 / 加速度）刚好对应五次多项式的 6 个系数，解析可求；jerk 最小 ⇒ 加速度平滑 ⇒ 电机受力舒缓。MIT Cheetah 用五次 + 可调最高点（apex height）。</p>
+<p><strong>Bezier 曲线</strong>：通过控制点直观调形，常用于希望"前快后慢"或"避开高障碍"的轨迹；ANYmal 系列也常用。</p>
+<p><strong>落脚点怎么算</strong>：常用 Raibert heuristic $p_{foot} = p_{hip} + \frac{v T_{st}}{2} + k(v - v_{des})$，其中 $T_{st}$ 是支撑相时长、$k$ 是反馈增益。RL 训练的策略可以学到更精细的落脚点选择。</p>
+<p><strong>易错</strong>：摆动期不能假设质心匀速——MPC 给的质心轨迹是变速的，落脚点要用 MPC 输出的预测质心位置而不是当前位置。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×3</span> <b>Q14</b> · NMPC（非线性 MPC）和 Convex MPC 比，哪些场景值得为额外算力换更优解？</summary>
+<p><strong>答</strong>：NMPC 不做小角度近似、不做 SRBM，保留全身动力学和圆锥摩擦锥；用 SQP / DDP / iLQR 求解，单次 5-20 ms。</p>
+<p><strong>值得换 NMPC 的场景</strong>：</p>
+<ul><li>大姿态机动（深蹲、跳跃落地、滚翻）—— 小角度假设崩</li><li>loco-manipulation（推门、扛物）—— SRBM 忽略的腿惯量影响显著</li><li>高动态奔跑 / 飞行相 —— 线性化误差大</li><li>contact-implicit MPC（接触时序也作决策变量）</li></ul>
+<p><strong>Convex MPC 够用</strong>：四足 trot / walk、人形低速行走；Unitree / ANYmal 主线产品仍用 Convex。</p>
+<p><strong>前沿</strong>：Crocoddyl（INRIA）DDP-NMPC、IIT contact-implicit MPC 在 ANYmal 跳跃；RL policy 也在抢这个生态位。</p>
+<p><strong>易错</strong>：NMPC ≠ "更好"——SQP 易陷局部最优，warm-start 不好比 Convex MPC 还慢；产线优先 Convex MPC，Convex 失败才考虑 NMPC。</p>
+</details>
+<h2 id="3-全身控制-wbc6-题">§3 全身控制 WBC（6 题）</h2>
+<blockquote><p>WBC 把多任务（质心轨迹、足端力、姿态、关节限位）写成分层 QP，是人形不可绕开的中间层。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>Q15</b> · WBC（whole-body controller）的核心思想是什么？为什么需要任务优先级？</summary>
+<p><strong>答</strong>：<strong>WBC</strong>：在每个控制周期（典型 1 kHz）解一个<strong>约束二次规划</strong>，同时满足多个相互冲突的运动学/动力学任务（质心位置、躯干姿态、足端力、关节限位等），输出关节力矩。</p>
+<p><strong>为什么要优先级</strong>：多任务常冲突。例如人形要"跟踪末端轨迹"+"维持平衡"+"避免关节超限"，冲突时<strong>平衡必须赢</strong>。两种实现：</p>
+<table><thead><tr><th>实现</th><th>写法</th><th>行为</th></tr></thead><tbody><tr><td><strong>加权 QP</strong></td><td>所有任务加权进单一代价</td><td>调权重难</td></tr><tr><td><strong>严格 HQP</strong></td><td>高优先级先解，零空间留给低优先级</td><td>严格不冲突，但难实现</td></tr></tbody></table>
+<p><strong>实务</strong>：人形产线多用加权 QP；学术界爱严格 HQP。TSID 是 Task-Space Inverse Dynamics 框架（开源 stack-of-tasks/tsid 库内部用 HQP solver 做严格层级，同层内可用权重软化任务）。</p>
+<p><strong>易错</strong>：WBC 不能替代 MPC——WBC 只看当前一拍（无预测），平衡 / 落脚等长期规划必须靠 MPC / 步态规划器；典型架构是 <strong>MPC（10-100 Hz）输出参考 → WBC（1 kHz）跟踪 + 力分配</strong>。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q16</b> · TSID 和 HQP（hierarchical QP）的区别？weighted QP 和 strict hierarchy 各自的取舍？</summary>
+<p><strong>答</strong>：TSID 是 Task-Space Inverse Dynamics 框架（Saab 2013 + stack-of-tasks/tsid 库），内部 solver 实际做 HQP 严格分层，但<strong>同一层可用权重软化</strong>多个任务；HQP 特指严格层级。常用对比 weighted vs strict hierarchy：</p>
+<table><thead><tr><th></th><th>加权 QP（单层）</th><th>严格 HQP（多层）</th></tr></thead><tbody><tr><td>结构</td><td>任务加权，单 QP</td><td>多层，高层零空间传给低层</td></tr><tr><td>调参</td><td>权重，<strong>任务间偷量</strong></td><td>严格不冲突，但难实现</td></tr><tr><td>计算</td><td>单 QP（毫秒）</td><td>k 层 QP（更慢）</td></tr><tr><td>代表实现</td><td>OpenSoT 加权 / Pink IK QP</td><td>tsid SolverHQP、OpenSoT 严格</td></tr></tbody></table>
+<p><strong>取舍</strong>：加权简单快、调参直观，但极端配置下低优先级会拽偏高优先级；严格 HQP 理论严格但实现复杂。</p>
+<p><strong>实务</strong>：产线多用加权 QP；研究界爱严格 HQP。</p>
+<p><strong>易错</strong>：一个"任务"通常是一组等式 + 不等式（关节限位、摩擦锥），不是单一约束；层级指这一组的优先级。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q17</b> · OSC（operational space control）vs TSID：本质区别在哪？</summary>
+<p><strong>答</strong>：两者都把任务空间映射到关节力矩，但范式不同：</p>
+<table><thead><tr><th></th><th>OSC（Khatib 1987）</th><th>TSID（Saab 2013）</th></tr></thead><tbody><tr><td>形式</td><td>闭式 $\tau = J^\top (\Lambda \ddot{x}_{des} + \mu + p)$</td><td>QP 优化</td></tr><tr><td>不等式约束</td><td>不自然支持</td><td>原生支持（摩擦锥 / 关节限位）</td></tr><tr><td>速度</td><td>矩阵运算，超快</td><td>QP 求解，几毫秒</td></tr><tr><td>浮动基座</td><td>需额外处理</td><td>原生支持</td></tr></tbody></table>
+<p><strong>OSC 本质</strong>：把动力学投影到任务空间 $\Lambda \ddot{x} = F + \mu + p$ 反解力矩；固定基机械臂上单层任务优于 TSID。</p>
+<p><strong>TSID 优势</strong>：统一处理浮动基座 + 接触约束 + 多任务，是腿足/人形的天然选择。</p>
+<p><strong>实务</strong>：腿足圈 TSID 主流（stack-of-tasks/tsid 是事实标准）；OSC 思想仍以"任务空间投影"融入 WBC。</p>
+<p><strong>易错</strong>：OSC 不是"过时"——单任务 + 已知接触状态时仍更快；TSID 的优势在多任务 + 不等式约束。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q18</b> · WBC 和 MPC 一般怎么配合？层次频率怎么分？</summary>
+<p><strong>答</strong>：典型分层（OpenLoong / Cheetah / ANYmal 通用）：</p>
+<ul><li><strong>高层规划 1-10 Hz</strong>：任务编排 / VLA / 视觉，给目标</li><li><strong>MPC 30-100 Hz</strong>：输出未来 0.5 s 质心轨迹 + 接触力</li><li><strong>WBC 500-1000 Hz</strong>：跟踪 MPC 输出 + 全身动力学 + 力分配，出关节力矩</li><li><strong>关节伺服 &gt; 2 kHz</strong>：电流环 / 力矩闭环</li></ul>
+<p><strong>为什么分层</strong>：MPC 单次 QP 约 1-5 ms 不能 1 kHz；WBC QP 规模小可 1 kHz；电机伺服需 &gt; 1 kHz 稳定。</p>
+<p><strong>通信</strong>：MPC → WBC 通过共享内存 / ROS2；传递的是<strong>力 + 加速度参考</strong>，不是关节力矩。</p>
+<p><strong>易错</strong>：MPC 直接生成关节力矩跳过 WBC 在简单四足上可行，但<strong>复杂人形不行</strong>——MPC 模型粗（SRBM）不能直接出 30+ 关节力矩；WBC 是必经中间层。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q19</b> · 零空间投影（null-space projection）在 WBC 里怎么用？为什么这样能保任务优先级？</summary>
+<p><strong>答</strong>：<strong>零空间投影</strong>：把低优先级任务的控制信号投影到高优先级任务的零空间（不会改变高优先级任务的输出），从而实现"低优先级不干扰高优先级"。</p>
+<p><strong>数学形式</strong>：若高优先级任务雅可比 $J_1$，则零空间投影矩阵 $N_1 = I - J_1^+ J_1$。低优先级 $\ddot{q}_2$ 控制律变为： $$\ddot{q} = J_1^+ \ddot{x}_{1,des} + N_1 \ddot{q}_2$$ 左边任意 $\ddot{q}_2$ 都不影响 $\ddot{x}_1$，因为 $J_1 N_1 = 0$。</p>
+<p><strong>HQP 中的用法</strong>：每一层解完后，把它的零空间作为下一层的"可用动作空间"，递归到底。等价于多层 QP，每层在前层零空间内优化。</p>
+<p><strong>易错</strong>：<strong>零空间维度可能不够</strong>——高优先级任务用了 $k$ 个自由度，只剩 $n-k$ 个给低优先级；机械臂 7 关节时只剩 1 维，几乎没法干次要任务。这是 redundancy（冗余度）不足的根本限制，加任务前要算清楚自由度账。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q20</b> · 阻抗控制、导纳控制、力位混合控制在腿足里的应用场景对比？</summary>
+<p><strong>答</strong>：三者都是含柔顺性的控制策略，关键区别在输入-输出因果方向：</p>
+<table><thead><tr><th></th><th>阻抗 Impedance</th><th>导纳 Admittance</th><th>力位混合 Hybrid</th></tr></thead><tbody><tr><td>输入→输出</td><td>运动偏差 → 力</td><td>力偏差 → 运动</td><td>分方向：力 / 位置正交</td></tr><tr><td>适用机器人</td><td>力矩控制电机</td><td>位置控制电机 + 外置 F/T</td><td>两者皆可</td></tr><tr><td>接触稳定性</td><td>接触刚硬环境也稳</td><td>刚硬环境易振</td><td>力方向稳，位置方向精确</td></tr></tbody></table>
+<p><strong>腿足应用</strong>：</p>
+<ul><li><strong>支撑腿</strong> = 阻抗控制：虚拟弹簧-阻尼吸收着地冲击；摆动腿 = 位置控制</li><li><strong>loco-manipulation</strong> = 阻抗 + 力位混合：抓物方向位置，接触方向力</li><li><strong>早期人形（ASIMO 等位置控电机）</strong> = 导纳控制：F/T 外环算位置参考、内环 PID 跟踪</li></ul>
+<p><strong>易错</strong>：PD 控制 = 简化阻抗（无虚拟惯量项），仍属于阻抗范式（位移 → 力），不是导纳；导纳的因果方向反过来（力 → 位移），需要 F/T 传感器读力做反馈。</p>
+</details>
+<h2 id="4-rl-based-locomotion8-题">§4 RL-based locomotion（8 题）</h2>
+<blockquote><p>2021 年 RMA 之后，RL-based locomotion 已成主流——尤其在感知（perceptive）、动态地形、人形上身扰动等场景下打败传统 MPC。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×8</span> <b>Q21</b> · 用 PPO 训腿足 locomotion，为什么 IsaacGym / IsaacLab 这种 GPU 并行仿真是事实标准？</summary>
+<p><strong>答</strong>：腿足 RL 的样本需求极大（百万级 step），CPU 仿真吞吐太低。</p>
+<p><strong>GPU 并行三大优势</strong>：① 数千环境并行（IsaacGym 典型 4096 envs，加速 100-1000 倍）；② 观测/动作驻留显存，无 CPU↔GPU 拷贝；③ PPO 与仿真同卡，端到端吞吐百万 step/分钟。</p>
+<p><strong>典型配置</strong>：4096 envs、PPO、horizon 32-50、几千万 step 几小时收敛（Humanoid-Gym / legged_gym）。</p>
+<p><strong>仿真器选择</strong>：</p>
+<ul><li><strong>IsaacGym</strong>（已停更）：legged_gym 等经典仓库依赖</li><li><strong>IsaacLab</strong>：NVIDIA 接班，物理后端可换 Newton</li><li><strong>MJX / MuJoCo Playground</strong>：JAX + MuJoCo，开源跨厂</li></ul>
+<p><strong>易错</strong>：envs 不是越多越好——超过 4096 batch 内方差减小、PPO 优势估计噪声小反而<strong>收敛更慢</strong>（Brax 论文实测）。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×6</span> <b>Q22</b> · 腿足 locomotion 的 reward 一般怎么设计？为什么常拆 task / style / regularization 三类？</summary>
+<p><strong>答</strong>：legged_gym / Humanoid-Gym 等主流框架通常拆三类：</p>
+<table><thead><tr><th>类别</th><th>例子</th><th>作用</th></tr></thead><tbody><tr><td><strong>Task</strong></td><td>跟踪速度命令、保持高度</td><td>完成任务</td></tr><tr><td><strong>Style</strong></td><td>步态周期、抬腿高度、对称</td><td>让运动像走路</td></tr><tr><td><strong>Regularization</strong></td><td>关节力矩平方、动作平滑、限位惩罚</td><td>节能、防过载</td></tr></tbody></table>
+<p><strong>为什么必须拆</strong>：只设 task reward 会出现"姿态崩但完成任务"的解；style + regularization 才能引导到自然可部署步态。论文里 reward 项常达 15-25 个。</p>
+<p><strong>常见坑</strong>：① 系数失衡——style 太重不学动、reg 太重不动；② Reward hacking——策略找漏洞（来回小步刷 air time），要加约束。</p>
+<p><strong>易错</strong>：<strong>不要直接奖励"前进距离"</strong>——会鼓励冲刺然后摔倒；用速度命令跟踪误差作为 task reward 更稳。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>Q23</b> · 课程学习（curriculum）在腿足 RL 里怎么搭？常见做法有哪些？</summary>
+<p><strong>答</strong>：直接训复杂地形 / 高速 / 强扰动会让 PPO 早期完全摔倒——curriculum 是事实标配。</p>
+<p><strong>常见类型</strong>：</p>
+<ol><li><strong>速度命令</strong>：从 ±0.5 m/s 开始按成功率扩到 ±2 m/s</li><li><strong>地形</strong>：平地 → 斜坡 → 阶梯 → 碎石，game-style 关卡进阶</li><li><strong>扰动</strong>：早期不推、后期加大随机外力 / 质量随机化</li><li><strong>机器人姿态</strong>（人形特有）：上身先固定、下身学走，再放开上身</li></ol>
+<p><strong>实务</strong>：按 episode return 或成功率触发难度提升；停滞太久回退一级。IsaacLab / Newton 内置 progress-based terrain curriculum 模板。</p>
+<p><strong>易错</strong>：curriculum 不是越激进越好——过快进阶会催化策略遗忘早期能力（catastrophic forgetting）；通常保留旧难度环境做"经验回放"。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>Q24</b> · RMA（Rapid Motor Adaptation）的核心思想是什么？两阶段训练分别学什么？</summary>
+<p><strong>答</strong>：RMA（Kumar et al, RSS 2021, UC Berkeley + CMU + FAIR）解决"训练时有特权信息（摩擦、质量、扰动力），部署时只有本体感觉"的 gap。</p>
+<p><strong>两阶段</strong>：</p>
+<ul><li><strong>阶段一</strong>：策略输入 = 本体感觉 + privileged info 的 latent $z$，PPO 训到收敛</li><li><strong>阶段二 · Adaptation Module</strong>：从近 N 步本体感觉历史<strong>监督预测</strong> $z$；部署时 adaptation module 替代特权编码器</li></ul>
+<p><strong>部署</strong>：adaptation module 约 100 Hz，几百毫秒内适应新环境（不同摩擦、负载）。原论文 A1 在沙地、草地、徒步路径上零 fine-tune 走过。</p>
+<p><strong>为什么 work</strong>：本体感觉历史<strong>隐含</strong>环境信息（打滑、扭矩异常对应低摩擦），encoder 学的就是从隐含信号恢复 latent。</p>
+<p><strong>易错</strong>：RMA 不是 sim2real 银弹——处理的是"训练分布内的物理参数变化"，对训练时未见过的极端情况（雪地）仍可能崩；ASAP 等用残差 action model 进一步弥补。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q25</b> · 教师-学生（teacher-student）蒸馏在腿足 RL 里为什么几乎是标配？privileged info 一般有哪些？</summary>
+<p><strong>答</strong>：腿足部署时只有本体感觉（关节编码器、IMU），但仿真训练时可以"作弊"看到更多信息——教师-学生蒸馏让仿真效率最大化。</p>
+<p><strong>典型 privileged info（教师独占）</strong>：</p>
+<ul><li>摩擦系数、地面材质、阻尼</li><li>机器人当前质量、惯量</li><li>外力大小方向（随机推力）</li><li>完整地形高度图（足下 ± 0.5 m）</li><li>关节摩擦、电机响应延迟</li></ul>
+<p><strong>学生（部署用）输入</strong>：</p>
+<ul><li>本体感觉历史（关节角、关节速度、IMU）</li><li>命令向量（速度命令、步态参数）</li><li>可选：视觉（depth / RGB）—— RMA / PIM / Walk These Ways 多用本体感觉为主，视觉是后期补加</li></ul>
+<p><strong>蒸馏方法</strong>：① DAgger（学生在仿真里跑、教师在线给标）；② BC（教师轨迹存离线集学生 BC）；③ 用教师 latent 监督学生 latent。</p>
+<p><strong>易错</strong>：教师不能太强—— privileged info 让教师拿到"超人类"信号，学生本体感觉就是恢复不出来时，蒸馏永远失败；要保证 privileged info 与本体感觉有可学习的映射关系。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q26</b> · Walk These Ways 提出的 MoB（Multiplicity of Behavior）想解决什么问题？</summary>
+<p><strong>答</strong>：传统 locomotion 策略一个模型只学一种步态/速度风格，调速度命令仍是同一步态——<strong>新任务（爬阶、推门）就要重新训</strong>。</p>
+<p><strong>MoB 的洞察</strong>：让单个策略学一个<strong>结构化的行为族</strong>（family），通过外部参数（步态周期、抬腿高、躯干姿态）切换行为；新任务时<strong>不重训，只调参数</strong>。</p>
+<p><strong>做法</strong>：</p>
+<ul><li>Reward 里加入 gait-encoding 项，强制策略在不同周期/相位下都能跟踪</li><li>训练时随机抽样所有行为参数（速度、步态周期、抬腿高、躯干俯仰）</li><li>部署时人 / 高层 / 脚本动态指定参数</li></ul>
+<p><strong>结果</strong>：Margolis &amp; Agrawal 在 Unitree Go1 上展示一个策略可以做：跑、跳、爬阶、蹲下、舞蹈、抗推——<strong>全是同一个网络权重</strong>。CoRL 2022 (arXiv 2212.03238) 开源 walk-these-ways 仓库被广泛复用。</p>
+<p><strong>易错</strong>：MoB 不是"无限通用"——策略仍只能在训练时随机化过的参数范围内泛化；完全没见过的动作（如倒立行走）仍需要重新训。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×4</span> <b>Q27</b> · ASAP 通过什么机制对齐仿真和真机？delta action model 起什么作用？</summary>
+<p><strong>答</strong>：ASAP（CMU + NVIDIA, 2025-02, arXiv 2502.01143）解决人形 sim-to-real 剩余 gap——IsaacGym 训得好的策略到 Unitree G1 上仍会摔。</p>
+<p><strong>两阶段</strong>：① 仿真预训练，retargeted 人体动作 + PPO 训运动跟踪；② 实机收集 (state, sim_action, real_outcome)，训 delta action model $\Delta a = a_{real} - a_{sim}$，装进仿真器后 fine-tune 原策略。</p>
+<p><strong>为什么是 action</strong>：相比改 dynamics（actuator net），改 action 更简单——少量真机数据、小 MLP 即可。</p>
+<p><strong>关键贡献</strong>：IsaacGym → IsaacSim / Genesis / Unitree G1 三套迁移都验证；与 RMA / actuator net <strong>互补</strong>可叠加。</p>
+<p><strong>易错</strong>：ASAP 不是纯零样本 sim2real——需真机数据；零样本场景仍要回到 actuator network + 域随机化。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q28</b> · HIM（Hybrid Internal Model）/ belief encoder 在 RL locomotion 里起什么作用？</summary>
+<p><strong>答</strong>：把本体感觉历史 + 视觉编码成 latent state，让策略"看懂"环境隐含信息，是 RMA 思路的进化版。</p>
+<p><strong>HIM（Hybrid Internal Model）核心</strong>：用本体感觉历史预测"下一步本体感觉 + 速度"，迫使 encoder 学环境动力学的内部模型；与 RMA 不同<strong>不需要 privileged info</strong>——完全自监督。</p>
+<p><strong>belief encoder（感知 locomotion）</strong>：输入本体感觉历史 + 高度图 / depth；输出 latent（融合本体动力学 + 地形）；用 attention 或 GRU 编码。</p>
+<p><strong>典型应用</strong>：PIM（arXiv 2411.14386）把 LiDAR 高度图 + 本体感觉送进 belief encoder，让 humanoid 走阶梯。</p>
+<p><strong>实务好处</strong>：① 训练不依赖 privileged info；② sim2real gap 小；③ 对地形泛化好。</p>
+<p><strong>易错</strong>：belief encoder 比纯 MLP 慢，需 latency 权衡——典型做法 encoder 50 Hz、策略 200 Hz，encoder latent 喂多次。</p>
+</details>
+<h2 id="5-人形遥操作-teleop6-题">§5 人形遥操作 Teleop（6 题）</h2>
+<blockquote><p>数据飞轮的入口：teleop 决定了模仿学习/VLA 训练数据的质量。Apple Vision Pro + 上身 IK 是 2024-2026 的事实标准之一。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>Q29</b> · OPEN-TeleVision 这套系统的核心组件是什么？为什么要用 Apple Vision Pro？</summary>
+<p><strong>答</strong>：OPEN-TeleVision（Cheng et al, arXiv 2407.01512, UCSD + MIT）是 2024-2026 人形 teleop 事实标准之一。</p>
+<p><strong>核心组件</strong>：① VR 头盔（Apple Vision Pro / Quest）捕获头 / 手腕 / 手指 pose；② 机器人头部双目相机流回 VR 做 immersive 反馈；③ 服务器做 human-to-robot retargeting（IK）；④ 底层控制器把末端目标转关节力矩。</p>
+<p><strong>为什么 Apple Vision Pro</strong>：① 手部跟踪毫米级，SDK 直出 6-DoF；② 眼动 + 视野追踪，机器人头部跟随，沉浸感高；③ 延迟 &lt; 50 ms，比开源 OpenVR 稳。</p>
+<p><strong>典型成果</strong>：MIT 操作员远程控制 UCSD 的 Unitree H1 抓物——推动了一波 humanoid teleop 工作。</p>
+<p><strong>易错</strong>：主要解决"上身"teleop——腿部仍由 RL/MPC 自主控制，操作员不直接控腿；这是与 Mobile ALOHA "全身遥操"的关键差别。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>Q30</b> · 人形 teleop 的 motion retargeting 怎么做？SMPL 到机器人骨架的尺寸校准为什么麻烦？</summary>
+<p><strong>答</strong>：<strong>Motion retargeting</strong>：把人体动作映射到机器人关节空间，输出可执行关节目标。</p>
+<p><strong>两条主流路线</strong>：① <strong>几何/IK 法</strong>：机器人骨架做 IK 匹配末端位置，SEW-Mimic 用闭式几何解；② <strong>学习法</strong>：神经网络从人体姿态回归机器人关节角，GAN/VAE 都用过。</p>
+<p><strong>SMPL 校准的麻烦</strong>：</p>
+<ul><li>SMPL 是 24 关节 + 形状参数 $\beta$（10 维），骨长由 $\beta$ 决定</li><li>机器人骨长固定，关节定义也不同（多数没腰 yaw / 锁骨）</li><li>直接复制关节角不行——同样肩角，人抬 90° 机器人可能 70°（限位 + 骨长）</li><li>标准做法：用 12 个对应关节优化 $\beta$ 让 SMPL 体型最接近机器人，再复制关节角</li></ul>
+<p><strong>易错</strong>：忽略骨长差异直接 retarget 会让"摸鼻子"变成"机器人手在面前 30 cm"——这是 H2O / HumanPlus 强调先做体型对齐的原因。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q31</b> · Mobile ALOHA / ALOHA 2 的 leader-follower 双臂遥操方案为什么比 VR 抓握主流？</summary>
+<p><strong>答</strong>：<strong>Leader-follower</strong>：操作员手握两支小臂（leader），实时同步映射到机器人本体大臂（follower）；50 Hz 流 14-DoF 关节角。</p>
+<p><strong>主流原因</strong>（桌面操作场景）：① <strong>0 retargeting</strong>：leader / follower 关节同构，直接复制角，无需 IK；② <strong>天然力反馈</strong>：leader 用同款电机，能感受 follower 接触阻力；③ <strong>数据质量高</strong>：精细操作（穿针、扣纽扣）远超 VR 手势；④ <strong>成本低</strong>：套件约 $32K，比工业方案便宜一个数量级。</p>
+<p><strong>Mobile ALOHA</strong>：底盘装轮 + 全身 teleop（推车 + 手控双臂）；50 demos 协同训练，扫地 / 炒菜成功率 80%+。</p>
+<p><strong>VR 抓握的位置</strong>：人形上身（OPEN-TeleVision）；leader-follower 适合双臂工作站。两者不冲突，是不同 form factor 的最佳实践。</p>
+<p><strong>易错</strong>：Mobile ALOHA "低成本"是相对工业级——开源套件仍约 $32K，不是"几千块业余项目"。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q32</b> · H2O / OmniH2O 的训练流程：人体动作怎么变成机器人能执行的可行轨迹？</summary>
+<p><strong>答</strong>：H2O / OmniH2O（CMU LeCAR Lab, arXiv 2403.04436）从大规模人类动作（AMASS / Motion-X）训人形模仿任意动作的策略。</p>
+<p><strong>流程</strong>：① Retargeting：SMPL → 机器人骨架；② 可行性过滤：privileged imitation policy（教师）跟踪每条动作，跟不上的丢弃（剔除约 20-30%）；③ 教师-学生蒸馏：cleaned 数据集训学生，输入 SMPL keypoints + 本体感觉，输出关节力矩。</p>
+<p><strong>部署</strong>：实时输入操作员 SMPL keypoints（VR / 视觉 pose），策略出关节动作。</p>
+<p><strong>OmniH2O 升级</strong>（CoRL 2024, arXiv 2406.08858）：通用接口（VR / RGB / 语言）+ dexterous 全身 teleop + 自主策略 + OmniH2O-6 数据集。</p>
+<p><strong>易错</strong>：H2O 不是零样本 retargeting——先要大量人类动作训策略；罕见动作仍需重训。与 Mobile ALOHA 的 demo→BC 路径完全不同。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q33</b> · teleop 数据采集为什么对模仿学习这么关键？数据飞轮里它处于什么位置？</summary>
+<p><strong>答</strong>：模仿学习 / VLA 完全靠演示数据，质量直接决定策略上限——teleop 是大规模收集"高质量带因果性"演示的事实标准。</p>
+<p><strong>为什么 teleop &gt; 视频 / 动捕</strong>：</p>
+<ul><li><strong>视频</strong>：缺力交互信号（不知接触瞬间力）</li><li><strong>动捕</strong>：缺机器人本体感觉（人关节 ≠ 机器人关节）</li><li><strong>teleop</strong>：直接在目标机器人上演示，观测+动作天然对齐</li></ul>
+<p><strong>数据飞轮位置</strong>：teleop demo → 训 BC / Diffusion Policy → 真机 rollout → 失败接管 → 追加 demo → 再训。teleop 是飞轮的种子 + 燃料。</p>
+<p><strong>典型成本</strong>：单 task 200-500 demos 起步；每 demo 1-3 分钟；π0 / GR00T 一次训需 1000+ 小时多任务 teleop。</p>
+<p><strong>实务</strong>：质量 &gt; 数量——10 完美 demos &gt; 100 抖动 demos；操作员熟手再录。Mobile ALOHA / UMI / DROID 是著名数据集。</p>
+<p><strong>易错</strong>：teleop 不能涵盖"机器人自遇失败状态"——DAgger / 真机 RL 在飞轮后期仍不可或缺。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q34</b> · 闭环 teleop 中的延迟（视觉反馈 + 控制下行）一般多少？怎么补偿？</summary>
+<p><strong>答</strong>：典型闭环延迟（OPEN-TeleVision 类系统实测）：</p>
+<table><thead><tr><th>环节</th><th>延迟</th></tr></thead><tbody><tr><td>相机采集 + 编码</td><td>15-30 ms</td></tr><tr><td>网络到 VR</td><td>20-50 ms（WiFi）/ 10-20 ms（有线）</td></tr><tr><td>VR 渲染</td><td>10-20 ms</td></tr><tr><td>操作员反应</td><td>50-200 ms</td></tr><tr><td>VR → 服务器 → 机器人</td><td>10-30 ms</td></tr><tr><td>控制器响应</td><td>5-10 ms</td></tr><tr><td><strong>总闭环</strong></td><td><strong>~150-300 ms</strong></td></tr></tbody></table>
+<p><strong>补偿手段</strong>：① 机器人本体 1 kHz 自主（WBC、平衡），人只负责高层目标；② 预测补偿——按命令推断 100 ms 后位置，用预测态做控制；③ 视频压缩（H.265 低延迟 profile）降到 30 ms 以下；④ 同地部署，避免广域网。</p>
+<p><strong>易错</strong>：延迟不能完全消除——人反应时间是物理极限；好的设计是让人<strong>感觉不到延迟</strong>（VR 浸入 + 机器人本体局部自主），不是真把延迟降到 0。</p>
+</details>
+<h2 id="6-loco-manipulation--上下身解耦5-题">§6 Loco-manipulation / 上下身解耦（5 题）</h2>
+<blockquote><p>移动 + 抓取的耦合任务：腿的动会扰动臂，怎么处理是 2025-2026 人形论文的热点。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>Q35</b> · HumanPlus 的 shadowing + imitation 两阶段方案是怎么走的？</summary>
+<p><strong>答</strong>：HumanPlus（Stanford, arXiv 2406.10454）目标是"机器人实时跟一个人的动作，再从这些 shadowing 数据学自主执行任务"。</p>
+<p><strong>两阶段</strong>：① <strong>Shadowing</strong>：操作员做动作 → RGB pose estimation → retarget → 机器人模仿（10 Hz）。底层 Humanoid Shadowing Transformer 接 32 维姿态出 19 维关节命令；② <strong>Imitation</strong>：shadowing 演示当 demo，训 HIT（类 ACT）出动作 chunk，机器人自主执行。</p>
+<p><strong>为什么这套</strong>：① shadowing 只要 RGB 门槛低；② 同时拿到"人体动作 + 机器人本体感觉"对齐数据；③ 跑跳拳击抓物都验证过。</p>
+<p><strong>真机</strong>：Unitree H1，几十 demo 后自主穿鞋、写字、抓物。</p>
+<p><strong>易错</strong>：shadowing 不等同 OPEN-TeleVision——前者"机器人跟人模仿"（无 VR），后者"沉浸式控机器人"（有 VR）；用途不同。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q36</b> · ExBody 为什么解耦上下身控制？上身跟模仿、下身只跟踪速度有什么取舍？</summary>
+<p><strong>答</strong>：ExBody（UC San Diego, arXiv 2402.16796）观察到：整体模仿人体动作太难——下身要平衡、上身要做表达动作，目标冲突。</p>
+<p><strong>解耦方案</strong>：上身跟踪 retargeted 人体动作（精确模仿），下身只跟踪速度命令（forward / yaw），允许步态自适应。</p>
+<p><strong>为什么 work</strong>：上身模仿对<strong>平衡稳定性要求低</strong>——不极端可容错；下身平衡对<strong>末端动作精度要求低</strong>——走对方向就行。两者独立优化，难度大幅下降。</p>
+<p><strong>取舍</strong>：</p>
+<ul><li>优势：训练简单、sim2real 稳、表现力强（边走边跳舞）</li><li>局限：上下身完全独立无法做全身高动态动作（如蹲下抓地物）；后续 ExBody2 / ASAP / KungfuBot 引入耦合改进</li></ul>
+<p><strong>易错</strong>：解耦不等于上下身没耦合——下身仍承受上身反作用力；只是控制器不直接同时优化两者。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q37</b> · Loco-manipulation 任务里，腿的运动会扰动臂的精度——主流怎么处理这种耦合？</summary>
+<p><strong>答</strong>：人形 / 移动机械臂的 loco-manipulation 中，腿（locomotion）和臂（manipulation）有强耦合：</p>
+<ul><li>走路时躯干周期性晃动 → 末端轨迹有几厘米抖动</li><li>臂伸出时重心前移 → 腿要补偿</li></ul>
+<p><strong>主流处理思路</strong>：</p>
+<ol><li><strong>分层 + 通信</strong>（最常见）：locomotion 控制器把"未来质心轨迹"广播给 manipulation 控制器，manipulation 用这个轨迹做 feed-forward 补偿。如 ANYmal 的 multi-task WBC</li><li><strong>联合 QP</strong>：把臂末端跟踪和腿落脚同写进一个 WBC QP，让优化器自动找折中（计算开销大，但精度高）</li><li><strong>学习联合策略</strong>：用 RL 学一个端到端"全身策略"，省掉显式建模耦合。如 OmniH2O、HumanPlus</li><li><strong>解耦但加补偿</strong>：上身用 IK 时把 IMU 测到的躯干姿态变化做实时补偿</li></ol>
+<p><strong>实务</strong>：产线多用方案 1+4 组合（成熟、可调试）；研究多用方案 3（端到端、效果好）。</p>
+<p><strong>易错</strong>：不要假设手臂用 PD 跟踪就万事大吉——走路时关节震动会激起手臂二阶振动，需要主动补偿，否则末端轨迹完全飞掉。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q38</b> · 人形 stand-up 起立 policy（HoST）和 walking policy 为什么分开训？</summary>
+<p><strong>答</strong>：HoST（SJTU + Shanghai AI Lab + HKU, arXiv 2502.08378）是首个让人形在多姿态下自主起立的工作（Unitree G1 上验证）。</p>
+<p><strong>为什么不和 walking 一起训</strong>：</p>
+<ol><li><strong>状态空间不同</strong>：起立从 lying / kneeling / leaning 等极端姿态，walking 从直立——一个策略两边都做难度爆炸</li><li><strong>奖励冲突</strong>：起立要"低→高"渐进奖励，walking 要维持高姿态，混训不收敛</li><li><strong>课程顺序</strong>：先训 walking（基础），起立训练时 walking 已稳，可以当结束条件用</li></ol>
+<p><strong>HoST 核心技巧</strong>：</p>
+<ul><li>把起立分阶段（lying → kneeling → squat → stand），各阶段单独奖励 + 自动 curriculum</li><li>训练时随机化跌倒姿态（不只平躺）</li><li>部署时跌倒检测 → 切起立 policy → 站起后切回 walking</li></ul>
+<p><strong>易错</strong>：产线"自动起立"（如宇树 G1）多用两段式 + FSM 调度——不是单一全能策略；面试说"一体化全能策略"不准确。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×3</span> <b>Q39</b> · 端到端 VLA 接管人形的上下身控制可行吗？目前主流为什么还是分层（高层语义 + 底层 RL/MPC）？</summary>
+<p><strong>答</strong>：理论上 VLA 可端到端控人形关节力矩，但 2026 年<strong>几乎没有产品这么做</strong>——主流仍是分层。</p>
+<p><strong>端到端难点</strong>：① <strong>频率不匹配</strong>：VLA 5-10 Hz vs 关节力矩 ≥ 200 Hz；② <strong>数据稀</strong>：OpenX / DROID 主要是机械臂，腿足全身 teleop 数据规模小；③ <strong>稳定性兜底</strong>：VLA 错一步可能让人形摔倒（成本几十万），机械臂错只是抓不到，容错差巨大；④ <strong>物理可行性</strong>：VLA 不内置浮动基座动力学，输出可能违反摩擦锥 / 关节限位。</p>
+<p><strong>主流分层</strong>：VLA / LLM（1-5 Hz）出语义目标 → locomotion policy（50-200 Hz）出关节命令 → WBC + 力矩控制（1 kHz）跟踪 + 物理保护。</p>
+<p><strong>前沿</strong>：GR00T-N1 / Figure Helix（快慢双系统）把 VLA 与底层 control 分离，语义层不直接接关节；ASAP / HoST 把特定技能做成可调用 RL 模块。</p>
+<p><strong>易错</strong>："VLA 完全替代传统控制"是 2024-2025 媒体说法；2026 年实际仍分层——VLA 决定"做什么"，腿足底层执行"怎么做"。</p>
+</details>
+<h2 id="7-sim-to-real-for-legged6-题">§7 Sim-to-Real for legged（6 题）</h2>
+<blockquote><p>仿真训出来不能上真机是腿足 RL 最大的坑：actuator network、domain randomization、sim-to-sim 验证是三件套。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×7</span> <b>Q40</b> · 域随机化 domain randomization 在腿足 sim2real 里怎么用？哪些参数必须随机？</summary>
+<p><strong>答</strong>：<strong>域随机化（DR）</strong>：训练时随机化仿真器参数，让策略学到对参数分布鲁棒的特征——部署到真机时把真机当作"分布中的一个样本"。</p>
+<p><strong>腿足必须随机化的参数（高优先级）</strong>：</p>
+<ol><li><strong>质量 / 惯量</strong>：±20-30%（电池电量、负载变化）</li><li><strong>摩擦系数</strong>：脚 - 地接触摩擦 0.4-1.2（不同地面）</li><li><strong>电机参数</strong>：扭矩限制、PD 增益（actuator delay）</li><li><strong>观测噪声</strong>：IMU 漂移、关节编码器抖动</li><li><strong>外部扰动力</strong>：随机推力 50-100 N，持续 0.1-0.3 s</li></ol>
+<p><strong>次优先级</strong>：</p>
+<ul><li>关节摩擦 / 阻尼、连杆质心偏移</li><li>地面接触刚度（软泥 / 硬地）</li><li>地形高度噪声（凹凸不平）</li></ul>
+<p><strong>实务范围设定</strong>：从真机标称值 ±20% 起步，policy 不收敛就降到 ±10%；可部署后再扩展。</p>
+<p><strong>易错</strong>：DR 不是越宽越好——randomization 过大会让 policy 学不出明确策略（变保守的 "走得最慢但永远不摔"）；与 curriculum 配合，从窄到宽逐步扩展是惯例。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>Q41</b> · Hwangbo 等人的 actuator network 解决了什么问题？为什么单纯随机化电机参数不够？</summary>
+<p><strong>答</strong>：Hwangbo et al, Science Robotics 2019（ANYmal 上验证），是腿足 sim2real 奠基工作之一。</p>
+<p><strong>问题</strong>：仿真器电机简化为"指令 → 力矩"线性模型，真实电机有：① 谐波减速器非线性摩擦 / 间隙；② 电流环动态（ms 级低通）；③ 编码器延迟；④ 高速扭矩-速度耦合。单纯随机化 PD 增益 + 力矩限制抓不到这些——sim 中走得好的策略到真机抖。</p>
+<p><strong>Actuator Network</strong>：在真机记录大量 (位置/速度/指令 → 实际力矩) 数据，训 MLP 拟合，然后<strong>换掉仿真器的电机模型</strong>。</p>
+<p><strong>效果</strong>：ANYmal 学到敏捷动态技能（如跑跳、从倒地起身），sim 训练后直接零样本部署到真机——2019 年的标杆结果之一。</p>
+<p><strong>与 DR 关系</strong>：互补。actuator net 抓<strong>确定性</strong>非线性，DR 抓<strong>随机性</strong>变化（样机差异、温度漂移）；两者并用是腿足 sim2real 黄金组合。</p>
+<p><strong>易错</strong>：actuator network 每代硬件要重训——换电机或减速器后旧网络失效，是 product life cycle 的 hidden cost。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>Q42</b> · IsaacGym → IsaacLab → MJX / MuJoCo Playground 这条仿真器演进路线，每一代解决了什么痛点？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th>仿真器</th><th>解决了什么</th></tr></thead><tbody><tr><td><strong>IsaacGym</strong>（2021-2024 EOL）</td><td>GPU 并行（数千 envs），RL 训腿足从天降到小时</td></tr><tr><td><strong>IsaacLab</strong>（2024-）</td><td>接班 IsaacGym；物理后端可换 Newton；统一 IsaacSim 渲染</td></tr><tr><td><strong>MJX / MuJoCo Playground</strong>（2024-）</td><td>JAX-MuJoCo，<strong>全 GPU + 全开源</strong>，不绑 NVIDIA</td></tr></tbody></table>
+<p><strong>痛点演进</strong>：IsaacGym 解算力但视觉弱 + 接触粗糙 + 私有 PhysX；IsaacLab 解视觉 + 资产但仍绑 NVIDIA；MJX 解开源但工业级视觉仍弱。</p>
+<p><strong>实务选择</strong>：腿足本体感觉 RL → MJX；视觉 + 多机器人 + 工业部署 → IsaacLab；老项目 → IsaacGym（新项目不建议，已 EOL）。</p>
+<p><strong>易错</strong>：legged_gym 等老仓库迁到 IsaacLab 不是无痛，资产格式 / API 都有 breaking changes。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>Q43</b> · 仿真到真机一般会先做 sim-to-sim（如 IsaacGym → MuJoCo）验证，为什么这一步很关键？</summary>
+<p><strong>答</strong>：sim-to-sim（在第二个不同仿真器里跑同一策略）是 sim2real 前的"廉价金丝雀"。</p>
+<p><strong>为什么有用</strong>：① 接触模型差异——IsaacGym（PhysX）和 MuJoCo（软接触）对接触建模不同，策略只在一个仿真器 work 说明对仿真细节过拟合；② 零成本验证，先发现问题；③ 跨仿真器表现是 sim2real readiness 的代理指标。</p>
+<p><strong>Humanoid-Gym 等流程</strong>：训练 IsaacGym（4096 envs 快）→ 验证 MuJoCo（接触模型不同）→ 真机 Unitree H1/G1。</p>
+<p><strong>典型失败模式</strong>：sim1 跑得好 → sim2 摔 → 必然 sim2real 失败。常见原因：接触延迟假设不一致；学到特定接触模型的 trick（利用 PhysX 不准做能量回收）；关节限位边界处理不同。</p>
+<p><strong>易错</strong>：sim-to-sim 不能替代 actuator network / DR——它只验证"策略对仿真细节的鲁棒性"，不能补偿真机的非建模动力学。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q44</b> · 腿足机器人感知 locomotion（perceptive）里 height map / elevation map / depth camera 各自的取舍？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th>表示</th><th>优势</th><th>劣势</th></tr></thead><tbody><tr><td><strong>Height map</strong></td><td>紧凑（16×16）、维度低</td><td>离散化误差、遮挡需 inpaint</td></tr><tr><td><strong>Elevation map</strong></td><td>历史融合、抗短时遮挡</td><td>计算 / 内存开销大</td></tr><tr><td><strong>Depth 原始</strong></td><td>最丰富、保留 3D</td><td>数据量大、样本需求高</td></tr></tbody></table>
+<p><strong>主流选择</strong>：ANYmal / Unitree → LiDAR + height map（PIM）；Boston Dynamics Spot → 双目 + elevation map；GA-PHL → 下方 depth + U-Net 实时重建 height map。</p>
+<p><strong>为什么不用 RGB</strong>：腿足策略对几何（高度）敏感，对颜色不敏感——depth 信息密度匹配需求。</p>
+<p><strong>易错</strong>：height map 不是单帧 depth——而是投影到机器人下方网格后的图；坐标变换 + 遮挡处理是工程难点，新手常忽略。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×3</span> <b>Q45</b> · 触地接触瞬间的非连续性怎么处理？仿真器里软接触 vs 硬接触的取舍？</summary>
+<p><strong>答</strong>：脚接触瞬间速度 / 力跳变——仿真和真机最容易不一致的地方。</p>
+<p><strong>两种接触模型</strong>：</p>
+<table><thead><tr><th></th><th>硬接触 / 冲量</th><th>软接触 / 罚函数</th></tr></thead><tbody><tr><td>形式</td><td>LCP / NCP</td><td>$f = k\delta + b\dot\delta$</td></tr><tr><td>代表</td><td>Bullet、ODE、PhysX</td><td>MuJoCo</td></tr><tr><td>优势</td><td>无穿透、物理正确</td><td>快、可微</td></tr><tr><td>劣势</td><td>解器迭代多、冲量模型速度非连续</td><td>有可感知穿透</td></tr></tbody></table>
+<p><strong>MuJoCo 特殊做法</strong>：soft constraint with stiff parameters——可调到接近刚体但仍数学连续，求解快且稳；这是 MuJoCo 成 RL 主流的关键。</p>
+<p><strong>腿足 sim2real 实务</strong>：① 软接触穿透会让策略学"利用穿透做能量回收"trick → 真机失败；② 接触刚度调到 1e5-1e7 N/m；③ 加 actuator network 补差异。</p>
+<p><strong>易错</strong>：MuJoCo 默认软接触对快速跑跳偏弹——训练后策略会"利用弹力"；要主动调硬或加阻尼，否则真机零样本失败。</p>
+</details>
+<hr />
+<h2 id="低频备选频次-1-2未入主表">低频备选（频次 1-2，未入主表）</h2>
+<blockquote><p>以下题目出现频次低（1-2 次），供参考，未纳入主表题号。</p></blockquote>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×2</span> <b>N1</b> · 谐波减速器 vs 行星减速器：人形哪些关节用哪种？为什么？</summary>
+<p><strong>答</strong>：人形关节的两类主流减速器：</p>
+<table><thead><tr><th></th><th>谐波减速器（harmonic）</th><th>行星减速器（planetary）</th></tr></thead><tbody><tr><td>减速比</td><td>高（30-200:1）</td><td>低-中（3-30:1）</td></tr><tr><td>体积 / 重量</td><td>紧凑、轻</td><td>体积大</td></tr><tr><td>反向间隙</td><td>几乎无</td><td>有（约 5-15 弧分）</td></tr><tr><td>精度</td><td>高</td><td>中</td></tr><tr><td>成本</td><td>高（哈默纳科 / 绿的等）</td><td>低</td></tr><tr><td>寿命</td><td>5000-10000 小时</td><td>较短，依赖润滑</td></tr></tbody></table>
+<p><strong>人形典型选型</strong>：</p>
+<ul><li><strong>小臂 / 腕 / 手</strong>：谐波减速器（精度高、轻量）—— 特斯拉 Optimus 旋转关节用谐波 + 框架电机</li><li><strong>大腿 / 髋部</strong>：常用大功率行星 + QDD（quasi-direct drive）方案，要承载高动态冲击</li><li><strong>膝盖</strong>：两种都见——力大用行星，对精度要求高用谐波</li></ul>
+<p><strong>易错</strong>：QDD（直驱风格的小减速比电机）正在取代部分关节的谐波——它牺牲精度换抗冲击和透明力控；Mini-Cheetah、宇树系列大量使用 QDD。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×2</span> <b>N2</b> · 串联弹性致动器（SEA）和直驱（QDD）在腿足里各有什么优劣？</summary>
+<p><strong>答</strong>：</p>
+<table><thead><tr><th></th><th>SEA（串联弹性）</th><th>QDD（准直驱）</th></tr></thead><tbody><tr><td>结构</td><td>电机 + 减速器 + 弹簧</td><td>大扭矩电机 + 小减速比（5-10:1）</td></tr><tr><td>力控</td><td>测弹簧形变得力矩</td><td>反推电流估力矩</td></tr><tr><td>抗冲击</td><td>弹簧吸收</td><td>电机本身被动柔顺</td></tr><tr><td>控制带宽</td><td>受弹簧动态限制</td><td>高带宽（直接控）</td></tr><tr><td>代表</td><td>NASA Valkyrie、IIT COMAN、ANYmal 腿部</td><td>MIT Mini-Cheetah、宇树 Go / G1、Solo</td></tr></tbody></table>
+<p><strong>SEA 历史</strong>：2010-2020 是 NASA Valkyrie / IIT COMAN 等电驱人形的主流（ATLAS 液压、ASIMO 位置伺服皆非 SEA）。</p>
+<p><strong>QDD 接管原因</strong>：① 永磁同步电机 + 高磁链让小减速比也能给足扭矩；② 无串联动力学、控制直接、带宽高；③ Mini-Cheetah 2018 证明跑跳可行；④ 维护简单。</p>
+<p><strong>易错</strong>：SEA 不是过时——KUKA iiwa 类协作机械臂内部仍用 SEA 做柔顺；QDD 是腿足主流，但不是机器人界唯一答案。</p>
+</details>
+<details class="qa">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×2</span> <b>N3</b> · 为什么轮足机器人控制器主流是 LQR，而四足是 MPC？两者的本质区别是什么？</summary>
+<p><strong>答</strong>：轮足 = 轮 + 双腿（Ascento 等），本体是连续接触的倒立摆。</p>
+<p><strong>轮足偏 LQR</strong>：① 轮子持续接触，<strong>无接触模式切换</strong>，动力学连续；② 简化后接近线性倒立摆，LQR 一次离线解 Riccati 就够；③ 实时算力极低。</p>
+<p><strong>四足偏 MPC</strong>：① 接触模式频繁切换（trot / bound），LQR 跨切换无能；② 摩擦锥、力上限是<strong>硬约束</strong>，LQR 无法处理；③ MPC 滚动重规划可处理 contact schedule。</p>
+<p><strong>本质区别</strong>：轮足 = 状态空间稳定问题（经典控制）；四足 / 人形 = 约束 + 切换的混合系统（必须 MPC / 学习）。</p>
+<p><strong>前沿</strong>：人形 RL policy 越来越像"广义 MPC"（隐式优化 + 网络拟合），LQR / MPC / RL 边界在融合（RL-augmented MPC）。</p>
+<p><strong>易错</strong>：不能说"LQR 落后"——简单系统下 LQR 解析 + 可调 + 可证明稳定性仍是工业首选；MPC 在复杂系统不可替代但不是万能更优解。</p>
+</details>
+<hr />
+
+<footer class="aris-footer">
+  Generated by <a href="https://github.com/wanshuiyin/Auto-claude-code-research-in-sleep/blob/main/skills/render-html/SKILL.md">ARIS <code>/render-html</code></a> ·
+  source path <code>docs/interviews/06_legged_control.md</code> ·
+  SHA256 <code>724bf7dd6cdc</code> ·
+  generated at 2026-05-21 16:16 UTC.
+  This is a generated view — edit the source Markdown, then re-render.
+</footer>
+</main>
+
+</div>
+</body>
+</html>
