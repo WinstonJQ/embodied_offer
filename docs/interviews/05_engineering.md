@@ -795,125 +795,243 @@
 
 ## §H 手撕代码（8 题）
 
-> 数值稳定与训练工程手撕段——与上文"概念+答案"题区分开。本节只给"考察点 / 关键实现要点 / 易错"，不贴完整代码。
+> 数值稳定与训练工程手撕段——与上文"概念+答案"题区分开。本节每题给"考察点 / 实现 / 易错"——附 ≤30 行 Python 实现。
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×8</span> <b>✍ H01</b> · 手撕数值稳定 softmax</summary>
 
-**考察点**：为何要减 max；float32 仍可能溢出的边界情况。
+**考察点**：减 max 防 `exp` 溢出；`keepdim=True` 保证 broadcast 正确；float32 仍可能极端 -inf 输入致除零。
 
-**关键实现要点**：
-- `x_max = x.max(dim=-1, keepdim=True).values`。
-- `exp_x = (x - x_max).exp()`。
-- `softmax = exp_x / exp_x.sum(dim=-1, keepdim=True)`。
-- `keepdim=True` 保证 broadcast 正确。
+**实现**：
 
-**易错**：没 keepdim 导致 reduce 后维度对不上；`x - x_max` 后还出现 -inf 时 exp=0、sum=0 → 除零（极端 case，通常被 attention mask 之类的预过滤）。
+```python
+import torch
+
+def softmax_stable(x, dim=-1):
+    # 减 max 后所有元素 ≤ 0，exp 不会上溢
+    x_max = x.max(dim=dim, keepdim=True).values
+    exp_x = (x - x_max).exp()
+    # keepdim=True 让 sum 形状与 exp_x 可广播
+    return exp_x / exp_x.sum(dim=dim, keepdim=True)
+```
+
+**易错**：忘 `keepdim` 致广播错；全 -inf 输入（如整行 padding）exp=0、sum=0 → 除零，应在 mask 时先过滤。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>✍ H02</b> · 手撕 LogSumExp / log_softmax</summary>
 
-**考察点**：`log Σ exp(x) = x_max + log Σ exp(x - x_max)`；log_softmax 为何要一步算。
+**考察点**：`log Σ exp(x) = x_max + log Σ exp(x - x_max)`；log_softmax 必须一步算（不要 `log(softmax(x))`）。
 
-**关键实现要点**：
-- `lse(x) = x_max + log((x - x_max).exp().sum(dim=-1))`。
-- `log_softmax(x) = x - lse(x).unsqueeze(-1)`。
-- 不要做 `log(softmax(x))`（softmax 输出在 0 附近时 log 接近 -inf，数值不稳）。
-- F.log_softmax 内部就是这套写法。
+**实现**：
 
-**易错**：直接 `log(softmax(x))`；忘加 keepdim/unsqueeze 导致广播错；用 float16 时 lse 仍可能上溢，需 float32 中间量。
+```python
+import torch
+
+def logsumexp(x, dim=-1):
+    x_max = x.max(dim=dim, keepdim=True).values
+    # log-sum-exp 标准式：把 max 提出 exp 防上溢
+    return x_max.squeeze(dim) + (x - x_max).exp().sum(dim=dim).log()
+
+def log_softmax(x, dim=-1):
+    # 等价 x - logsumexp(x)；一步算避免 log(softmax) 在 prob≈0 处 log(0) = -inf
+    x_max = x.max(dim=dim, keepdim=True).values
+    shifted = x - x_max
+    return shifted - shifted.exp().sum(dim=dim, keepdim=True).log()
+```
+
+**易错**：用 `log(softmax(x))`；忘 `keepdim` 致广播错；float16 下 LSE 仍可能上溢，应用 float32 中间量。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×7</span> <b>✍ H03</b> · 手撕 cross-entropy（含数值稳定）</summary>
 
-**考察点**：CE 与 NLL Loss 的关系；为何要用 log_softmax 而非 softmax + log。
+**考察点**：CE = NLL + log_softmax 的组合；padding 用 `ignore_index` 屏蔽；soft label 走另一公式。
 
-**关键实现要点**：
-- `CE(logits, target) = -log_softmax(logits).gather(-1, target.unsqueeze(-1))`。
-- one-hot 形式：`-Σ y_i · log p_i`（label smoothing 时常用 soft label）。
-- PyTorch `F.cross_entropy(logits, target)` 已内部数值稳定，不要先 softmax。
-- ignore_index：padding token loss 屏蔽（NLP / VLA 训练常用）。
+**实现**：
 
-**易错**：先 softmax 再 log 导致数值不稳；padding 没 mask（loss 被噪声拉偏）；用 `reduction='mean'` 但 ignore 多导致样本数算错。
+```python
+import torch
+import torch.nn.functional as F
+
+def cross_entropy_hard(logits, target, ignore_index=-100):
+    # logits: [B, C]；target: [B]，padding 处填 -100 屏蔽
+    log_p = F.log_softmax(logits, dim=-1)        # 一步算，避免 log(softmax)
+    nll = -log_p.gather(-1, target.clamp(min=0).unsqueeze(-1)).squeeze(-1)
+    mask = (target != ignore_index).float()
+    # mean 必须按有效样本数归一，否则 ignore 多时被稀释
+    return (nll * mask).sum() / mask.sum().clamp(min=1.0)
+
+def cross_entropy_soft(logits, soft_target):
+    # soft_target: [B, C] 概率分布（label smoothing / 蒸馏常用）
+    log_p = F.log_softmax(logits, dim=-1)
+    return -(soft_target * log_p).sum(-1).mean()
+```
+
+**易错**：先 softmax 再 log 数值不稳；padding 未 mask 拉偏 loss；`reduction='mean'` 但分母用 batch 大小（应用有效样本数）。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>✍ H04</b> · 手撕 KL divergence（离散 / 高斯 / forward vs reverse）</summary>
 
-**考察点**：KL(p‖q) 与 KL(q‖p) 不对称；高斯之间的闭式；PyTorch `F.kl_div` 的输入约定。
+**考察点**：KL 不对称（forward mode-covering / reverse mode-seeking）；高斯闭式；`F.kl_div` 首参约定 `log_q`。
 
-**关键实现要点**：
-- 离散：`KL = Σ p(x) · (log p(x) - log q(x))`，输入用 log_prob 比 prob 稳。
-- 高斯 vs `N(0,I)`：`0.5 · Σ(μ² + σ² - 1 - log σ²)`（VAE 常用）。
-- forward `KL(p‖q)` 是 mode-covering；reverse `KL(q‖p)` 是 mode-seeking。
-- `F.kl_div(input=log_q, target=p)` 计算的是 `Σ p · (log p - log q)`，注意输入是 log_q。
+**实现**：
 
-**易错**：log 用 σ 还是 σ²（差一倍）；F.kl_div 输入第一参传 prob 而非 log_prob；forward / reverse 方向反。
+```python
+import torch
+import torch.nn.functional as F
+
+def kl_discrete(log_p, log_q):
+    # 离散 KL(p‖q) = Σ p·(log p - log q)；用 log_prob 入参数值稳
+    # p=0 处约定 0·log(0/q)=0；mask 掉 log_p=-inf 项避免 0·inf=NaN
+    p = log_p.exp()
+    term = p * (log_p - log_q)
+    return term.masked_fill(log_p == float('-inf'), 0.0).sum(-1)
+
+def kl_gauss_to_std(mu, logvar):
+    # VAE 特例：KL(N(μ,σ²) ‖ N(0,I)) 闭式
+    # 0.5 · Σ(μ² + σ² - 1 - log σ²)
+    return 0.5 * (mu.pow(2) + logvar.exp() - 1 - logvar).sum(-1)
+
+def kl_via_F(log_q, p_prob):
+    # PyTorch 约定：第一参传 log_q，第二参传 p（prob，非 log）
+    # 等价 Σ p·(log p - log q)
+    return F.kl_div(log_q, p_prob, reduction='batchmean')
+```
+
+**易错**：log 用 σ 还是 σ²（差一倍）；`F.kl_div` 首参传 prob 而非 log_prob；forward/reverse 方向反；离散输入 p,q 都用 prob 致 `log(0)`。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×9</span> <b>✍ H05</b> · 手撕 mini-batch 训练循环</summary>
 
-**考察点**：`zero_grad → forward → loss → backward → step` 顺序；为何要 `zero_grad`。
+**考察点**：`zero_grad → forward → backward → step` 顺序；梯度累加 + AMP 顺序；推理用 `eval()` + `no_grad()`。
 
-**关键实现要点**：
-- 标准：`opt.zero_grad(); pred = model(x); loss = crit(pred, y); loss.backward(); opt.step()`。
-- 推理：`model.eval()` + `with torch.no_grad():`，关 dropout / 停 BN running stats 更新。
-- 混合精度：`GradScaler.scale(loss).backward(); scaler.step(opt); scaler.update()`。
-- 梯度累加：累 K 步后再 step、再 zero_grad。
+**实现**：
 
-**易错**：zero_grad 漏掉 → 梯度累加；忘 eval 致 BN/Dropout 异常；no_grad 没包导致显存炸；累加完忘 zero_grad。
+```python
+import torch
+from torch.cuda.amp import autocast, GradScaler
+
+def train_epoch(model, loader, opt, crit, device, accum=1):
+    model.train()
+    scaler = GradScaler()
+    opt.zero_grad(set_to_none=True)  # set_to_none 比置 0 更省显存
+    for i, (x, y) in enumerate(loader):
+        x, y = x.to(device), y.to(device)
+        with autocast():
+            loss = crit(model(x), y) / accum         # 梯度累加要先除步数
+        scaler.scale(loss).backward()                # AMP loss 先 scale 再 backward
+        if (i + 1) % accum == 0:
+            scaler.step(opt); scaler.update()
+            opt.zero_grad(set_to_none=True)          # step 之后清梯度
+
+    # 处理 loader 长度非 accum 整数倍：末尾残余梯度也 step
+    if len(loader) % accum != 0:
+        scaler.step(opt); scaler.update()
+        opt.zero_grad(set_to_none=True)
+
+@torch.no_grad()
+def evaluate(model, loader, crit, device):
+    model.eval()  # 关 dropout / 停 BN running 更新
+    return sum(crit(model(x.to(device)), y.to(device)) for x, y in loader)
+```
+
+**易错**：`zero_grad` 漏 → 梯度累加错；忘 `model.eval()` BN/Dropout 异常；`no_grad` 没包显存炸；AMP loss 没 scale。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×4</span> <b>✍ H06</b> · 手撕 warmup + cosine 学习率 schedule</summary>
 
-**考察点**：warmup 防初始 lr 过大；cosine 末期渐降；边界连续性。
+**考察点**：warmup 防初始 lr 过大；cosine 末期渐降；边界 `t=t_w` 处 lr 必须连续（=lr_max）。
 
-**关键实现要点**：
-- warmup：`t < t_w` 时 `lr = lr_max · t / t_w`（线性增）。
-- cosine：`t ≥ t_w` 时 `lr = 0.5 · lr_max · (1 + cos(π · (t - t_w) / (T - t_w)))`。
-- `T` 是总 step 数（不是 epoch 数，注意 step 粒度）。
-- 实务用 `LambdaLR` 或 HuggingFace `get_cosine_schedule_with_warmup`。
+**实现**：
 
-**易错**：warmup_end 处 lr 跳变（公式不连续）；T 用 epoch 数导致末期还没降到底；step 与 batch 关系算错。
+```python
+import math
+from torch.optim.lr_scheduler import LambdaLR
+
+def warmup_cosine(opt, t_warm, t_total, min_ratio=0.0):
+    # t_total 用 step 数而非 epoch（step 粒度更细）
+    def lr_lambda(t):
+        if t < t_warm:
+            # 线性 warmup：t=0 → 0；t=t_warm → 1（边界连续）
+            return float(t) / max(1, t_warm)
+        # cosine 末期：t=t_warm → 1；t=t_total → min_ratio
+        progress = (t - t_warm) / max(1, t_total - t_warm)
+        cos = 0.5 * (1.0 + math.cos(math.pi * progress))
+        return min_ratio + (1.0 - min_ratio) * cos
+    return LambdaLR(opt, lr_lambda)
+```
+
+**易错**：`t_warm=0` 致除零；`t_total` 用 epoch 数末期未降到底；warmup 公式从 1 开始致 `t=0` 时 `lr=lr_max`；边界 `t=t_warm` lr 跳变。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>✍ H07</b> · 手撕 Adam / AdamW 更新规则</summary>
 
-**考察点**：一阶/二阶 momentum；bias correction；AdamW 与 Adam 在 weight decay 上的差别。
+**考察点**：一阶/二阶 momentum + bias correction；AdamW 解耦 weight decay（不混进 momentum）。
 
-**关键实现要点**：
-- `m_t = β1·m + (1-β1)·g`；`v_t = β2·v + (1-β2)·g²`，常用 β1=0.9, β2=0.999。
-- bias correct：`m̂ = m / (1 - β1^t)`，`v̂ = v / (1 - β2^t)`。
-- 更新：`θ ← θ - lr · m̂ / (√v̂ + ε)`，ε=1e-8。
-- AdamW：解耦 weight decay，`θ ← θ - lr·(m̂/(√v̂+ε) + λ·θ)`，不混进 momentum。
+**实现**：
 
-**易错**：忘 bias correction；把 weight decay 加到 grad 里（这是 L2 正则，不是 AdamW）；ε 太小导致除零。
+```python
+import torch
+
+def adamw_step(params, grads, state, lr=1e-3, betas=(0.9, 0.999),
+               eps=1e-8, wd=1e-2):
+    # state[i] = {'m': ..., 'v': ..., 't': int}；外层维护
+    b1, b2 = betas
+    for p, g, s in zip(params, grads, state):
+        s['t'] += 1
+        # 一阶/二阶 momentum 指数滑动
+        s['m'].mul_(b1).add_(g, alpha=1 - b1)
+        s['v'].mul_(b2).addcmul_(g, g, value=1 - b2)
+        # bias correction：消除初期 m,v 偏向 0 的偏置
+        m_hat = s['m'] / (1 - b1 ** s['t'])
+        v_hat = s['v'] / (1 - b2 ** s['t'])
+        # AdamW：weight decay 直接乘 p，不进 m/v
+        # （若改为 Adam，把 wd*p 那项加到 g 里、再走主更新即为 L2 正则）
+        p.data.mul_(1 - lr * wd).addcdiv_(m_hat, v_hat.sqrt().add_(eps), value=-lr)
+```
+
+**易错**：忘 bias correction（初期步太小）；把 `wd*p` 加到 grad（变 L2 正则非 AdamW）；`v̂` 算根之前没存独立副本，多组 param 共享 buffer 时被破坏。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×3</span> <b>✍ H08</b> · 手撕 dropout（train vs eval + inverted scale）</summary>
 
-**考察点**：train 时随机置零并 scale；eval 时直接通过；inverted dropout 把 scale 放训练侧。
+**考察点**：train 随机置零并 scale；eval 直接通过；inverted dropout 把 `1/(1-p)` 放训练侧让推理零开销。
 
-**关键实现要点**：
-- train：`mask ~ Bernoulli(1-p)`；`out = x * mask / (1 - p)`（inverted dropout）。
-- eval：`out = x`，不做任何事。
-- 保证 `E[out] = x` 跨 train/eval 一致。
-- PyTorch `nn.Dropout` 自动按 `model.train()` / `eval()` 切换。
+**实现**：
 
-**易错**：推理时还 drop（用 `F.dropout` 直接 forward 但忘传 `training=...`）；忘 scale 导致 train/test 期望不匹配；在残差分支前后位置放错。
+```python
+import torch
+import torch.nn as nn
+
+class Dropout(nn.Module):
+    def __init__(self, p=0.5):
+        super().__init__()
+        assert 0.0 <= p < 1.0
+        self.p = p
+
+    def forward(self, x):
+        if not self.training or self.p == 0.0:
+            return x  # 推理无开销
+        # mask ~ Bernoulli(1-p)：保留概率 1-p；用 x.dtype 防 fp16/bf16 被提升
+        mask = (torch.rand_like(x) >= self.p).to(x.dtype)
+        # inverted dropout：除 (1-p) 让 E[out] = x，无需推理时 scale
+        return x * mask / (1.0 - self.p)
+```
+
+**易错**：推理还 drop（`F.dropout` 忘传 `training=self.training`）；忘 scale 致 E[out] 不一致；位置放错（残差里 dropout 在 add 之后破坏恒等映射）。
 
 </details>
 

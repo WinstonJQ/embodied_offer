@@ -135,5 +135,39 @@
     "30 道普通题处于 350-500 字 WARN 区间（无 >500 字 FAIL，按阈值规则可接受）",
     "Q35 开放题约 513 字，进入开放题 WARN 区间（< 700 字，可接受）"
   ],
-  "max_rounds_reached": false
+  "max_rounds_reached": false,
+  "handcoding_review": {
+    "section": "§H 手撕代码 (8 items, H01-H08)",
+    "model": "gpt-5.5",
+    "reasoning_effort": "xhigh",
+    "total_rounds": 2,
+    "final_verdict": "WARN",
+    "rounds": [
+      {
+        "round": 1,
+        "verdict": "WARN",
+        "warnings": [
+          "H05 训练循环 len(loader)%accum != 0 时末尾残余梯度未 step",
+          "H07 易错关于 epsilon 位置的描述与代码不一致"
+        ]
+      },
+      {
+        "round": 2,
+        "verdict": "WARN",
+        "fixes_applied": [
+          "H05 添加末尾 partial-accum 触发 step",
+          "H07 易错改为指出 v̂ buffer aliasing 风险（更准确）",
+          "H04 kl_discrete 加 mask 处理 p=0 项（额外补，0·log0=0 约定）",
+          "H08 mask 用 x.dtype 而非 float()（保 fp16/bf16 dtype）"
+        ],
+        "remaining_warnings": []
+      }
+    ],
+    "checks_run": [
+      "answer_conciseness",
+      "details_block_well_formed",
+      "code_correctness"
+    ],
+    "code_audit_summary": "8 题代码 ≤30 行；softmax/LSE/log_softmax keepdim 正确；F.cross_entropy/F.kl_div API 用法正确；AMP GradScaler 顺序对；AdamW 解耦 weight decay；warmup 边界 t=t_warm 处 lr=lr_max 连续；inverted dropout E[out]=x。最终 WARN 仅因 round 1 警告（已修），无 round 2 新增警告。"
+  }
 }
