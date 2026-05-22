@@ -800,3 +800,159 @@ Actor 仍用标准 SAC 风格最大化 Q，不是 in-sample max（IQL 才是）�
 **易错**：APPO 的 off-policy 程度比 SAC 小得多（旧策略只滞后 1-2 个 batch），通常不需要完整 IS 纠正；V-trace 做的是截断 IS 校正，不是完整重加权。
 
 </details>
+
+---
+
+## §H 手撕代码（10 题）
+
+> RL 核心公式手撕段——与上文"概念+答案"题区分开。本节只给"考察点 / 关键实现要点 / 易错"，不贴完整代码。
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×8</span> <b>✍ H01</b> · 手撕 Q-learning 更新（TD(0) 表格版）</summary>
+
+**考察点**：`Q[s,a] += α·(r + γ·max_a' Q[s',a'] - Q[s,a])`；α、γ 含义；为何是 off-policy。
+
+**关键实现要点**：
+- 表格 `Q[S×A]` 初始化为 0 或小常数。
+- ε-greedy 探索：以 ε 随机动作、否则 `argmax_a Q[s]`。
+- 终止状态 `V(s_T) = 0` → 在 update 里乘 `(1 - done)`。
+- 学习率 α 一般 0.1，γ 一般 0.95-0.99。
+
+**易错**：α 太大不收敛、太小爬太慢；终止时还加 `γ·max Q(s')` 导致 bootstrap 出 episode；连续动作不能用 max → 应换 DDPG/SAC。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×6</span> <b>✍ H02</b> · 手撕 DQN（含 target net + replay buffer）</summary>
+
+**考察点**：经验回放打破时序相关性；target network 稳定 bootstrap。
+
+**关键实现要点**：
+- 主网络 `Q(s,a;θ)`；target 网络 `Q(s,a;θ⁻)` 每 N 步硬拷贝（或软更新 `θ⁻ ← τθ + (1-τ)θ⁻`）。
+- replay buffer 存 `(s, a, r, s', done)`；mini-batch 训练。
+- `target = r + γ · max_a' Q_target(s', a') · (1 - done)`，target 上必须 `.detach()`。
+- loss = `MSE(Q(s,a), target)` 或 Huber loss。
+
+**易错**：target 未 detach 导致梯度回灌；done=True 还加 `γV(s')`；replay 容量太小导致样本相关性高、训练不稳。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×14</span> <b>✍ H03</b> · 手撕 PPO clipped objective（含 value loss + entropy）</summary>
+
+**考察点**：`min(r·A, clip(r, 1-ε, 1+ε)·A)`；为何用 min；多 epoch 更新与 ratio 偏离的关系。
+
+**关键实现要点**：
+- `ratio = exp(log_π_new(a|s) - log_π_old(a|s))`，old logprob 采样时存好，不用现网络重算。
+- 策略损失：`-min(ratio·A, clip(ratio, 1-ε, 1+ε)·A)` 的均值。
+- 总 loss：`L_policy + c1·MSE(V_pred, V_target) - c2·H(π)`，常用 `ε=0.2, c1=0.5, c2=0.01`。
+- advantage 做 mean-std 归一化。
+
+**易错**：old logprob 没 detach → 重复梯度；entropy 符号错（应加）；多 epoch 时 ratio 漂太远未 early stop。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×9</span> <b>✍ H04</b> · 手撕 GAE 优势估计</summary>
+
+**考察点**：λ 在 0/1 间的 bias/variance 权衡；从后向前递归计算。
+
+**关键实现要点**：
+- TD 残差：`δ_t = r_t + γ·V(s_{t+1})·(1 - done) - V(s_t)`。
+- 反向递归：`A_t = δ_t + γ·λ·A_{t+1}·(1 - done)`；终止时 `A_T = δ_T`。
+- λ=0 → TD(0)（高 bias 低 var）；λ=1 → MC（低 bias 高 var）；常用 `λ=0.95, γ=0.99`。
+- value target：`V_target = A + V_old`，供 critic 学。
+
+**易错**：正向遍历（应反向）；done 处没截断 bootstrap；V_target 没用 `V_old`（用当前 critic 输出 → 训练抖）。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>✍ H05</b> · 手撕 DDPG / TD3 critic update</summary>
+
+**考察点**：DDPG 是连续动作 Q-learning；TD3 三大改进——双 Q、actor 延迟、target policy smoothing。
+
+**关键实现要点**：
+- DDPG target：`y = r + γ · Q_target(s', μ_target(s'))`。
+- TD3：`a' = μ_target(s') + clip(ε, -c, c)`；`y = r + γ · min(Q1_t, Q2_t)(s', a')` 并对 done 截断。
+- 双 critic：`L = MSE(Q1, y) + MSE(Q2, y)`。
+- Actor（TD3）：`-mean(Q1(s, μ(s)))`，每 2 个 critic step 更新一次。
+
+**易错**：target 未 detach；TD3 actor 用 `min(Q1,Q2)` 反而抑制学习（用 Q1 即可）；探索 noise 与 target smoothing noise 混淆。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×6</span> <b>✍ H06</b> · 手撕 SAC（reparameterize + 可学温度 α）</summary>
+
+**考察点**：max-entropy RL 目标；reparameterize 让梯度穿过采样；tanh 雅可比修正。
+
+**关键实现要点**：
+- actor 输出 `μ, log_σ`；`u = μ + σ·ε, ε~N(0,I)`；`a = tanh(u)`。
+- log_prob 修正：`log π(a|s) = log N(u; μ, σ) - Σ log(1 - tanh(u)² + 1e-6)`。
+- Q target：`r + γ·(min(Q1_t, Q2_t)(s', a') - α·log π(a'|s'))`，a' 重新采样。
+- α 自适应：`loss_α = -log_α · (log π(a|s) + target_ent).detach()`，`target_ent = -|A|`。
+
+**易错**：忘 tanh 雅可比修正 → π 不归一；α 不可学卡死；target_ent 设错；两个 critic 共用同一组采样 a' 导致 bias。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×8</span> <b>✍ H07</b> · 手撕 DPO loss</summary>
+
+**考察点**：从 RLHF 推导而来；只需 ref + policy 两个模型，不要 reward model；β 控制 KL 强度。
+
+**关键实现要点**：
+- 对每对 `(prompt, y_w, y_l)`：算 `log_π_θ(y|x) - log_π_ref(y|x)` 的差值（token-level sum 再做差）。
+- `r_w = β·(log_π_θ(y_w|x) - log_π_ref(y_w|x))`；`r_l` 同理。
+- `loss = -log σ(r_w - r_l)`，沿 batch 平均。
+- `π_ref` 必须 `eval() + no_grad()`，参数 freeze。
+
+**易错**：ref 没 freeze 导致协同漂移；β 跟温度搞混（β 越大越接近 reward model 风格）；log_prob 没 padding mask；忘把 prompt token 的 loss 屏蔽。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×5</span> <b>✍ H08</b> · 手撕 GRPO loss（group relative policy opt）</summary>
+
+**考察点**：DeepSeek-R1 用的 RL 算法；group baseline 替代 critic；为何省内存。
+
+**关键实现要点**：
+- 同一 prompt 采 G 个 response → reward `r_1..r_G`。
+- baseline = `mean(r)`，advantage `A_i = (r_i - mean) / (std + ε)`（组内 z-score）。
+- 用 PPO clipped 形式：`min(ratio·A, clip(ratio, 1-ε, 1+ε)·A)`。
+- 无 value head，省一份模型显存；G 一般 4-8。
+
+**易错**：把 GRPO 当 DPO（DPO 是离线偏好对、GRPO 是在线 RL）；group size 太小 → baseline 噪声大；std 没加 ε 出现除零。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>✍ H09</b> · 手撕 importance sampling 比率</summary>
+
+**考察点**：`E_p[f(x)] = E_q[f(x)·p(x)/q(x)]`；为何 off-policy 必须用；多步 IS 方差爆炸。
+
+**关键实现要点**：
+- `ratio = π_new(a|s) / π_old(a|s) = exp(log_π_new - log_π_old)`。
+- 单步可用；多步累乘 → 方差指数级增长。
+- PPO 通过 clip(ratio, 1-ε, 1+ε) 抑制极端值。
+- V-trace 做截断 IS（`ρ = min(ratio, ρ_bar)`）。
+
+**易错**：把 ratio 当 reward；忘 detach old policy；累乘多步 IS 时不截断；用概率而非 log_prob 计算 → 数值不稳。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×3</span> <b>✍ H10</b> · 手撕 Categorical 采样 + log_prob</summary>
+
+**考察点**：多项式采样；为何用 logits 比 probs 数值稳。
+
+**关键实现要点**：
+- 用 `torch.distributions.Categorical(logits=logits)`，避免 `Categorical(probs=...)` 在 0 概率处 `log(0)`。
+- 采样：`a = dist.sample()`，shape `[B]`。
+- log_prob：`dist.log_prob(a)` 等价于 `F.log_softmax(logits, -1).gather(-1, a.unsqueeze(-1)).squeeze(-1)`。
+- entropy：`dist.entropy()`，正则项常用。
+
+**易错**：用 `probs` 输入但内部还要 log（数值不稳）；`torch.multinomial` 不返回 log_prob 需另算；忘 reshape gather 索引维度。
+
+</details>

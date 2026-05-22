@@ -7,8 +7,8 @@
 
 <meta name="generator" content="ARIS render-html (academic, v1)">
 <meta name="aris:source-path" content="docs/interviews/02_rl_algo.md">
-<meta name="aris:source-sha256" content="d83bb6e217855795c952c3f92f30220ebbc07581862698680aea41911aa69b21">
-<meta name="aris:generated-at" content="2026-05-21 02:50 UTC">
+<meta name="aris:source-sha256" content="d1f33de10e59b4514b378a2c6783e38f2a86713c92dfd02ce3afba53e088d6c0">
+<meta name="aris:generated-at" content="2026-05-22 00:56 UTC">
 
 <!-- MathJax 3 -->
 <script>
@@ -401,6 +401,8 @@ footer.aris-footer a { color: var(--ink-muted); border-bottom: 1px dotted var(--
 </li>
 <li><a href="#8-低频备选3-题">§8 低频备选（3 题）</a>
 </li>
+<li><a href="#h-手撕代码10-题">§H 手撕代码（10 题）</a>
+</li>
 </ol>
 </nav>
 
@@ -791,12 +793,85 @@ footer.aris-footer a { color: var(--ink-muted); border-bottom: 1px dotted var(--
 <p><strong>与同步 PPO 区别</strong>：同步等所有 worker 完成后再更新（木桶效应）；APPO 不等待慢 worker，吞吐量提升显著但引入略多 off-policy bias。</p>
 <p><strong>易错</strong>：APPO 的 off-policy 程度比 SAC 小得多（旧策略只滞后 1-2 个 batch），通常不需要完整 IS 纠正；V-trace 做的是截断 IS 校正，不是完整重加权。</p>
 </details>
+<hr />
+<h2 id="h-手撕代码10-题">§H 手撕代码（10 题）</h2>
+<blockquote><p>RL 核心公式手撕段——与上文"概念+答案"题区分开。本节只给"考察点 / 关键实现要点 / 易错"，不贴完整代码。</p></blockquote>
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×8</span> <b>✍ H01</b> · 手撕 Q-learning 更新（TD(0) 表格版）</summary>
+<p><strong>考察点</strong>：<code>Q[s,a] += α·(r + γ·max_a&#x27; Q[s&#x27;,a&#x27;] - Q[s,a])</code>；α、γ 含义；为何是 off-policy。</p>
+<p><strong>关键实现要点</strong>：</p>
+<ul><li>表格 <code>Q[S×A]</code> 初始化为 0 或小常数。</li><li>ε-greedy 探索：以 ε 随机动作、否则 <code>argmax_a Q[s]</code>。</li><li>终止状态 <code>V(s_T) = 0</code> → 在 update 里乘 <code>(1 - done)</code>。</li><li>学习率 α 一般 0.1，γ 一般 0.95-0.99。</li></ul>
+<p><strong>易错</strong>：α 太大不收敛、太小爬太慢；终止时还加 <code>γ·max Q(s&#x27;)</code> 导致 bootstrap 出 episode；连续动作不能用 max → 应换 DDPG/SAC。</p>
+</details>
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×6</span> <b>✍ H02</b> · 手撕 DQN（含 target net + replay buffer）</summary>
+<p><strong>考察点</strong>：经验回放打破时序相关性；target network 稳定 bootstrap。</p>
+<p><strong>关键实现要点</strong>：</p>
+<ul><li>主网络 <code>Q(s,a;θ)</code>；target 网络 <code>Q(s,a;θ⁻)</code> 每 N 步硬拷贝（或软更新 <code>θ⁻ ← τθ + (1-τ)θ⁻</code>）。</li><li>replay buffer 存 <code>(s, a, r, s&#x27;, done)</code>；mini-batch 训练。</li><li><code>target = r + γ · max_a&#x27; Q_target(s&#x27;, a&#x27;) · (1 - done)</code>，target 上必须 <code>.detach()</code>。</li><li>loss = <code>MSE(Q(s,a), target)</code> 或 Huber loss。</li></ul>
+<p><strong>易错</strong>：target 未 detach 导致梯度回灌；done=True 还加 <code>γV(s&#x27;)</code>；replay 容量太小导致样本相关性高、训练不稳。</p>
+</details>
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×14</span> <b>✍ H03</b> · 手撕 PPO clipped objective（含 value loss + entropy）</summary>
+<p><strong>考察点</strong>：<code>min(r·A, clip(r, 1-ε, 1+ε)·A)</code>；为何用 min；多 epoch 更新与 ratio 偏离的关系。</p>
+<p><strong>关键实现要点</strong>：</p>
+<ul><li><code>ratio = exp(log_π_new(a|s) - log_π_old(a|s))</code>，old logprob 采样时存好，不用现网络重算。</li><li>策略损失：<code>-min(ratio·A, clip(ratio, 1-ε, 1+ε)·A)</code> 的均值。</li><li>总 loss：<code>L_policy + c1·MSE(V_pred, V_target) - c2·H(π)</code>，常用 <code>ε=0.2, c1=0.5, c2=0.01</code>。</li><li>advantage 做 mean-std 归一化。</li></ul>
+<p><strong>易错</strong>：old logprob 没 detach → 重复梯度；entropy 符号错（应加）；多 epoch 时 ratio 漂太远未 early stop。</p>
+</details>
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×9</span> <b>✍ H04</b> · 手撕 GAE 优势估计</summary>
+<p><strong>考察点</strong>：λ 在 0/1 间的 bias/variance 权衡；从后向前递归计算。</p>
+<p><strong>关键实现要点</strong>：</p>
+<ul><li>TD 残差：<code>δ_t = r_t + γ·V(s_{t+1})·(1 - done) - V(s_t)</code>。</li><li>反向递归：<code>A_t = δ_t + γ·λ·A_{t+1}·(1 - done)</code>；终止时 <code>A_T = δ_T</code>。</li><li>λ=0 → TD(0)（高 bias 低 var）；λ=1 → MC（低 bias 高 var）；常用 <code>λ=0.95, γ=0.99</code>。</li><li>value target：<code>V_target = A + V_old</code>，供 critic 学。</li></ul>
+<p><strong>易错</strong>：正向遍历（应反向）；done 处没截断 bootstrap；V_target 没用 <code>V_old</code>（用当前 critic 输出 → 训练抖）。</p>
+</details>
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>✍ H05</b> · 手撕 DDPG / TD3 critic update</summary>
+<p><strong>考察点</strong>：DDPG 是连续动作 Q-learning；TD3 三大改进——双 Q、actor 延迟、target policy smoothing。</p>
+<p><strong>关键实现要点</strong>：</p>
+<ul><li>DDPG target：<code>y = r + γ · Q_target(s&#x27;, μ_target(s&#x27;))</code>。</li><li>TD3：<code>a&#x27; = μ_target(s&#x27;) + clip(ε, -c, c)</code>；<code>y = r + γ · min(Q1_t, Q2_t)(s&#x27;, a&#x27;)</code> 并对 done 截断。</li><li>双 critic：<code>L = MSE(Q1, y) + MSE(Q2, y)</code>。</li><li>Actor（TD3）：<code>-mean(Q1(s, μ(s)))</code>，每 2 个 critic step 更新一次。</li></ul>
+<p><strong>易错</strong>：target 未 detach；TD3 actor 用 <code>min(Q1,Q2)</code> 反而抑制学习（用 Q1 即可）；探索 noise 与 target smoothing noise 混淆。</p>
+</details>
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×6</span> <b>✍ H06</b> · 手撕 SAC（reparameterize + 可学温度 α）</summary>
+<p><strong>考察点</strong>：max-entropy RL 目标；reparameterize 让梯度穿过采样；tanh 雅可比修正。</p>
+<p><strong>关键实现要点</strong>：</p>
+<ul><li>actor 输出 <code>μ, log_σ</code>；<code>u = μ + σ·ε, ε~N(0,I)</code>；<code>a = tanh(u)</code>。</li><li>log_prob 修正：<code>log π(a|s) = log N(u; μ, σ) - Σ log(1 - tanh(u)² + 1e-6)</code>。</li><li>Q target：<code>r + γ·(min(Q1_t, Q2_t)(s&#x27;, a&#x27;) - α·log π(a&#x27;|s&#x27;))</code>，a' 重新采样。</li><li>α 自适应：<code>loss_α = -log_α · (log π(a|s) + target_ent).detach()</code>，<code>target_ent = -|A|</code>。</li></ul>
+<p><strong>易错</strong>：忘 tanh 雅可比修正 → π 不归一；α 不可学卡死；target_ent 设错；两个 critic 共用同一组采样 a' 导致 bias。</p>
+</details>
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×8</span> <b>✍ H07</b> · 手撕 DPO loss</summary>
+<p><strong>考察点</strong>：从 RLHF 推导而来；只需 ref + policy 两个模型，不要 reward model；β 控制 KL 强度。</p>
+<p><strong>关键实现要点</strong>：</p>
+<ul><li>对每对 <code>(prompt, y_w, y_l)</code>：算 <code>log_π_θ(y|x) - log_π_ref(y|x)</code> 的差值（token-level sum 再做差）。</li><li><code>r_w = β·(log_π_θ(y_w|x) - log_π_ref(y_w|x))</code>；<code>r_l</code> 同理。</li><li><code>loss = -log σ(r_w - r_l)</code>，沿 batch 平均。</li><li><code>π_ref</code> 必须 <code>eval() + no_grad()</code>，参数 freeze。</li></ul>
+<p><strong>易错</strong>：ref 没 freeze 导致协同漂移；β 跟温度搞混（β 越大越接近 reward model 风格）；log_prob 没 padding mask；忘把 prompt token 的 loss 屏蔽。</p>
+</details>
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×5</span> <b>✍ H08</b> · 手撕 GRPO loss（group relative policy opt）</summary>
+<p><strong>考察点</strong>：DeepSeek-R1 用的 RL 算法；group baseline 替代 critic；为何省内存。</p>
+<p><strong>关键实现要点</strong>：</p>
+<ul><li>同一 prompt 采 G 个 response → reward <code>r_1..r_G</code>。</li><li>baseline = <code>mean(r)</code>，advantage <code>A_i = (r_i - mean) / (std + ε)</code>（组内 z-score）。</li><li>用 PPO clipped 形式：<code>min(ratio·A, clip(ratio, 1-ε, 1+ε)·A)</code>。</li><li>无 value head，省一份模型显存；G 一般 4-8。</li></ul>
+<p><strong>易错</strong>：把 GRPO 当 DPO（DPO 是离线偏好对、GRPO 是在线 RL）；group size 太小 → baseline 噪声大；std 没加 ε 出现除零。</p>
+</details>
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>✍ H09</b> · 手撕 importance sampling 比率</summary>
+<p><strong>考察点</strong>：<code>E_p[f(x)] = E_q[f(x)·p(x)/q(x)]</code>；为何 off-policy 必须用；多步 IS 方差爆炸。</p>
+<p><strong>关键实现要点</strong>：</p>
+<ul><li><code>ratio = π_new(a|s) / π_old(a|s) = exp(log_π_new - log_π_old)</code>。</li><li>单步可用；多步累乘 → 方差指数级增长。</li><li>PPO 通过 clip(ratio, 1-ε, 1+ε) 抑制极端值。</li><li>V-trace 做截断 IS（<code>ρ = min(ratio, ρ_bar)</code>）。</li></ul>
+<p><strong>易错</strong>：把 ratio 当 reward；忘 detach old policy；累乘多步 IS 时不截断；用概率而非 log_prob 计算 → 数值不稳。</p>
+</details>
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×3</span> <b>✍ H10</b> · 手撕 Categorical 采样 + log_prob</summary>
+<p><strong>考察点</strong>：多项式采样；为何用 logits 比 probs 数值稳。</p>
+<p><strong>关键实现要点</strong>：</p>
+<ul><li>用 <code>torch.distributions.Categorical(logits=logits)</code>，避免 <code>Categorical(probs=...)</code> 在 0 概率处 <code>log(0)</code>。</li><li>采样：<code>a = dist.sample()</code>，shape <code>[B]</code>。</li><li>log_prob：<code>dist.log_prob(a)</code> 等价于 <code>F.log_softmax(logits, -1).gather(-1, a.unsqueeze(-1)).squeeze(-1)</code>。</li><li>entropy：<code>dist.entropy()</code>，正则项常用。</li></ul>
+<p><strong>易错</strong>：用 <code>probs</code> 输入但内部还要 log（数值不稳）；<code>torch.multinomial</code> 不返回 log_prob 需另算；忘 reshape gather 索引维度。</p>
+</details>
 
 <footer class="aris-footer">
   Generated by <a href="https://github.com/wanshuiyin/Auto-claude-code-research-in-sleep/blob/main/skills/render-html/SKILL.md">ARIS <code>/render-html</code></a> ·
   source path <code>docs/interviews/02_rl_algo.md</code> ·
-  SHA256 <code>d83bb6e21785</code> ·
-  generated at 2026-05-21 02:50 UTC.
+  SHA256 <code>d1f33de10e59</code> ·
+  generated at 2026-05-22 00:56 UTC.
   This is a generated view — edit the source Markdown, then re-render.
 </footer>
 </main>
