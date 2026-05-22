@@ -1157,3 +1157,129 @@ $$\hat{A}_t^{\text{GAE}(\gamma, \lambda)} = \sum_{l=0}^\infty (\gamma\lambda)^l 
 
 </details>
 
+---
+
+## §H 手撕代码（8 题）
+
+> IL / VLA 手撕段——与上文"概念+答案"题区分开。本节只给"考察点 / 关键实现要点 / 易错"，不贴完整代码。
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×7</span> <b>✍ H01</b> · 手撕 Behavior Cloning（连续 / 离散动作）</summary>
+
+**考察点**：BC 本质是监督学习；连续用 MSE 或 Gaussian NLL、离散用 CE；BC 的根本限制（distribution shift）。
+
+**关键实现要点**：
+- 连续 deterministic：`loss = MSE(π(s), a*)`；常归一化 action 到 `[-1,1]`。
+- 连续 stochastic：模型出 `μ(s), log_σ(s)`，`loss = -log N(a*; μ, σ)`。
+- 离散（OpenVLA-style）：`loss = CE(logits=π(s), target=a_token)`。
+- pipeline 与监督学习同：DataLoader → forward → loss → step。
+
+**易错**：把 BC 当 RL（无 reward 信号）；忘了 action 归一化导致量纲不一；学 log_σ 但 clamp 范围太窄。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×8</span> <b>✍ H02</b> · 手撕 Diffusion Policy 训练 step（DDPM ε-prediction）</summary>
+
+**考察点**：`x_t = √ᾱ_t · x_0 + √(1-ᾱ_t) · ε`；ε-prediction 目标；视觉 obs 作为 condition。
+
+**关键实现要点**：
+- β schedule（cosine 比 linear 好），预计算 `ᾱ_t = ∏(1-β_i)`。
+- forward：随机采 `t ~ U[1,T]`，`x_t = √ᾱ_t·x_0 + √(1-ᾱ_t)·ε`，ε~N(0,I)。
+- 模型预测：`ε_pred = model(x_t, t, cond=visual_feat)`；x_0 是 `[H, action_dim]` 的动作块。
+- `loss = MSE(ε_pred, ε)`；用 EMA 维护推理模型。
+
+**易错**：忘把视觉 obs 作为 condition 进 UNet；把 action 当图像维度处理；推理 K 步选错（DDIM 10-50 步即可）；不用 EMA 生成质量差。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>✍ H03</b> · 手撕 ACT action chunking loss</summary>
+
+**考察点**：chunk 长度 k 的作用；CVAE 风格的 latent z；temporal ensemble 推理。
+
+**关键实现要点**：
+- encoder：BERT 风格 transformer 输入 `[qpos, a_1..a_k]`，[CLS] 输出 `μ, log_σ²`。
+- decoder：cross-attn `query=fixed positional, k/v=resnet_feat ⊕ qpos ⊕ z`，输出 `â_1..â_k`。
+- loss：`L = L1(â, a) + β · KL(N(μ,σ²) ‖ N(0,I))`，β 取 10。
+- 推理：z=0（不采样），temporal ensemble 用指数加权融合多步预测。
+
+**易错**：chunk 长度太短退化为 BC；β 太大 KL 压死 latent；推理时还从 latent 采样导致抖动。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>✍ H04</b> · 手撕 OpenVLA 风格 action token CE loss</summary>
+
+**考察点**：把连续动作离散为 256 bin → LM head 的 next-token CE 训练；bin 边界与数据分布的匹配。
+
+**关键实现要点**：
+- 每维 action 离散到 256 bin（uniform 或 quantile 切分），落入哪个 bin → 该 token id。
+- 复用 LLM 词表的最后 256 个 token 作为 action token。
+- 训练：标准 next-token CE，target 是 action token 序列。
+- 推理：argmax 取 token → 反查 bin 中心值 → de-tokenize 回连续 action。
+
+**易错**：bin 边界用全局 min/max 导致大部分数据集中在少数 bin；忘 mask 掉非 action token 的 loss；推理用 sampling 而非 argmax 导致动作抖。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×9</span> <b>✍ H05</b> · 手撕 CLIP / InfoNCE 对比损失</summary>
+
+**考察点**：对称交叉熵；温度 τ 的作用；为何 image→text + text→image 各算一次。
+
+**关键实现要点**：
+- 投影并 L2 归一化：`img_emb = F.normalize(W_i @ f, dim=-1)`，`txt_emb` 同理。
+- logits：`logits = img_emb @ txt_emb.T / τ`，τ 一般用可学的 `exp(t)`。
+- 对称 CE：`labels = arange(N)`；`loss = (CE(logits, labels) + CE(logits.T, labels)) / 2`。
+- batch size 越大、负样本越多 → 效果越好。
+
+**易错**：忘 L2 归一化；τ 未 clamp 出现梯度爆炸；batch 太小负样本不足；softmax temperature 与对比 temperature 混淆。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>✍ H06</b> · 手撕 DAgger（数据聚合）训练流程</summary>
+
+**考察点**：解决 BC 的 distribution shift；每轮拿当前 π rollout，专家标注新数据回灌。
+
+**关键实现要点**：
+- 初始：BC 在专家数据 `D_0` 上训得 `π_0`。
+- 迭代：用 `π_i` rollout 拿新 obs → 专家标注 action → `D_{i+1} = D_i ∪ new`，再训 `π_{i+1}`。
+- β-mix（DAgger-β）：rollout 时以 β 概率用专家动作、(1-β) 用 π，β 随轮次衰减。
+- 数据集只加不替换。
+
+**易错**：第一轮就全用 π 导致 OOD 收不到有效标注；专家标注成本指数级增长却没 query 选择策略；β 退火太快。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>✍ H07</b> · 手撕 cross-attention（视觉-语言融合）</summary>
+
+**考察点**：与 self-attn 的唯一区别（K/V 来自另一个序列）；VLA/VLN 中谁当 Q 谁当 KV。
+
+**关键实现要点**：
+- Q 来自序列 A，K、V 来自序列 B：`attn = softmax(Q_A @ K_B.T / √d) @ V_B`。
+- 输出长度与 A 一致；mask 形状 `[L_A, L_B]`。
+- 常用形式：language token 作 Q、visual token 作 KV（VLN 抽视觉信息）；或反过来（VLA 把语言信息注入视觉 token）。
+- 多头与 SDPA 复用。
+
+**易错**：Q/K/V 都从一个序列拿（变成 self-attn）；mask 维度按 self-attn 来设；K、V 用不同 projection 但忘了 V 也要换序列。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×7</span> <b>✍ H08</b> · 手撕 KV cache（增量解码）</summary>
+
+**考察点**：为何 prefill 后只算新 token 的 Q；K/V 怎么 concat；显存瓶颈。
+
+**关键实现要点**：
+- prefill：完整序列前向，存下每层 `K_cache, V_cache`，shape `[B, L_past, d]`。
+- decode 单步：q 形状 `[B, 1, d]`；`K_new = cat([K_cache, k_t], dim=1)` 并存回。
+- 计算：`attn = softmax(q @ K_new.T / √d) @ V_new`，仅输出最后一步。
+- 显存估算：`2 · num_layer · num_head · L · d_head` per request。
+
+**易错**：每步重算全部历史 K/V（变 O(N²) → 失去 cache 意义）；忘了对新 K 也加 RoPE；显存爆掉但没做 paged 管理。
+
+</details>
+
