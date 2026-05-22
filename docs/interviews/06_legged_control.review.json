@@ -160,5 +160,66 @@
   ],
   "unresolved_warnings": [],
   "max_rounds_reached": false,
-  "notes": "用户已豁免 Phase 0 题目清单审过；研究笔记保存在 /tmp/legged_control_questions_research.md（仓库外）。最终 PASS 在 Round 6 完成。Q16 TSID/HQP 经过 3 轮迭代才完全对齐（首段表述 vs 表格代表实现需一致）；N2 SEA/QDD 代表实现经过 2 轮迭代修正（ATLAS/ASIMO/ANYmal-D 都不该归在原列）。 章节偏离原计划 7 节大纲基本保持；微调：§4 RL-based 题量 8（比原计划略多，因为顶级 paper 多）、§6 Loco-manipulation 题量 5（少于原计划，因面试转化少）。 信心较低的章节：§5 teleop（高引用论文多但面经稀，Q34 延迟数据来自 OPEN-TeleVision 论文 + 经验估算，无独立面经多次出现）；§7 sim-to-real Q44 / Q45 （前沿题，2026 工业实践仍在演进）。 已知 caveat：低频备选 N1-N3 频次均为 2，依赖来源权威破例入选；面试中可能不会问到，但作为参考保留。"
+  "notes": "用户已豁免 Phase 0 题目清单审过；研究笔记保存在 /tmp/legged_control_questions_research.md（仓库外）。最终 PASS 在 Round 6 完成。Q16 TSID/HQP 经过 3 轮迭代才完全对齐（首段表述 vs 表格代表实现需一致）；N2 SEA/QDD 代表实现经过 2 轮迭代修正（ATLAS/ASIMO/ANYmal-D 都不该归在原列）。 章节偏离原计划 7 节大纲基本保持；微调：§4 RL-based 题量 8（比原计划略多，因为顶级 paper 多）、§6 Loco-manipulation 题量 5（少于原计划，因面试转化少）。 信心较低的章节：§5 teleop（高引用论文多但面经稀，Q34 延迟数据来自 OPEN-TeleVision 论文 + 经验估算，无独立面经多次出现）；§7 sim-to-real Q44 / Q45 （前沿题，2026 工业实践仍在演进）。 已知 caveat：低频备选 N1-N3 频次均为 2，依赖来源权威破例入选；面试中可能不会问到，但作为参考保留。",
+  "handcoding_review": {
+    "section": "§H 手撕代码（控制类，10 items, CH01-CH10）",
+    "appended_at": "2026-05-22",
+    "language": "pure numpy + stdlib (no PyTorch — control class)",
+    "model": "gpt-5.5",
+    "reasoning_effort": "xhigh",
+    "sandbox": "read-only",
+    "scope_limit": "Only §H reviewed; §1-§8 not re-flagged (already PASS in Round 6).",
+    "total_rounds": 3,
+    "final_verdict": "PASS",
+    "rounds": [
+      {
+        "round": 1,
+        "verdict": "WARN",
+        "fixes_applied": 0,
+        "blocking_issues": [],
+        "warnings": [
+          "CH06 prose body 203 chars (200-300 WARN band)",
+          "CH09 「标准 DH」与代码采用 Craig 改进 DH 表述不一致",
+          "CH10 scalar u_min/u_max + m>1 时 h 维度不匹配（np.tile(scalar, N) 长度 N 而非 N*m）"
+        ]
+      },
+      {
+        "round": 2,
+        "verdict": "WARN",
+        "fixes_applied": 3,
+        "fixes_summary": [
+          "CH06 考察点尾段 「ROS xyzw 与 Eigen wxyz 顺序差异」→「顺序差」（202 chars，仍触 WARN）",
+          "CH09 考察点重写：明确「本实现用改进 DH（Craig），与标准 DH（Spong）矩阵形式不同」对齐代码注释",
+          "CH10 输入约束改用 np.broadcast_to(u_min/max, (m,)).ravel() 后再 np.tile，scalar 与 vector bounds 在 m>1 时维度都正确"
+        ],
+        "warnings": [
+          "CH06 prose 202 chars（仍 WARN）",
+          "CH09 prose 202 chars（仍 WARN）"
+        ]
+      },
+      {
+        "round": 3,
+        "verdict": "PASS",
+        "fixes_applied": 2,
+        "fixes_summary": [
+          "CH06 考察点「ROS / Eigen 顺序差」，prose 缩到 192 chars",
+          "CH09 考察点尾段「FK 由 T 连乘」，易错重写为「Craig 与 Spong 不可整链混用…连乘顺序应 base → end」，prose 缩到 166 chars"
+        ],
+        "blocking_issues": [],
+        "warnings": []
+      }
+    ],
+    "checks_run": [
+      "answer_correctness",
+      "answer_conciseness",
+      "details_block_well_formed",
+      "code_correctness"
+    ],
+    "prose_char_counts_final": {
+      "CH01": 136, "CH02": 126, "CH03": 152, "CH04": 154, "CH05": 157,
+      "CH06": 192, "CH07": 128, "CH08": 121, "CH09": 166, "CH10": 168
+    },
+    "code_audit_summary": "10 段代码经本地 smoke test 全部通过：CH01 PID 位置型 / 增量型（D 项放反馈量避免阶跃尖峰、增量型保存 e(k-2)）；CH02 anti-windup 双分支（back-calc 用 Kb=Ki/Kp 反算 / clamping 同号判停积分）；CH03 KF Joseph form 更新（数值上保持 P 对称半正定）；CH04 EKF 区分 h(x_pred) 算 innovation 与 Jacobian 仅用于协方差传递；CH05 DARE 不动点迭代 + np.linalg.solve 替代 inv（数值稳）；CH06 Shepperd 法 R→q 分支（trace<0 取对角最大分量避数值爆炸）；CH07 IK DLS 阻尼项是 lam²·I（不是 lam·I）；CH08 互补滤波 α 大→更信陀螺、yaw 不可观；CH09 改进 DH（Craig）矩阵形式（Rot_x·Trans_x·Rot_z·Trans_z）；CH10 MPC QP 完整 Ahat/Bhat 堆叠 + H 对称化正则 + scalar/vector bounds broadcast。3 轮收敛（Round 1-2 各 WARN，Round 3 PASS）。",
+    "code_smoke_test_run": "本地 numpy 1.20+ Python 3.10+ 运行 10 段代码：KF/EKF 协方差对称、LQR |eig(A-BK)|=0.87<1 闭环稳、quat round-trip 含 trace<0 区域全通、IK 2-link 收敛、MPC scalar/vector bounds + m∈{1,2} 维度都正确。"
+  }
 }

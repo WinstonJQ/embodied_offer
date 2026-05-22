@@ -7,8 +7,8 @@
 
 <meta name="generator" content="ARIS render-html (academic, v1)">
 <meta name="aris:source-path" content="docs/interviews/06_legged_control.md">
-<meta name="aris:source-sha256" content="724bf7dd6cdcc28f3b26d900ae6eda7187b9f0584c8523d9ae1b663340e61881">
-<meta name="aris:generated-at" content="2026-05-21 16:16 UTC">
+<meta name="aris:source-sha256" content="1380a4e8059c0f280938a20239eb4ac1e858f8e25c82cc6dbb8adde8b7ed8f38">
+<meta name="aris:generated-at" content="2026-05-22 03:33 UTC">
 
 <!-- MathJax 3 -->
 <script>
@@ -400,6 +400,8 @@ footer.aris-footer a { color: var(--ink-muted); border-bottom: 1px dotted var(--
 <li><a href="#7-sim-to-real-for-legged6-题">§7 Sim-to-Real for legged（6 题）</a>
 </li>
 <li><a href="#低频备选频次-1-2未入主表">低频备选（频次 1-2，未入主表）</a>
+</li>
+<li><a href="#h-手撕代码控制类10-题">§H 手撕代码（控制类，10 题）</a>
 </li>
 </ol>
 </nav>
@@ -827,12 +829,307 @@ footer.aris-footer a { color: var(--ink-muted); border-bottom: 1px dotted var(--
 <p><strong>易错</strong>：不能说"LQR 落后"——简单系统下 LQR 解析 + 可调 + 可证明稳定性仍是工业首选；MPC 在复杂系统不可替代但不是万能更优解。</p>
 </details>
 <hr />
+<h2 id="h-手撕代码控制类10-题">§H 手撕代码（控制类，10 题）</h2>
+<blockquote><p>控制理论 + 状态估计 + 运动学手撕题。频次 ≥3 入卷，宁缺毋滥。语言用纯 numpy + 标准库，每段 ≤30 行 idiomatic 实现。</p></blockquote>
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×9</span> <b>✍ CH01</b> · 手撕位置型 / 增量型 PID</summary>
+<p><strong>考察点</strong>：PID 三项物理意义；位置型 vs 增量型公式差异；离散化 dt 处理；D 项放反馈避免设定值阶跃尖峰。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">class PID:
+    def __init__(self, Kp, Ki, Kd, dt):
+        self.Kp, self.Ki, self.Kd, self.dt = Kp, Ki, Kd, dt
+        self.integral = 0.0
+        self.prev_err = 0.0      # e(k-1)
+        self.prev_prev_err = 0.0 # e(k-2)，增量型 D 项要
+        self.prev_meas = 0.0     # 位置型 D 项放反馈量
+
+    def position(self, sp, y):
+        # 位置型：u(k) = Kp·e + Ki·Σe·dt + Kd·(-Δy/dt)
+        e = sp - y
+        self.integral += e * self.dt
+        d = -(y - self.prev_meas) / self.dt   # 反馈微分，避免设定值阶跃尖峰
+        self.prev_meas = y
+        return self.Kp * e + self.Ki * self.integral + self.Kd * d
+
+    def incremental(self, sp, y):
+        # 增量型：Δu = Kp·(e-e₁) + Ki·e·dt + Kd·(e-2e₁+e₂)/dt
+        e = sp - y
+        du = (self.Kp * (e - self.prev_err)
+              + self.Ki * e * self.dt
+              + self.Kd * (e - 2 * self.prev_err + self.prev_prev_err) / self.dt)
+        self.prev_prev_err, self.prev_err = self.prev_err, e
+        return du   # 累加到上一步 u 上由调用方负责</code></pre>
+<p><strong>易错</strong>：位置型必须配 anti-windup（→ CH02）；增量型需保存 e(k-2) 才能算 D；D 项放误差时 setpoint 阶跃 → 微分尖峰，工程上一律放反馈量。</p>
+</details>
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×7</span> <b>✍ CH02</b> · 手撕 PID 抗积分饱和（anti-windup）</summary>
+<p><strong>考察点</strong>：饱和来自执行器限幅 + 积分持续累加；clamping / back-calculation 两种主流做法；只限输出不限积分仍会 windup。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">class PIDAW:
+    def __init__(self, Kp, Ki, Kd, dt, u_min, u_max, Kb=None):
+        self.Kp, self.Ki, self.Kd, self.dt = Kp, Ki, Kd, dt
+        self.u_min, self.u_max = u_min, u_max
+        # 反算增益典型 Kb = 1/T_t，T_t≈T_i=Kp/Ki → Kb≈Ki/Kp（Åström 经验）
+        self.Kb = Kb if Kb is not None else Ki / max(Kp, 1e-6)
+        self.integral = 0.0
+        self.prev_err = 0.0
+
+    def step_backcalc(self, sp, y):
+        # back-calculation：用 (u_sat - u_unsat) 反推压制积分
+        e = sp - y
+        d = (e - self.prev_err) / self.dt
+        u_unsat = self.Kp * e + self.Ki * self.integral + self.Kd * d
+        u_sat = max(self.u_min, min(self.u_max, u_unsat))
+        # 积分更新含饱和反馈项；若未饱和该项为 0，退化为普通 PID
+        self.integral += (e + self.Kb * (u_sat - u_unsat)) * self.dt
+        self.prev_err = e
+        return u_sat
+
+    def step_clamp(self, sp, y):
+        # clamping：积分项与误差同号且输出已饱和 → 暂停积分
+        e = sp - y
+        d = (e - self.prev_err) / self.dt
+        u_unsat = self.Kp * e + self.Ki * self.integral + self.Kd * d
+        saturated = (u_unsat &gt;= self.u_max) or (u_unsat &lt;= self.u_min)
+        if not (saturated and (e * u_unsat &gt; 0)):
+            self.integral += e * self.dt
+        self.prev_err = e
+        return max(self.u_min, min(self.u_max, u_unsat))</code></pre>
+<p><strong>易错</strong>：只限 u 不限 integral → 仍 windup；Kb 过大过度补偿 → 欠调；双向饱和需上下限都判。</p>
+</details>
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×7</span> <b>✍ CH03</b> · 手撕一维 / 多维卡尔曼滤波（KF）</summary>
+<p><strong>考察点</strong>：预测 + 更新两步；Kalman gain 在 prior 与 measurement 间权衡；Joseph form 协方差更新数值稳定；Q / R 物理含义。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">import numpy as np
+
+class KF:
+    def __init__(self, A, B, H, Q, R, x0, P0):
+        # x_{k+1} = A x + B u + w,  z = H x + v;  w~N(0,Q), v~N(0,R)
+        self.A, self.B, self.H = A, B, H
+        self.Q, self.R = Q, R
+        self.x, self.P = x0.copy(), P0.copy()
+
+    def predict(self, u):
+        self.x = self.A @ self.x + self.B @ u
+        self.P = self.A @ self.P @ self.A.T + self.Q
+
+    def update(self, z):
+        S = self.H @ self.P @ self.H.T + self.R                  # 创新协方差
+        K = self.P @ self.H.T @ np.linalg.inv(S)                 # Kalman gain
+        y = z - self.H @ self.x                                  # innovation
+        self.x = self.x + K @ y
+        # Joseph form：对 K 任意值都保证 P 对称半正定，比 (I-KH)P 稳
+        I = np.eye(self.P.shape[0])
+        IKH = I - K @ self.H
+        self.P = IKH @ self.P @ IKH.T + K @ self.R @ K.T
+
+# 一维退化：A=B=H=1，所有矩阵 → 标量，K = P_pred / (P_pred + R)</code></pre>
+<p><strong>易错</strong>：Q（过程噪声）与 R（测量噪声）颠倒；用 <code>(I-KH)P</code> 朴素式数值上易破坏对称性；初始 P₀ 过小 → 滤波器过度自信、收敛慢甚至发散。</p>
+</details>
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×6</span> <b>✍ CH04</b> · 手撕 EKF 预测 + 更新步</summary>
+<p><strong>考察点</strong>：非线性 → 工作点 Jacobian 线性化；innovation 用 h(x) 而非 H·x；F、H 必须在最新状态处重算。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">import numpy as np
+
+def ekf_step(x, P, u, z, f, h, F_jac, H_jac, Q, R):
+    # f(x,u), h(x) 是非线性函数；F_jac/H_jac 返回相应 Jacobian
+    # —— 预测 ——
+    x_pred = f(x, u)
+    F = F_jac(x, u)              # ∂f/∂x 在 (x,u) 处
+    P_pred = F @ P @ F.T + Q
+    # —— 更新 ——
+    H = H_jac(x_pred)            # ∂h/∂x 在 x_pred 处（务必重算）
+    S = H @ P_pred @ H.T + R
+    K = P_pred @ H.T @ np.linalg.inv(S)
+    y = z - h(x_pred)            # 均值用非线性 h，不要用 H·x_pred
+    x_new = x_pred + K @ y
+    I = np.eye(P.shape[0])
+    IKH = I - K @ H
+    P_new = IKH @ P_pred @ IKH.T + K @ R @ K.T   # Joseph form
+    return x_new, P_new</code></pre>
+<p><strong>易错</strong>：innovation 写成 <code>z - H·x_pred</code>（线性化只用于协方差传递，均值预测仍用 h）；F / H 在旧 x 处算未更新；强非线性下不切 UKF / IEKF 会发散。</p>
+</details>
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×6</span> <b>✍ CH05</b> · 手撕 LQR 离散 Riccati 迭代</summary>
+<p><strong>考察点</strong>：离散代数 Riccati 方程（DARE）不动点迭代；反馈律 u = -K x；与 KF 对偶（LQG）；Q 半正定 / R 正定要求。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">import numpy as np
+
+def dlqr(A, B, Q, R, eps=1e-9, max_iter=2000):
+    # 离散系统 x_{k+1} = A x + B u，二次代价 J = Σ(x&#x27;Qx + u&#x27;Ru)
+    # 反向迭代 DARE：P_{k+1} = A&#x27;P A - A&#x27;P B (R + B&#x27;P B)^{-1} B&#x27;P A + Q
+    P = Q.copy()
+    for _ in range(max_iter):
+        BtPB = B.T @ P @ B
+        K = np.linalg.solve(R + BtPB, B.T @ P @ A)          # 暂存当前 K
+        P_next = A.T @ P @ A - A.T @ P @ B @ K + Q
+        if np.max(np.abs(P_next - P)) &lt; eps:
+            P = P_next
+            break
+        P = P_next
+    # 收敛后用最终 P 算稳态反馈增益
+    K = np.linalg.solve(R + B.T @ P @ B, B.T @ P @ A)
+    return K, P   # 控制律 u = -K @ x</code></pre>
+<p><strong>易错</strong>：连续 / 离散 Riccati 公式弄混；R 必须正定（否则 R+B'PB 可能奇异）；用 <code>inv()</code> 而非 <code>solve()</code> 数值不稳；工作点必须是平衡点（线性化前提）。</p>
+</details>
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×6</span> <b>✍ CH06</b> · 手撕四元数 ↔ 旋转矩阵互转</summary>
+<p><strong>考察点</strong>：q = (w, x, y, z)；q → R 闭式；R → q 按 trace 分支避数值不稳；Hamilton vs JPL 约定；ROS / Eigen 顺序差。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">import numpy as np
+
+def quat_to_rot(q):
+    # q = (w, x, y, z)，单位四元数
+    w, x, y, z = q
+    return np.array([
+        [1 - 2*(y*y + z*z), 2*(x*y - w*z),     2*(x*z + w*y)],
+        [2*(x*y + w*z),     1 - 2*(x*x + z*z), 2*(y*z - w*x)],
+        [2*(x*z - w*y),     2*(y*z + w*x),     1 - 2*(x*x + y*y)],
+    ])
+
+def rot_to_quat(R):
+    # Shepperd 法：先看 trace，再按对角最大分量分支以避免 0 除
+    tr = R[0, 0] + R[1, 1] + R[2, 2]
+    if tr &gt; 0:
+        s = 2.0 * np.sqrt(1.0 + tr)        # s = 4w
+        w = 0.25 * s
+        x = (R[2, 1] - R[1, 2]) / s
+        y = (R[0, 2] - R[2, 0]) / s
+        z = (R[1, 0] - R[0, 1]) / s
+    else:
+        i = np.argmax(np.diag(R))          # 选最大对角分量分支
+        j, k = (i + 1) % 3, (i + 2) % 3
+        s = 2.0 * np.sqrt(1.0 + R[i, i] - R[j, j] - R[k, k])
+        q = [0.0] * 4
+        q[0] = (R[k, j] - R[j, k]) / s     # w
+        q[i + 1] = 0.25 * s
+        q[j + 1] = (R[j, i] + R[i, j]) / s
+        q[k + 1] = (R[k, i] + R[i, k]) / s
+        w, x, y, z = q
+    q = np.array([w, x, y, z])
+    return q / np.linalg.norm(q)           # 浮点漂移后归一化</code></pre>
+<p><strong>易错</strong>：(x,y,z,w) vs (w,x,y,z) 顺序弄反；R → q 不分支 trace 接近 -1 时 sqrt 内值 → 0 数值爆炸；忘记 q 与 -q 双覆盖（插值 / loss 要 disambiguate）。</p>
+</details>
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×6</span> <b>✍ CH07</b> · 手撕数值 IK（Jacobian 伪逆 / DLS）</summary>
+<p><strong>考察点</strong>：循环 残差→Jacobian→Δq→更新；伪逆奇异处发散；DLS 加阻尼防爆炸；步长 clamp。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">import numpy as np
+
+def ik_dls(fk, jac, q0, x_target, lam=0.05, alpha=0.5,
+           tol=1e-4, max_iter=200, dq_max=0.2):
+    # fk(q) → 末端位姿向量；jac(q) → 雅可比 (m×n)
+    q = q0.copy()
+    for _ in range(max_iter):
+        e = x_target - fk(q)
+        if np.linalg.norm(e) &lt; tol:
+            return q, True
+        J = jac(q)
+        # Damped Least Squares：J⁺_DLS = J&#x27;·(J·J&#x27; + λ²·I)^{-1}，奇异处仍数值稳
+        JJt = J @ J.T
+        damp = (lam ** 2) * np.eye(JJt.shape[0])
+        dq = J.T @ np.linalg.solve(JJt + damp, e)
+        # 步长 clamp 防单步过大震荡 / 跨越奇异
+        n = np.linalg.norm(dq)
+        if n &gt; dq_max:
+            dq *= dq_max / n
+        q = q + alpha * dq
+    return q, False</code></pre>
+<p><strong>易错</strong>：奇异附近用纯伪逆 → 关节速度爆炸；α 过大震荡发散、过小收敛慢；忽略关节限位（重活岗会追问 weighted clamping / null-space）。</p>
+</details>
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×5</span> <b>✍ CH08</b> · 手撕互补滤波（IMU 姿态估计）</summary>
+<p><strong>考察点</strong>：陀螺仪短期准但漂移、加速度计长期稳但噪声大；互补 = 高/低通组合；yaw 仅 acc + gyro 不可观要靠磁力计。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">import numpy as np
+
+class CompFilter:
+    def __init__(self, alpha=0.98, dt=0.005):
+        # alpha 大 → 更信陀螺（短期）；alpha 小 → 更信加速度（长期）
+        self.alpha, self.dt = alpha, dt
+        self.roll = 0.0
+        self.pitch = 0.0
+
+    def step(self, gyro, acc):
+        # gyro = (gx, gy, gz) rad/s；acc = (ax, ay, az) m/s²
+        gx, gy, _ = gyro
+        ax, ay, az = acc
+        # 加速度反算静态 roll / pitch（去重力分量）
+        roll_acc = np.arctan2(ay, az)
+        pitch_acc = np.arctan2(-ax, np.sqrt(ay * ay + az * az))
+        # 陀螺积分给短期；加速度给长期校正
+        self.roll = self.alpha * (self.roll + gx * self.dt) + (1 - self.alpha) * roll_acc
+        self.pitch = self.alpha * (self.pitch + gy * self.dt) + (1 - self.alpha) * pitch_acc
+        return self.roll, self.pitch   # yaw 不可观，需 mag / 视觉补</code></pre>
+<p><strong>易错</strong>：α 取反（应陀螺权重大）；单位 deg/s 与 rad/s 混；忘记 yaw 不可观；角度跨 ±π 跳变没 unwrap。</p>
+</details>
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×5</span> <b>✍ CH09</b> · 手撕齐次变换 / DH 正向运动学</summary>
+<p><strong>考察点</strong>：齐次矩阵 T = [R, p; 0, 1]；DH 4 参数 (a, α, d, θ)；本实现用改进 DH（Craig），与标准 DH（Spong）矩阵形式不同；FK 由 T 连乘。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">import numpy as np
+
+def dh_link(a, alpha, d, theta):
+    # 改进 DH（Craig）：T_i^{i-1} = Rot_x(α_{i-1})·Trans_x(a_{i-1})·Rot_z(θ_i)·Trans_z(d_i)
+    ct, st = np.cos(theta), np.sin(theta)
+    ca, sa = np.cos(alpha), np.sin(alpha)
+    return np.array([
+        [ct,       -st,       0.0,   a],
+        [st * ca,  ct * ca,  -sa,   -sa * d],
+        [st * sa,  ct * sa,   ca,    ca * d],
+        [0.0,      0.0,       0.0,   1.0],
+    ])
+
+def fk(dh_params, q):
+    # dh_params: [(a, alpha, d, theta_offset), ...]；q: 关节角向量
+    T = np.eye(4)
+    for (a, alpha, d, theta_off), qi in zip(dh_params, q):
+        T = T @ dh_link(a, alpha, d, theta_off + qi)
+    # 末端位姿：左上 3×3 为 R，右上 3×1 为 p
+    return T   # T[:3,:3] = R_end, T[:3,3] = p_end</code></pre>
+<p><strong>易错</strong>：Craig 与 Spong 不可整链混用（前者坐标系固定在近端、Rot_x 先做；后者固定在远端、Rot_z 先做）；连乘顺序应 base → end。</p>
+</details>
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×4</span> <b>✍ CH10</b> · 手撕 MPC 的 QP 矩阵构造</summary>
+<p><strong>考察点</strong>：N 步预测视域展开 X = Â·x₀ + B̂·U；二次代价整理为 0.5·U'HU + g'U；不等式约束写成 A·U ≤ b；H 对称化 + 正则。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">import numpy as np
+
+def build_mpc_qp(A, B, Q, R, Qf, x0, N, u_min, u_max):
+    # x_{k+1} = A x + B u；预测 X = [x_1; ...; x_N] = Ahat·x0 + Bhat·U
+    n, m = A.shape[0], B.shape[1]
+    Ahat = np.zeros((N * n, n))
+    Bhat = np.zeros((N * n, N * m))
+    Ai = np.eye(n)
+    for i in range(N):
+        Ai = A @ Ai                                  # A^{i+1}
+        Ahat[i * n:(i + 1) * n] = Ai
+        for j in range(i + 1):
+            # 第 i 行第 j 列块 = A^{i-j} · B
+            Bhat[i * n:(i + 1) * n, j * m:(j + 1) * m] = np.linalg.matrix_power(A, i - j) @ B
+    # 堆叠权重：terminal cost 用 Qf，否则 Q
+    Qbar = np.kron(np.eye(N), Q); Qbar[-n:, -n:] = Qf
+    Rbar = np.kron(np.eye(N), R)
+    H = Bhat.T @ Qbar @ Bhat + Rbar
+    H = 0.5 * (H + H.T) + 1e-8 * np.eye(H.shape[0])  # 对称化 + 正则保证 PSD
+    g = Bhat.T @ Qbar @ Ahat @ x0                    # 线性项依赖初始状态
+    # 输入约束 u_min ≤ U ≤ u_max（broadcast 到长度 m 向量后再堆叠 N 次）
+    u_lo = np.broadcast_to(u_min, (m,)).ravel()
+    u_hi = np.broadcast_to(u_max, (m,)).ravel()
+    G = np.vstack([np.eye(N * m), -np.eye(N * m)])
+    h = np.hstack([np.tile(u_hi, N), -np.tile(u_lo, N)])
+    return H, g, G, h   # 交给 OSQP / quadprog；取 U[:m] 作为本步控制</code></pre>
+<p><strong>易错</strong>：H 不强制对称正定数值上不收敛；漏 terminal Qf 短视域不稳定；friction cone 直接二次约束变 SOCP（必须线性化为金字塔）；预测 dt 与控制 dt 不一致。</p>
+</details>
+<hr />
 
 <footer class="aris-footer">
   Generated by <a href="https://github.com/wanshuiyin/Auto-claude-code-research-in-sleep/blob/main/skills/render-html/SKILL.md">ARIS <code>/render-html</code></a> ·
   source path <code>docs/interviews/06_legged_control.md</code> ·
-  SHA256 <code>724bf7dd6cdc</code> ·
-  generated at 2026-05-21 16:16 UTC.
+  SHA256 <code>1380a4e8059c</code> ·
+  generated at 2026-05-22 03:33 UTC.
   This is a generated view — edit the source Markdown, then re-render.
 </footer>
 </main>

@@ -75,11 +75,11 @@
 | [三](https://winstonjq.github.io/embodied-interview-qa/interviews/03_vla_il.html) | **VLA / 模仿学习**（含 §H 手撕） | 66 | OpenVLA / π 系列 / Diffusion Policy + 手撕（BC / DP 训练 step / ACT chunking / CLIP InfoNCE） |
 | [四](https://winstonjq.github.io/embodied-interview-qa/interviews/04_world_sim.html) | **世界模型 / Sim2Real** | 31 | Dreamer / V-JEPA / 域随机化 / Isaac Lab，人形和四足公司重点 |
 | [五](https://winstonjq.github.io/embodied-interview-qa/interviews/05_engineering.html) | **工程落地**（含 §H 手撕） | 47 | VLA 部署 / FSDP / teleop 数据飞轮 + 手撕（数值稳定 softmax / CE / KL / Adam） |
-| [六](https://winstonjq.github.io/embodied-interview-qa/interviews/06_legged_control.html) | **腿足机器人控制 / 遥操作** | 48 | 浮动基座、MPC / WBC、RL-locomotion、AVP teleop、HumanPlus、actuator network sim2real |
+| [六](https://winstonjq.github.io/embodied-interview-qa/interviews/06_legged_control.html) | **腿足机器人控制 / 遥操作**（含 §H 手撕） | 58 | 浮动基座、MPC / WBC、RL-locomotion、AVP teleop、HumanPlus、actuator network sim2real + 手撕（PID / KF / EKF / LQR / 四元数 / IK / 互补滤波 / DH / MPC QP） |
 | [七](https://winstonjq.github.io/embodied-interview-qa/interviews/07_perception_nav.html) | **3D 感知 / SLAM / VLN / ObjectNav / Embodied VLM**（含 §H 手撕） | 67 | 点云 / NeRF / SLAM / Nav2 / HAMT / NaVid / VLFM / SAM 2 + 手撕（IoU / NMS / BFS·DFS / A* / ViT patch） |
 | [八](https://winstonjq.github.io/embodied-interview-qa/interviews/08_coding_systemdesign.html) | **通用工程：LeetCode + 系统设计** | 40 | LeetCode 高频 30 题 + ML 系统设计 5 + 机器人系统设计 5（所有具身 / 自动驾驶岗通用） |
 
-**主表共 403 题**，另含 ~19 题低频备选（每卷末单列）。**新增 §H 手撕代码**散布在卷一/二/三/五/七（共 43 题），**新增第八卷**专攻 LeetCode 与系统设计（40 题）。
+**主表共 413 题**，另含 ~19 题低频备选（每卷末单列）。**新增 §H 手撕代码**散布在卷一/二/三/五/六/七（共 53 题），**新增第八卷**专攻 LeetCode 与系统设计（40 题）。
 
 ---
 
