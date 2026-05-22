@@ -1161,125 +1161,284 @@ $$\hat{A}_t^{\text{GAE}(\gamma, \lambda)} = \sum_{l=0}^\infty (\gamma\lambda)^l 
 
 ## §H 手撕代码（8 题）
 
-> IL / VLA 手撕段——与上文"概念+答案"题区分开。本节只给"考察点 / 关键实现要点 / 易错"，不贴完整代码。
+> IL / VLA 手撕段——与上文"概念+答案"题区分开。本节每题给"考察点 / 实现 / 易错"——附 ≤30 行 Python 实现。
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×7</span> <b>✍ H01</b> · 手撕 Behavior Cloning（连续 / 离散动作）</summary>
 
-**考察点**：BC 本质是监督学习；连续用 MSE 或 Gaussian NLL、离散用 CE；BC 的根本限制（distribution shift）。
+**考察点**：BC 本质是监督学习；连续 MSE / Gaussian NLL、离散 CE；根本限制是 distribution shift（无 reward 信号）。
 
-**关键实现要点**：
-- 连续 deterministic：`loss = MSE(π(s), a*)`；常归一化 action 到 `[-1,1]`。
-- 连续 stochastic：模型出 `μ(s), log_σ(s)`，`loss = -log N(a*; μ, σ)`。
-- 离散（OpenVLA-style）：`loss = CE(logits=π(s), target=a_token)`。
-- pipeline 与监督学习同：DataLoader → forward → loss → step。
+**实现**：
 
-**易错**：把 BC 当 RL（无 reward 信号）；忘了 action 归一化导致量纲不一；学 log_σ 但 clamp 范围太窄。
+```python
+import torch
+import torch.nn.functional as F
+
+def bc_loss_mse(pi, s, a_star):
+    # 连续 deterministic：action 须先归一化到 [-1,1]，否则量纲不一压不住
+    return F.mse_loss(pi(s), a_star)
+
+def bc_loss_gaussian(pi, s, a_star, log_std_min=-5.0, log_std_max=2.0):
+    # 连续 stochastic：模型出 μ, log_σ；clamp log_σ 防数值发散
+    mu, log_std = pi(s)
+    log_std = log_std.clamp(log_std_min, log_std_max)
+    # -log N(a*; μ, σ) 的可降项：0.5·((a-μ)/σ)² + log σ + const
+    return (0.5 * ((a_star - mu) / log_std.exp()).pow(2) + log_std).sum(-1).mean()
+
+def bc_loss_ce(pi, s, a_token):
+    # 离散（OpenVLA-style）：a_token 是离散 bin id
+    return F.cross_entropy(pi(s), a_token)
+```
+
+**易错**：把 BC 当 RL；忘 action 归一化；`log_σ` 不 clamp 数值发散；离散用 MSE（应 CE）。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×8</span> <b>✍ H02</b> · 手撕 Diffusion Policy 训练 step（DDPM ε-prediction）</summary>
 
-**考察点**：`x_t = √ᾱ_t · x_0 + √(1-ᾱ_t) · ε`；ε-prediction 目标；视觉 obs 作为 condition。
+**考察点**：`x_t=√ᾱ_t·x_0+√(1-ᾱ_t)·ε`；ε-prediction 目标；视觉 obs 作为 cross-attn condition。
 
-**关键实现要点**：
-- β schedule（cosine 比 linear 好），预计算 `ᾱ_t = ∏(1-β_i)`。
-- forward：随机采 `t ~ U[1,T]`，`x_t = √ᾱ_t·x_0 + √(1-ᾱ_t)·ε`，ε~N(0,I)。
-- 模型预测：`ε_pred = model(x_t, t, cond=visual_feat)`；x_0 是 `[H, action_dim]` 的动作块。
-- `loss = MSE(ε_pred, ε)`；用 EMA 维护推理模型。
+**实现**：
 
-**易错**：忘把视觉 obs 作为 condition 进 UNet；把 action 当图像维度处理；推理 K 步选错（DDIM 10-50 步即可）；不用 EMA 生成质量差。
+```python
+import torch
+import torch.nn.functional as F
+
+def make_alpha_bar(T=1000):
+    # cosine schedule (Nichol & Dhariwal)：ᾱ_t = f(t)/f(0)，比 linear 末段更稳
+    steps = torch.arange(T + 1) / T
+    f = torch.cos((steps + 0.008) / 1.008 * torch.pi / 2).pow(2)
+    return (f / f[0])[1:]  # 长度 T，单调递减，保证 1-ᾱ_t ∈ (0,1)
+
+def dp_train_step(model, x0, cond, alpha_bar):
+    # x0: [B, H, action_dim] 未来 H 步 action chunk
+    # cond: [B, D_cond] 视觉特征（不能漏，否则退化为无条件采样）
+    B = x0.size(0)
+    t = torch.randint(0, len(alpha_bar), (B,), device=x0.device)
+    ab = alpha_bar[t].view(B, 1, 1)  # 广播到 [B,H,action_dim]
+    eps = torch.randn_like(x0)
+    xt = ab.sqrt() * x0 + (1 - ab).sqrt() * eps  # forward q(x_t|x_0)
+    eps_pred = model(xt, t, cond=cond)
+    return F.mse_loss(eps_pred, eps)  # ε-prediction 目标
+```
+
+**易错**：漏掉视觉 cond 进 UNet；把 action 当图像 spatial 维；推理 K 步太多（DDIM 10-50 即可）；不用 EMA 生成抖。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>✍ H03</b> · 手撕 ACT action chunking loss</summary>
 
-**考察点**：chunk 长度 k 的作用；CVAE 风格的 latent z；temporal ensemble 推理。
+**考察点**：chunk 长度 k 缓解 distribution shift；CVAE latent z 建模动作多模态；temporal ensemble 推理。
 
-**关键实现要点**：
-- encoder：BERT 风格 transformer 输入 `[qpos, a_1..a_k]`，[CLS] 输出 `μ, log_σ²`。
-- decoder：cross-attn `query=fixed positional, k/v=resnet_feat ⊕ qpos ⊕ z`，输出 `â_1..â_k`。
-- loss：`L = L1(â, a) + β · KL(N(μ,σ²) ‖ N(0,I))`，β 取 10。
-- 推理：z=0（不采样），temporal ensemble 用指数加权融合多步预测。
+**实现**：
 
-**易错**：chunk 长度太短退化为 BC；β 太大 KL 压死 latent；推理时还从 latent 采样导致抖动。
+```python
+import torch
+import torch.nn.functional as F
+
+def act_loss(decoder, encoder, qpos, action_chunk, cond, beta=10.0):
+    # action_chunk: [B, k, action_dim]；cond: 视觉特征
+    # encoder 输入 [qpos, action_chunk]，[CLS] token 出 μ, log_σ²
+    mu, logvar = encoder(qpos, action_chunk)             # [B, z_dim] each
+    std = (0.5 * logvar).exp()
+    z = mu + std * torch.randn_like(std)                  # 训练时采样 (reparam)
+    # decoder：cross-attn(query=fixed pos, k/v = cond ⊕ qpos ⊕ z)
+    a_hat = decoder(qpos=qpos, cond=cond, z=z)            # [B, k, action_dim]
+    # 重建损失用 L1（ACT 论文实验上比 MSE 更稳）
+    recon = F.l1_loss(a_hat, action_chunk)
+    # KL(q‖N(0,I)) 闭式
+    kl = 0.5 * (mu.pow(2) + logvar.exp() - 1 - logvar).sum(-1).mean()
+    return recon + beta * kl
+
+def act_inference(decoder, qpos, cond, z_dim):
+    # 推理时 z=0 不再采样，避免 latent 抖动
+    z = torch.zeros(qpos.size(0), z_dim, device=qpos.device)
+    return decoder(qpos=qpos, cond=cond, z=z)
+```
+
+**易错**：chunk 太短退化为 BC；β 太大压死 latent；推理仍从 latent 采样导致抖动；recon 用 MSE 反而不如 L1 稳。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>✍ H04</b> · 手撕 OpenVLA 风格 action token CE loss</summary>
 
-**考察点**：把连续动作离散为 256 bin → LM head 的 next-token CE 训练；bin 边界与数据分布的匹配。
+**考察点**：连续动作离散到 256 bin → LM head next-token CE；用 quantile 切分（非 min/max）匹配数据分布。
 
-**关键实现要点**：
-- 每维 action 离散到 256 bin（uniform 或 quantile 切分），落入哪个 bin → 该 token id。
-- 复用 LLM 词表的最后 256 个 token 作为 action token。
-- 训练：标准 next-token CE，target 是 action token 序列。
-- 推理：argmax 取 token → 反查 bin 中心值 → de-tokenize 回连续 action。
+**实现**：
 
-**易错**：bin 边界用全局 min/max 导致大部分数据集中在少数 bin；忘 mask 掉非 action token 的 loss；推理用 sampling 而非 argmax 导致动作抖。
+```python
+import torch
+import torch.nn.functional as F
+
+def fit_bins_quantile(actions, n_bin=256):
+    # actions: [N, D]；按 quantile 而非 min/max 切分，防长尾压缩
+    qs = torch.linspace(0, 1, n_bin + 1, device=actions.device)
+    # 每维独立切：返回 [D, n_bin+1] 的边界
+    return torch.stack([torch.quantile(actions[:, d], qs) for d in range(actions.size(1))])
+
+def discretize(action, bins, vocab_offset):
+    # action: [B, D]；bins: [D, n_bin+1]
+    # 用 bucketize 找落在哪个区间 → token id（偏移到词表预留段）
+    token_ids = torch.stack([
+        torch.bucketize(action[:, d], bins[d, 1:-1])  # 去掉首尾哨兵
+        for d in range(action.size(1))
+    ], dim=1)
+    return token_ids + vocab_offset  # 落到词表预留的 action token 段
+
+def openvla_loss(logits, target_ids, action_mask):
+    # logits: [B, L, V]；target_ids: [B, L]；action_mask 仅在 action token 处为 1
+    # 屏蔽 prompt/image token 的 loss，只学 action 段
+    return F.cross_entropy(logits.transpose(1, 2), target_ids,
+                           reduction='none').mul(action_mask).sum() / action_mask.sum().clamp(min=1)
+```
+
+**易错**：用全局 min/max 切 bin 长尾压缩；mask 后 target_ids 仍要是合法 vocab id（用 `ignore_index=-100` 时改写法）；推理用 sampling 而非 argmax 致动作抖。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×9</span> <b>✍ H05</b> · 手撕 CLIP / InfoNCE 对比损失</summary>
 
-**考察点**：对称交叉熵；温度 τ 的作用；为何 image→text + text→image 各算一次。
+**考察点**：对称 CE；温度 τ 用可学的 `exp(t)` + clamp；为何 i→t 与 t→i 各算一次（对齐两个方向）。
 
-**关键实现要点**：
-- 投影并 L2 归一化：`img_emb = F.normalize(W_i @ f, dim=-1)`，`txt_emb` 同理。
-- logits：`logits = img_emb @ txt_emb.T / τ`，τ 一般用可学的 `exp(t)`。
-- 对称 CE：`labels = arange(N)`；`loss = (CE(logits, labels) + CE(logits.T, labels)) / 2`。
-- batch size 越大、负样本越多 → 效果越好。
+**实现**：
 
-**易错**：忘 L2 归一化；τ 未 clamp 出现梯度爆炸；batch 太小负样本不足；softmax temperature 与对比 temperature 混淆。
+```python
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class CLIPLoss(nn.Module):
+    def __init__(self, init_t=0.07):
+        super().__init__()
+        # 学 log(1/τ)；用 exp 保证 τ>0；clamp 防梯度爆炸
+        self.log_inv_t = nn.Parameter(torch.tensor(1.0 / init_t).log())
+
+    def forward(self, img_feat, txt_feat):
+        # 必须 L2 归一化，否则点积≠cosine
+        img_emb = F.normalize(img_feat, dim=-1)
+        txt_emb = F.normalize(txt_feat, dim=-1)
+        # 对照官方 CLIP：clamp log(1/τ) ≤ ln(100) ≈ 4.605
+        scale = self.log_inv_t.clamp(max=4.605).exp()
+        logits = scale * img_emb @ txt_emb.T  # [N, N]
+        labels = torch.arange(img_emb.size(0), device=img_emb.device)
+        # 对称：i→t 沿行做 softmax；t→i 沿列做 softmax
+        return (F.cross_entropy(logits, labels) +
+                F.cross_entropy(logits.T, labels)) / 2
+```
+
+**易错**：忘 L2 归一化点积≠cosine；τ 未 clamp 梯度爆炸；batch 太小负样本不足；只算单向 CE 失对称性。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>✍ H06</b> · 手撕 DAgger（数据聚合）训练流程</summary>
 
-**考察点**：解决 BC 的 distribution shift；每轮拿当前 π rollout，专家标注新数据回灌。
+**考察点**：解决 BC 的 distribution shift；每轮 rollout 拿专家标注新数据回灌；β-mix 早期靠专家、后期靠 π。
 
-**关键实现要点**：
-- 初始：BC 在专家数据 `D_0` 上训得 `π_0`。
-- 迭代：用 `π_i` rollout 拿新 obs → 专家标注 action → `D_{i+1} = D_i ∪ new`，再训 `π_{i+1}`。
-- β-mix（DAgger-β）：rollout 时以 β 概率用专家动作、(1-β) 用 π，β 随轮次衰减。
-- 数据集只加不替换。
+**实现**：
 
-**易错**：第一轮就全用 π 导致 OOD 收不到有效标注；专家标注成本指数级增长却没 query 选择策略；β 退火太快。
+```python
+import random
+
+def dagger_train(pi, expert, env, train_fn, n_iter=10, rollout_T=200):
+    # train_fn(pi, dataset) -> 新 pi；专家与环境为黑箱
+    dataset = expert.collect()  # D_0：纯专家轨迹（先 BC 起步）
+    pi = train_fn(pi, dataset)
+    for i in range(1, n_iter + 1):
+        beta = max(0.05, 0.9 ** i)  # 退火不要太快，保留早期专家引导
+        obs = env.reset()
+        traj_obs, traj_act = [], []
+        for _ in range(rollout_T):
+            # β-mix rollout：以 β 用专家动作走、否则用 π；标注始终来自专家
+            a_exec = expert.act(obs) if random.random() < beta else pi.act(obs)
+            traj_obs.append(obs)
+            traj_act.append(expert.act(obs))  # 关键：标注用专家在该 obs 的动作
+            obs, _, done, _ = env.step(a_exec)
+            if done:
+                break
+        dataset.extend(list(zip(traj_obs, traj_act)))  # 只加不替换
+        pi = train_fn(pi, dataset)
+    return pi
+```
+
+**易错**：标注用执行动作而非专家在该 obs 的动作（破坏 DAgger 本质）；β 退火太快首轮就全靠 π；数据集替换而非累加；忽略 query 选择策略致标注爆炸。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×4</span> <b>✍ H07</b> · 手撕 cross-attention（视觉-语言融合）</summary>
 
-**考察点**：与 self-attn 的唯一区别（K/V 来自另一个序列）；VLA/VLN 中谁当 Q 谁当 KV。
+**考察点**：与 self-attn 唯一区别 = K/V 来自另一序列；输出长度跟 Q；mask 形状 `[L_q, L_kv]`。
 
-**关键实现要点**：
-- Q 来自序列 A，K、V 来自序列 B：`attn = softmax(Q_A @ K_B.T / √d) @ V_B`。
-- 输出长度与 A 一致；mask 形状 `[L_A, L_B]`。
-- 常用形式：language token 作 Q、visual token 作 KV（VLN 抽视觉信息）；或反过来（VLA 把语言信息注入视觉 token）。
-- 多头与 SDPA 复用。
+**实现**：
 
-**易错**：Q/K/V 都从一个序列拿（变成 self-attn）；mask 维度按 self-attn 来设；K、V 用不同 projection 但忘了 V 也要换序列。
+```python
+import math
+import torch.nn as nn
+import torch.nn.functional as F
+
+class CrossAttention(nn.Module):
+    def __init__(self, d_q, d_kv, d_model, h):
+        super().__init__()
+        assert d_model % h == 0
+        self.h, self.d_k = h, d_model // h
+        self.Wq = nn.Linear(d_q, d_model)
+        self.Wk = nn.Linear(d_kv, d_model)  # K/V 从另一序列投影
+        self.Wv = nn.Linear(d_kv, d_model)
+        self.Wo = nn.Linear(d_model, d_model)
+
+    def forward(self, x_q, x_kv, mask=None):
+        # x_q: [B, Lq, d_q]; x_kv: [B, Lkv, d_kv]
+        B, Lq, _ = x_q.shape
+        Lkv = x_kv.size(1)
+        q = self.Wq(x_q).view(B, Lq, self.h, self.d_k).transpose(1, 2)
+        k = self.Wk(x_kv).view(B, Lkv, self.h, self.d_k).transpose(1, 2)
+        v = self.Wv(x_kv).view(B, Lkv, self.h, self.d_k).transpose(1, 2)
+        scores = q @ k.transpose(-2, -1) / math.sqrt(self.d_k)
+        if mask is not None:  # mask: [B, 1, Lq, Lkv]
+            scores = scores.masked_fill(mask, float('-inf'))
+        out = F.softmax(scores, -1) @ v  # 输出长度 = Lq
+        return self.Wo(out.transpose(1, 2).contiguous().view(B, Lq, -1))
+```
+
+**易错**：把 K/V 也从 `x_q` 投影（变 self-attn）；mask 形状按 self-attn 设；V 忘换序列。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×7</span> <b>✍ H08</b> · 手撕 KV cache（增量解码）</summary>
 
-**考察点**：为何 prefill 后只算新 token 的 Q；K/V 怎么 concat；显存瓶颈。
+**考察点**：prefill 后单步只算新 token 的 Q；旧 K/V 复用而非重算；显存随序列线性增长。
 
-**关键实现要点**：
-- prefill：完整序列前向，存下每层 `K_cache, V_cache`，shape `[B, L_past, d]`。
-- decode 单步：q 形状 `[B, 1, d]`；`K_new = cat([K_cache, k_t], dim=1)` 并存回。
-- 计算：`attn = softmax(q @ K_new.T / √d) @ V_new`，仅输出最后一步。
-- 显存估算：`2 · num_layer · num_head · L · d_head` per request。
+**实现**：
 
-**易错**：每步重算全部历史 K/V（变 O(N²) → 失去 cache 意义）；忘了对新 K 也加 RoPE；显存爆掉但没做 paged 管理。
+```python
+import math
+import torch
+import torch.nn.functional as F
+
+def attn_with_kv_cache(q_new, k_new, v_new, kv_cache, layer_idx):
+    # q_new/k_new/v_new: 当前 step token 的 q,k,v，形状 [B, h, 1, d_k]
+    # kv_cache[layer_idx] = (K_past, V_past)，shape [B, h, L_past, d_k]
+    if kv_cache[layer_idx] is None:
+        K, V = k_new, v_new  # prefill 首步
+    else:
+        K_past, V_past = kv_cache[layer_idx]
+        # 沿序列维 concat；旧 K/V 不再重算（这是 cache 核心）
+        K = torch.cat([K_past, k_new], dim=2)
+        V = torch.cat([V_past, v_new], dim=2)
+    kv_cache[layer_idx] = (K, V)  # 写回
+    d_k = q_new.size(-1)
+    # decode 单步只算 [B,h,1,L_new] 的 scores，不需要 causal mask
+    scores = q_new @ K.transpose(-2, -1) / math.sqrt(d_k)
+    return F.softmax(scores, -1) @ V  # [B, h, 1, d_k]
+```
+
+**易错**：每步把整段重算（失去 cache 意义）；忘对新 K 也加 RoPE（位置错）；显存爆但没 paged 管理；并发请求共享同一 cache。
 
 </details>
 

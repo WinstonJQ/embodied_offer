@@ -2,7 +2,11 @@
   "artifact": "docs/interviews/03_vla_il.md",
   "volume": "卷三 · VLA / 模仿学习",
   "question_count": 58,
-  "difficulty_distribution": {"L1": 18, "L2": 31, "L3": 9},
+  "difficulty_distribution": {
+    "L1": 18,
+    "L2": 31,
+    "L3": 9
+  },
   "review_model": "gpt-5.5",
   "review_effort": "xhigh",
   "executor_model": "claude-opus-4-7",
@@ -26,5 +30,38 @@
     "executor (claude-opus-4-7) != reviewer (gpt-5.5)",
     "read-only sandbox during review",
     "answer_conciseness threshold: <=350 chars PASS / 350-500 WARN / >500 FAIL"
-  ]
+  ],
+  "handcoding_review": {
+    "section": "§H 手撕代码 (8 items, H01-H08)",
+    "model": "gpt-5.5",
+    "reasoning_effort": "xhigh",
+    "total_rounds": 2,
+    "final_verdict": "PASS",
+    "rounds": [
+      {
+        "round": 1,
+        "verdict": "FAIL",
+        "blocking_issues": [
+          "H02 make_alpha_bar 公式错误（f[1:]/f[:-1].cumprod 非 DDPM 累积 ᾱ_t，致 1-ᾱ 可能为负）"
+        ],
+        "warnings": [
+          "H04 openvla_loss 在 cross_entropy 后 mask，target 仍须合法 vocab id（用 ignore_index=-100 需改写法）"
+        ]
+      },
+      {
+        "round": 2,
+        "verdict": "PASS",
+        "fixes_applied": [
+          "H02 改为 (f / f[0])[1:] 标准 cosine 累积 ᾱ_t",
+          "H04 易错段澄清 mask 与 target_ids 合法性约束"
+        ]
+      }
+    ],
+    "checks_run": [
+      "answer_conciseness",
+      "details_block_well_formed",
+      "code_correctness"
+    ],
+    "code_audit_summary": "8 题代码 ≤30 行；关键 API 正确（rsample/reparam，F.normalize dim=-1，bucketize 边界，cosine schedule，KL 闭式，cross-attn 形状）。涉及 DDPM/CLIP/ACT/DAgger/KV cache 5 个 VLA 标志性算法。"
+  }
 }
