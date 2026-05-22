@@ -7,7 +7,11 @@
     "ml_system_design": 5,
     "robot_system_design": 5
   },
-  "difficulty_distribution": {"L1": 8, "L2": 19, "L3": 13},
+  "difficulty_distribution": {
+    "L1": 8,
+    "L2": 19,
+    "L3": 13
+  },
   "rounds": [
     {
       "round": 1,
@@ -82,5 +86,42 @@
     "threshold_PASS": 350,
     "threshold_FAIL": 500
   },
-  "notes": "整个 vol-8 跨模型审查共 3 轮收敛（Round 1 FAIL → Round 2 WARN → Round 3 PASS），远低于 CLAUDE.md §11.2 预测的典型 5-6 轮。原因：LeetCode 30 题的题源（CodeTop）非常成熟、错误率低；系统设计 10 题的争议点主要在长度而非内容正确性。"
+  "notes": "整个 vol-8 跨模型审查共 3 轮收敛（Round 1 FAIL → Round 2 WARN → Round 3 PASS），远低于 CLAUDE.md §11.2 预测的典型 5-6 轮。原因：LeetCode 30 题的题源（CodeTop）非常成熟、错误率低；系统设计 10 题的争议点主要在长度而非内容正确性。",
+  "handcoding_review": {
+    "section": "§1 LeetCode (30 items, Q01-Q30)",
+    "model": "gpt-5.5",
+    "reasoning_effort": "xhigh",
+    "total_rounds": 2,
+    "final_verdict": "PASS",
+    "scope_note": "§2 ML 系统设计 + §3 机器人系统设计 共 10 题不动（保持 qa class + 答+易错格式）。",
+    "rounds": [
+      {
+        "round": 1,
+        "verdict": "FAIL",
+        "blocking_issues": [
+          "Q20 merge_k_lists: dummy 只从 lists[0] 取类型，[None, node] 案例返回 None"
+        ],
+        "warnings": [
+          "Q09 prose/code 描述不一致（max 较小侧 vs 当前两端较短侧）"
+        ]
+      },
+      {
+        "round": 2,
+        "verdict": "WARN",
+        "fixes_applied": [
+          "Q20 改用 next((h for h in lists if h), None) 找任一非空头节点取类型",
+          "Q09 prose 改为「挪当前两端中较短那侧」与代码一致"
+        ],
+        "remaining_warnings": [
+          "Q23 哨兵注释例子不准确（i=0 长度 1 → 改为 i=1 长度 2 for '()'）"
+        ]
+      }
+    ],
+    "checks_run": [
+      "answer_conciseness",
+      "details_block_well_formed",
+      "code_correctness"
+    ],
+    "code_audit_summary": "30 题纯 Python（无 PyTorch）；滑窗 / 哈希 / 双指针 / 单调队列 / DP / BFS-DFS / 堆 / 回溯主流 idiom 全覆盖；边界点（dummy 防删头 / 哨兵 / tie-break / 多源 BFS / 二分 left/right）均已注释。Q23 哨兵注释例子在 round 2 已修，无 round 3 新增警告。"
+  }
 }

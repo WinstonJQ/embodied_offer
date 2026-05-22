@@ -7,8 +7,8 @@
 
 <meta name="generator" content="ARIS render-html (academic, v1)">
 <meta name="aris:source-path" content="docs/interviews/08_coding_systemdesign.md">
-<meta name="aris:source-sha256" content="5d466188e31e4449dfd2955e182b78b645a1edd488ff6e8eb071e3778c4751cd">
-<meta name="aris:generated-at" content="2026-05-22 01:27 UTC">
+<meta name="aris:source-sha256" content="673c3caab8f348feabb996ab7d191157f9e364948585ad0fcccd1d7646842b2b">
+<meta name="aris:generated-at" content="2026-05-22 03:11 UTC">
 
 <!-- MathJax 3 -->
 <script>
@@ -407,216 +407,704 @@ footer.aris-footer a { color: var(--ink-muted); border-bottom: 1px dotted var(--
 <p><strong>说明</strong>：§1 LeetCode 段题号用 <code>Q01-Q30</code>，class 为 <code>qa qa-handcoding</code>（与各卷 §H 同款）；§2/§3 系统设计段 <code>Q31-Q40</code>，class 为 <code>qa</code>（视觉上区分两种）。</p>
 <hr />
 <h2 id="1-leetcode-高频-30-题按频次排序">§1 LeetCode 高频 30 题（按频次排序）</h2>
-<blockquote><p>来源：CodeTop（字节 / 阿里 / 腾讯 / 美团 / 拼多多等头部互联网 + 自动驾驶车企的近 1 年面经合并统计）。具身 / 自动驾驶岗 coding 一面与互联网算法岗高度重叠——这 30 题覆盖了链表 / 滑动窗口 / DP / 树图 / 栈 / 设计的主流分布。</p></blockquote>
+<blockquote><p>来源：CodeTop（字节 / 阿里 / 腾讯 / 美团 / 拼多多等头部互联网 + 自动驾驶车企的近 1 年面经合并统计）。具身 / 自动驾驶岗 coding 一面与互联网算法岗高度重叠。每题给"考察点 / 实现 / 易错"，附 ≤30 行纯 Python（不用 PyTorch）。</p></blockquote>
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×30</span> <b>Q01</b> · LC3 无重复字符的最长子串</summary>
-<p><strong>考察点</strong>：滑动窗口模板；哈希记位置；窗口左端怎么跳。</p>
-<p><strong>关键思路</strong>：</p>
-<ul><li>用 <code>dict</code> 记每个字符最后一次出现的下标。</li><li>右指针 r 遍历；遇到重复字符时，左指针 l 跳到 <code>max(l, last[c] + 1)</code>，注意 max（旧位置可能已在窗口外）。</li><li>答案 = <code>max(ans, r - l + 1)</code>。</li><li>复杂度 O(n)，空间 O(min(n, |Σ|))。</li></ul>
-<p><strong>易错</strong>：忘 max 导致 l 回退；用 set 删除老元素逻辑变复杂；初始 l=0 但首字符就重复时 +1 偏移。</p>
+<p><strong>考察点</strong>：滑动窗口；哈希记字符最后一次位置；左指针只能右移（用 max 防回退）。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">def length_of_longest_substring(s):
+    last = {}      # 字符 -&gt; 最后出现下标
+    l, ans = 0, 0
+    for r, c in enumerate(s):
+        # 关键：max(l, last[c]+1)；last[c] 可能已在窗口外，l 不能回退
+        if c in last and last[c] &gt;= l:
+            l = last[c] + 1
+        last[c] = r
+        ans = max(ans, r - l + 1)
+    return ans</code></pre>
+<p><strong>易错</strong>：忘 <code>max</code> 致 <code>l</code> 回退；用 set 删旧元素逻辑复杂；用 <code>l = last[c]+1</code> 不判区间漏过窗口外旧位置。</p>
 </details>
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×25</span> <b>Q02</b> · LC206 反转链表</summary>
-<p><strong>考察点</strong>：单链表三指针迭代；递归写法。</p>
-<p><strong>关键思路</strong>：</p>
-<ul><li>迭代：<code>prev=None, cur=head</code>，循环 <code>nxt=cur.next; cur.next=prev; prev=cur; cur=nxt</code>，返回 prev。</li><li>递归：<code>new_head = reverse(head.next); head.next.next = head; head.next = None</code>，base case <code>not head or not head.next</code>。</li><li>复杂度 O(n)；迭代空间 O(1)，递归 O(n)。</li></ul>
-<p><strong>易错</strong>：忘断尾 <code>head.next=None</code> 致环；指针顺序错先改 next 再保存致丢失；递归 base case 漏判 head 空。</p>
+<p><strong>考察点</strong>：三指针迭代 O(1) 空间；递归 O(n) 栈空间；断尾防成环。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">def reverse_list(head):
+    prev, cur = None, head
+    while cur:
+        nxt = cur.next      # 先存下一节点，否则反转后丢失
+        cur.next = prev     # 反转当前节点指针
+        prev, cur = cur, nxt
+    return prev             # prev 为新头
+
+def reverse_recursive(head):
+    if not head or not head.next:  # 空或单节点直接返回（base case）
+        return head
+    new_head = reverse_recursive(head.next)
+    head.next.next = head   # 让下一节点指回当前
+    head.next = None        # 断尾防成环
+    return new_head</code></pre>
+<p><strong>易错</strong>：忘 <code>head.next=None</code> 致成环；指针顺序错（先改 next 再保存致丢失）；递归 base case 漏判 head 空。</p>
 </details>
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×20</span> <b>Q03</b> · LC15 三数之和</summary>
-<p><strong>考察点</strong>：排序 + 双指针；如何去重。</p>
-<p><strong>关键思路</strong>：</p>
-<ul><li>先排序 O(n log n)。</li><li>外层固定 <code>i</code>，内层 <code>l = i+1, r = n-1</code> 双指针；和 &lt; 0 左移、&gt; 0 右移、= 0 入答案。</li><li>去重三处：① <code>i &gt; 0 且 nums[i] == nums[i-1]</code> 跳；② 命中后 <code>while nums[l] == nums[l+1]: l++</code>；③ <code>r</code> 同理。</li><li>复杂度 O(n²)。</li></ul>
-<p><strong>易错</strong>：忘排序；只对 i 去重忘了 l/r 去重；左右指针没同时移动导致死循环。</p>
+<p><strong>考察点</strong>：排序 + 双指针；三处去重（i / l / r）；命中后双指针必须同时移动。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">def three_sum(nums):
+    nums.sort()
+    n, res = len(nums), []
+    for i in range(n - 2):
+        if nums[i] &gt; 0:
+            break                       # 已排序，最小值&gt;0 不可能和为 0
+        if i &gt; 0 and nums[i] == nums[i - 1]:
+            continue                    # ① i 去重：跳过相同首元素
+        l, r = i + 1, n - 1
+        while l &lt; r:
+            s = nums[i] + nums[l] + nums[r]
+            if s == 0:
+                res.append([nums[i], nums[l], nums[r]])
+                # ②③ l/r 同时去重
+                while l &lt; r and nums[l] == nums[l + 1]: l += 1
+                while l &lt; r and nums[r] == nums[r - 1]: r -= 1
+                l += 1; r -= 1          # 必须同步移动，否则死循环
+            elif s &lt; 0:
+                l += 1
+            else:
+                r -= 1
+    return res</code></pre>
+<p><strong>易错</strong>：忘排序；只对 <code>i</code> 去重；命中后只动一侧指针致死循环；漏 <code>nums[i]&gt;0</code> 早停。</p>
 </details>
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×18</span> <b>Q04</b> · LC146 LRU 缓存机制</summary>
-<p><strong>考察点</strong>：哈希 + 双向链表组合；get / put 都要 O(1)。</p>
-<p><strong>关键思路</strong>：</p>
-<ul><li>哈希表 key → node；双向链表按访问顺序排（最近用的放头部）。</li><li>get：哈希查 node → 移到头部 → 返回值。</li><li>put：若 key 存在更新值并移头；否则新建插头，超容量删尾节点（同步删哈希）。</li><li>Python 可用 <code>OrderedDict</code> + <code>move_to_end</code>；C++ 用 list + unordered_map。</li></ul>
-<p><strong>易错</strong>：单链表无法 O(1) 删除中间节点；哈希值存数值而非节点指针；超容量后忘从哈希删 key。</p>
+<p><strong>考察点</strong>：哈希 + 双向链表 → get/put 都 O(1)；Python <code>OrderedDict.move_to_end</code> 一行解决。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">from collections import OrderedDict
+
+class LRUCache:
+    def __init__(self, capacity):
+        self.cap = capacity
+        self.cache = OrderedDict()  # 内置双向链表，有序
+
+    def get(self, key):
+        if key not in self.cache:
+            return -1
+        self.cache.move_to_end(key)  # 访问后移到尾（最近用）
+        return self.cache[key]
+
+    def put(self, key, value):
+        if key in self.cache:
+            self.cache.move_to_end(key)
+        self.cache[key] = value
+        if len(self.cache) &gt; self.cap:
+            # popitem(last=False) 弹最旧；同步从哈希删（OrderedDict 一并删）
+            self.cache.popitem(last=False)</code></pre>
+<p><strong>易错</strong>：用单链表无法 O(1) 删中间节点；超容量后只删链表忘删哈希；<code>get</code> 已存在 key 忘 <code>move_to_end</code>。</p>
 </details>
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×15</span> <b>Q05</b> · LC215 数组中第 K 个最大元素</summary>
-<p><strong>考察点</strong>：堆 vs 快速选择；面试官常追问 O(n) 平均做法。</p>
-<p><strong>关键思路</strong>：</p>
-<ul><li>小顶堆维护 top-K：堆大小 &gt; K 时弹堆顶；最后堆顶即第 K 大。复杂度 O(n log K)。</li><li>快速选择（QuickSelect）：随机 pivot 分区，递归到目标分区。期望 O(n)，最差 O(n²) 需随机化避免。</li><li>Python：<code>heapq.nlargest(k, nums)[-1]</code> 直接给答案。</li></ul>
-<p><strong>易错</strong>：大顶堆维护全量浪费空间；QuickSelect 不随机选 pivot 在排序数据上退化；混淆"第 K 大"与"第 K 小"导致堆方向反。</p>
+<p><strong>考察点</strong>：小顶堆 O(n log K) vs 快选 O(n) 期望；快选必须随机 pivot 防排序数据退化。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">import heapq
+import random
+
+def kth_largest_heap(nums, k):
+    # 小顶堆维护 top-K：堆顶就是第 K 大
+    heap = []
+    for x in nums:
+        heapq.heappush(heap, x)
+        if len(heap) &gt; k:
+            heapq.heappop(heap)
+    return heap[0]
+
+def kth_largest_quickselect(nums, k):
+    # 找第 k 大 = 找第 (n-k) 小
+    target = len(nums) - k
+
+    def partition(l, r):
+        pivot = random.randint(l, r)            # 随机 pivot 防排序数据 O(n²)
+        nums[pivot], nums[r] = nums[r], nums[pivot]
+        store = l
+        for i in range(l, r):
+            if nums[i] &lt; nums[r]:
+                nums[i], nums[store] = nums[store], nums[i]
+                store += 1
+        nums[store], nums[r] = nums[r], nums[store]
+        return store
+
+    l, r = 0, len(nums) - 1
+    while True:
+        p = partition(l, r)
+        if p == target: return nums[p]
+        elif p &lt; target: l = p + 1
+        else: r = p - 1</code></pre>
+<p><strong>易错</strong>：堆方向反（求第 K 大用小顶堆，反直觉）；快选不随机 pivot 退化；维护全量堆浪费空间。</p>
 </details>
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×14</span> <b>Q06</b> · LC53 最大子序和</summary>
-<p><strong>考察点</strong>：一维 DP；Kadane 算法（在线扩展 vs 重启）。</p>
-<p><strong>关键思路</strong>：</p>
-<ul><li><code>dp[i] = max(nums[i], dp[i-1] + nums[i])</code>，答案 = <code>max(dp)</code>。</li><li>空间优化为单变量 <code>cur = max(x, cur + x)</code>，O(1) 空间。</li><li>进阶：分治 O(n log n)（线段树思路），返回 <code>(总和, 最大前缀, 最大后缀, 最大子段)</code>。</li></ul>
-<p><strong>易错</strong>：dp[i] 表示"以 i 结尾"而不是"前 i 项最大"，定义记错；初始值 cur=0 在全负数组上得 0（应初始化 cur = nums[0]）。</p>
+<p><strong>考察点</strong>：Kadane 算法 O(n)/O(1)；<code>dp[i]</code> 定义是"以 i 结尾"而非"前 i 项最大"。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">def max_subarray(nums):
+    # cur 必须初始化为 nums[0]，不是 0：全负数组时 0 会错
+    cur = ans = nums[0]
+    for x in nums[1:]:
+        # 在线扩展 vs 重启：max(x, cur+x)
+        # 等价于 &quot;以 x 结尾的最大子段和&quot;
+        cur = max(x, cur + x)
+        ans = max(ans, cur)
+    return ans</code></pre>
+<p><strong>易错</strong>：<code>cur=0</code> 在全负数组上返回 0（应 <code>nums[0]</code>）；定义记成"前 i 项最大"丢失子串约束；遍历从 0 而非 1 致重复计入 nums[0]。</p>
 </details>
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×12</span> <b>Q07</b> · LC25 K 个一组翻转链表</summary>
-<p><strong>考察点</strong>：分组反转的边界处理；不足 K 个保持原序。</p>
-<p><strong>关键思路</strong>：</p>
-<ul><li>先 dummy 哨兵；遍历找到下一段 K 个节点（不足 K 则 break）。</li><li>反转这 K 个节点：复用 reverse 模板，传入 <code>head, tail</code> 边界。</li><li>接回：原 <code>pre.next = new_head</code>，原 <code>head.next = next_group</code>，更新 pre = head。</li><li>复杂度 O(n)。</li></ul>
-<p><strong>易错</strong>：不足 K 个反了（题目要求保留）；接回时 pre 没正确更新致后续段错位；递归写法栈深 O(n/K) 大输入炸栈。</p>
+<p><strong>考察点</strong>：dummy 哨兵；不足 K 个保持原序；接回时四个边界指针更新。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">def reverse_k_group(head, k):
+    dummy = type(head)(0) if head else None
+    if not dummy:
+        return None
+    dummy.next = head
+    pre = dummy                          # 上一组的末尾
+    while True:
+        # 先看后面是否还有 K 个节点；不足 K 直接 break（题目要求保留原序）
+        tail = pre
+        for _ in range(k):
+            tail = tail.next
+            if not tail:
+                return dummy.next
+        nxt_group = tail.next            # 下一组起点，反转前先存
+        # 反转 [pre.next, tail] 这一段
+        prev, cur = nxt_group, pre.next
+        while cur != nxt_group:
+            tmp = cur.next
+            cur.next = prev
+            prev, cur = cur, tmp
+        # 接回：原 head 现在是这一组的尾
+        new_tail = pre.next
+        pre.next = prev                  # 新头接到 pre 后
+        pre = new_tail                   # pre 推进到本组末尾</code></pre>
+<p><strong>易错</strong>：不足 K 个反了（应保留原序）；<code>pre</code> 未更新致后续段错位；递归写法 O(n/K) 栈深大输入炸。</p>
 </details>
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×12</span> <b>Q08</b> · LC121 买卖股票的最佳时机</summary>
-<p><strong>考察点</strong>：一次买卖（只能买卖一次）的最优答案；扫一遍维护最小值。</p>
-<p><strong>关键思路</strong>：</p>
-<ul><li>扫描数组，维护 <code>min_price = min(min_price, p)</code>。</li><li>答案 = <code>max(ans, p - min_price)</code>。</li><li>复杂度 O(n) / 空间 O(1)。</li><li>变体（多次买卖 LC122）：贪心累加所有正差；含冷冻期 LC309 / 含手续费 LC714 用状态机 DP。</li></ul>
-<p><strong>易错</strong>：把题目当多次买卖；min_price 初始化为 inf 而非 prices[0]（数组只有一个元素时返回 0）；DP 写成 O(n²)（外双重循环）。</p>
+<p><strong>考察点</strong>：一次买卖；一趟扫维护历史最低 + 最大差；变体（多次买卖 / 含冷冻 / 含费）走状态机 DP。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">def max_profit(prices):
+    if not prices:
+        return 0
+    # min_price 初始为 prices[0] 而非 inf，保证遍历从 i=1 开始时不错算
+    min_price, ans = prices[0], 0
+    for p in prices[1:]:
+        ans = max(ans, p - min_price)   # 先更答案：不能在同一天卖出
+        min_price = min(min_price, p)
+    return ans</code></pre>
+<p><strong>易错</strong>：把题目当多次买卖；先更新 <code>min_price</code> 再算差致同日买卖；DP 写成 O(n²) 双重循环；空数组未判返回错。</p>
 </details>
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×11</span> <b>Q09</b> · LC42 接雨水</summary>
-<p><strong>考察点</strong>：双指针 vs 单调栈 vs 预处理左右最大值；空间复杂度 trade-off。</p>
-<p><strong>关键思路</strong>：</p>
-<ul><li>双指针（最优）：<code>l, r</code> 双端；<code>lmax, rmax</code> 记两侧最大；哪边 max 小哪边动，移动时加 <code>lmax - h[l]</code> 或 <code>rmax - h[r]</code>。O(n) 时间 / O(1) 空间。</li><li>单调栈：栈存下标，碰到更高柱子结算"凹槽水量"。</li><li>预处理：左右最大值各扫一遍，对每个 i 加 <code>min(L[i], R[i]) - h[i]</code>。</li></ul>
-<p><strong>易错</strong>：双指针挪错方向（应挪 max 较小那侧）；单调栈算高度时忘减底 <code>h[stack[-1]]</code>；左右数组下标越界。</p>
+<p><strong>考察点</strong>：双指针 O(n)/O(1) 最优；挪当前两端柱中较短的那侧（短板锁定本列水位）。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">def trap(height):
+    # 双指针：比较两端当前高度；较短的一侧的水位由它那侧的 max 锁定
+    l, r = 0, len(height) - 1
+    lmax, rmax = 0, 0
+    ans = 0
+    while l &lt; r:
+        if height[l] &lt; height[r]:
+            # 左边短：左侧 max 比 height[r] 小，水位即 lmax
+            lmax = max(lmax, height[l])
+            ans += lmax - height[l]
+            l += 1
+        else:
+            # 右边短或相等：水位由 rmax 锁定
+            rmax = max(rmax, height[r])
+            ans += rmax - height[r]
+            r -= 1
+    return ans</code></pre>
+<p><strong>易错</strong>：挪错方向（应挪当前两端中较短那侧）；单调栈版漏减底高；预处理左右最大值版下标越界。</p>
 </details>
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×11</span> <b>Q10</b> · LC102 二叉树层序遍历</summary>
-<p><strong>考察点</strong>：BFS 模板；如何按层分组（外循环逐层）。</p>
-<p><strong>关键思路</strong>：</p>
-<ul><li><code>deque</code> 初始入 root；外层 <code>while q</code>，记录 <code>n = len(q)</code>；内层取 n 个节点（即当前层）。</li><li>每取一个节点出队，左右孩子入队（非空）。</li><li>收集本层值到 <code>level_vals</code>，加入 <code>result</code>。</li><li>复杂度 O(n)，空间 O(w) w 为最宽层。</li></ul>
-<p><strong>易错</strong>：忘记内层用 <code>n = len(q)</code> 固定本层数量（直接 while q 不能分层）；root=None 漏判直接异常；DFS 递归靠 depth 参数也能写但不直观。</p>
+<p><strong>考察点</strong>：BFS 按层分组的关键 = 内层用 <code>n=len(q)</code> 固定本层数量。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">from collections import deque
+
+def level_order(root):
+    if not root:
+        return []                       # 漏判 None 致后续异常
+    res, q = [], deque([root])
+    while q:
+        n = len(q)                      # 关键：固定本层数量，再分批出队
+        level = []
+        for _ in range(n):
+            node = q.popleft()
+            level.append(node.val)
+            if node.left:  q.append(node.left)
+            if node.right: q.append(node.right)
+        res.append(level)
+    return res</code></pre>
+<p><strong>易错</strong>：忘 <code>n=len(q)</code> 致分层失败；<code>root=None</code> 漏判异常；用 DFS+depth 写也行但不直观。</p>
 </details>
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×10</span> <b>Q11</b> · LC1 两数之和</summary>
-<p><strong>考察点</strong>：一趟哈希；为何不用排序+双指针（题目要求返回下标）。</p>
-<p><strong>关键思路</strong>：</p>
-<ul><li>哈希表 <code>{val: idx}</code>，遍历 nums。</li><li>当前 x，查 <code>target - x</code> 是否已在哈希；在则返回 <code>[d[target-x], i]</code>。</li><li>否则 <code>d[x] = i</code> 加入哈希。</li><li>复杂度 O(n) / 空间 O(n)。</li></ul>
-<p><strong>易错</strong>：先把全部数值塞哈希再查会出现 <code>[i, i]</code> 自配对（应边查边插）；返回值是下标不是数值。</p>
+<p><strong>考察点</strong>：一趟哈希；边查边插防自配对；返回下标非数值。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">def two_sum(nums, target):
+    seen = {}                # val -&gt; idx，已遍历过的数
+    for i, x in enumerate(nums):
+        need = target - x
+        if need in seen:     # 先查再插：防自身和自身配对
+            return [seen[need], i]
+        seen[x] = i
+    return []                # 题目通常保证有解</code></pre>
+<p><strong>易错</strong>：预先全塞哈希再查致 <code>[i,i]</code> 自配对；返回值是下标但返回了数值；用排序+双指针失下标信息。</p>
 </details>
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×10</span> <b>Q12</b> · LC200 岛屿数量</summary>
-<p><strong>考察点</strong>：网格连通分量；DFS / BFS 任选；标记访问的两种方式。</p>
-<p><strong>关键思路</strong>：</p>
-<ul><li>双重循环遍历，遇到 <code>&#x27;1&#x27;</code> 计数 +1 并 DFS / BFS 把相连的 1 全标记为 <code>&#x27;0&#x27;</code>（原地）或加入 visited。</li><li>四邻居方向数组 <code>dx=[-1,1,0,0]; dy=[0,0,-1,1]</code>。</li><li>递归 DFS 注意栈深；大网格用 BFS 更安全。</li><li>复杂度 O(M·N)。</li></ul>
-<p><strong>易错</strong>：递归无终止条件爆栈；改原数组但题目不允许（拷贝一份）；八邻居（题目是四邻居）。</p>
+<p><strong>考察点</strong>：网格连通分量；DFS/BFS 任选；原地改 <code>&#x27;0&#x27;</code> 替代 visited 节省空间。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">def num_islands(grid):
+    if not grid:
+        return 0
+    R, C = len(grid), len(grid[0])
+
+    def dfs(r, c):
+        # 边界 + 已访问/水 三道闸防越界
+        if r &lt; 0 or r &gt;= R or c &lt; 0 or c &gt;= C or grid[r][c] != &#x27;1&#x27;:
+            return
+        grid[r][c] = &#x27;0&#x27;                # 原地标记访问（题目允许改）
+        dfs(r + 1, c); dfs(r - 1, c)
+        dfs(r, c + 1); dfs(r, c - 1)    # 四邻居（题目是四邻居）
+
+    count = 0
+    for r in range(R):
+        for c in range(C):
+            if grid[r][c] == &#x27;1&#x27;:
+                count += 1
+                dfs(r, c)
+    return count</code></pre>
+<p><strong>易错</strong>：递归无终止条件爆栈；八邻居（题目是四邻居）；不允许改原数组时漏 visited 数组；DFS 大网格用 BFS 更安全。</p>
 </details>
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×9</span> <b>Q13</b> · LC141 环形链表</summary>
-<p><strong>考察点</strong>：Floyd 快慢指针；为何一定能相遇。</p>
-<p><strong>关键思路</strong>：</p>
-<ul><li><code>slow, fast = head, head</code>；<code>while fast and fast.next: slow=slow.next; fast=fast.next.next; if slow==fast: return True</code>。</li><li>若 fast 走到 None 返回 False。</li><li>进阶 LC142 找环入口：相遇后 slow 回 head、fast 留原地，同步走一步直到相遇。</li></ul>
-<p><strong>易错</strong>：fast 边界判断写成 <code>while fast.next</code> 漏掉 fast 自己是 None；慢指针起点 head.next 也能写但要小心同步关系。</p>
+<p><strong>考察点</strong>：Floyd 快慢指针；fast 每步走 2、slow 走 1，有环必相遇。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">def has_cycle(head):
+    slow = fast = head
+    # 边界：fast 与 fast.next 都不能为 None（fast 要走两步）
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+        if slow == fast:
+            return True
+    return False
+
+def find_cycle_entry(head):
+    # LC142 进阶：相遇后 slow 回 head、fast 留原地、同步走 1 步直到相遇
+    slow = fast = head
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+        if slow == fast:
+            slow = head
+            while slow != fast:
+                slow = slow.next
+                fast = fast.next
+            return slow
+    return None</code></pre>
+<p><strong>易错</strong>：边界写 <code>while fast.next</code> 漏判 <code>fast=None</code>；slow 起点写 <code>head.next</code> 同步关系乱；用 set 存访问节点占 O(n) 空间。</p>
 </details>
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×8</span> <b>Q14</b> · LC560 和为 K 的子数组</summary>
-<p><strong>考察点</strong>：前缀和 + 哈希；为何不能滑窗（含负数）。</p>
-<p><strong>关键思路</strong>：</p>
-<ul><li>维护前缀和 <code>s</code>；哈希 <code>cnt[s] = 出现次数</code>，初始 <code>cnt[0]=1</code>（空前缀）。</li><li>遍历到位置 i 时，<code>ans += cnt[s - k]</code>，再把 <code>s</code> 入哈希。</li><li>复杂度 O(n)。</li></ul>
-<p><strong>易错</strong>：含负数不能用滑窗（窗口和非单调）；忘初始化 <code>cnt[0]=1</code>，全数组和为 k 时漏算；先更新哈希再查会自配对。</p>
+<p><strong>考察点</strong>：前缀和差 <code>s_i - s_j = k</code>；含负数滑窗不单调必用哈希；<code>cnt[0]=1</code> 表空前缀。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">from collections import defaultdict
+
+def subarray_sum(nums, k):
+    # cnt[前缀和] = 出现次数；初始 cnt[0]=1 让&quot;从头开始就等于 k&quot;被算到
+    cnt = defaultdict(int)
+    cnt[0] = 1
+    s = ans = 0
+    for x in nums:
+        s += x
+        # 先查再插：避免 [i,i] 自配对（含 0 元素时）
+        ans += cnt[s - k]
+        cnt[s] += 1
+    return ans</code></pre>
+<p><strong>易错</strong>：含负数用滑窗（窗口和非单调）；漏 <code>cnt[0]=1</code> 致全数组和为 k 时漏算；先插再查自配对。</p>
 </details>
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×8</span> <b>Q15</b> · LC236 二叉树最近公共祖先</summary>
-<p><strong>考察点</strong>：递归后序；返回值的语义（找到了什么）。</p>
-<p><strong>关键思路</strong>：</p>
-<ul><li>函数返回：当前子树中找到 p 或 q 的那个节点；都没找到返回 None。</li><li>base case：<code>root is None / root == p / root == q</code> → 返回 root。</li><li>递归左右子树；左右都非空说明分居两侧 → 当前 root 是 LCA；否则返回非空那侧。</li><li>复杂度 O(n)。</li></ul>
-<p><strong>易错</strong>：把"找到 p 或 q"理解成"找到 LCA"；递归返回值用 bool 而非节点丢信息；二叉搜索树（LC235）可用 BST 性质 O(log n)，普通二叉树不行。</p>
+<p><strong>考察点</strong>：递归后序；返回值语义 = "子树里找到 p 或 q 的那个节点"，左右都非空 = 分居两侧 → 当前是 LCA。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">def lowest_common_ancestor(root, p, q):
+    # base case：root=None 或 root 就是 p/q，直接返回
+    if not root or root == p or root == q:
+        return root
+    left = lowest_common_ancestor(root.left, p, q)
+    right = lowest_common_ancestor(root.right, p, q)
+    # 左右子树都找到目标 → root 是 LCA
+    if left and right:
+        return root
+    # 否则返回非空那侧（携带 p 或 q 的子树或 LCA 本身）
+    return left if left else right</code></pre>
+<p><strong>易错</strong>：返回值用 bool 而非节点丢信息；BST 题（LC235）可用大小关系 O(log n)，普通树不行；漏 <code>root==p or root==q</code> 早返回。</p>
 </details>
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×8</span> <b>Q16</b> · LC20 有效的括号</summary>
-<p><strong>考察点</strong>：栈匹配；map 存配对关系。</p>
-<p><strong>关键思路</strong>：</p>
-<ul><li>维护栈和配对 dict <code>{&#x27;)&#x27;:&#x27;(&#x27;, &#x27;]&#x27;:&#x27;[&#x27;, &#x27;}&#x27;:&#x27;{&#x27;}</code>。</li><li>遇左括号入栈；遇右括号检查栈顶是否匹配，不匹配返回 False，匹配则弹栈。</li><li>结束时栈空才是合法。</li><li>复杂度 O(n)。</li></ul>
-<p><strong>易错</strong>：栈空时碰到右括号没判空导致 IndexError；只检查最终栈空但中间没匹配；用计数器（不能区分 () 与 [] 的嵌套关系）。</p>
+<p><strong>考察点</strong>：栈匹配；用 dict 存右→左配对；结束栈空才合法。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">def is_valid(s):
+    pair = {&#x27;)&#x27;: &#x27;(&#x27;, &#x27;]&#x27;: &#x27;[&#x27;, &#x27;}&#x27;: &#x27;{&#x27;}
+    stack = []
+    for c in s:
+        if c in pair:
+            # 遇右括号：栈空或顶不匹配都失败
+            if not stack or stack[-1] != pair[c]:
+                return False
+            stack.pop()
+        else:
+            stack.append(c)             # 左括号入栈
+    return not stack                    # 结束时必须栈空</code></pre>
+<p><strong>易错</strong>：栈空时直接 <code>stack[-1]</code> 致 IndexError；只判最终栈空但中间错配漏；用计数器无法区分 <code>()[]</code> 与 <code>(]</code> 的合法性。</p>
 </details>
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×8</span> <b>Q17</b> · LC239 滑动窗口最大值</summary>
-<p><strong>考察点</strong>：单调队列；窗口左端怎么及时弹出。</p>
-<p><strong>关键思路</strong>：</p>
-<ul><li>用 deque 存<strong>下标</strong>，保证队中对应值单调递减。</li><li>新元素入队前从尾部弹出比它小的值。</li><li>队头下标若 <code>&lt; i - k + 1</code> 表示已出窗口，弹出。</li><li>当 i ≥ k-1 时，记录 <code>nums[queue[0]]</code> 为当前窗口最大。</li></ul>
-<p><strong>易错</strong>：deque 存值而非下标导致无法判断"何时滑出窗口"；窗口长度边界 <code>i - k + 1</code> 算错；遍历完忘补尾部窗口结果。</p>
+<p><strong>考察点</strong>：单调递减队列；队中存<strong>下标</strong>才能判窗口边界；摊还 O(n)。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">from collections import deque
+
+def max_sliding_window(nums, k):
+    dq = deque()                        # 存下标，对应值单调递减
+    res = []
+    for i, x in enumerate(nums):
+        # 队头超出窗口：i - k + 1 是窗口左端
+        if dq and dq[0] &lt; i - k + 1:
+            dq.popleft()
+        # 维护单调递减：尾部小于 x 的全弹
+        while dq and nums[dq[-1]] &lt; x:
+            dq.pop()
+        dq.append(i)
+        # i 到达 k-1 才形成第一个完整窗口
+        if i &gt;= k - 1:
+            res.append(nums[dq[0]])
+    return res</code></pre>
+<p><strong>易错</strong>：deque 存值而非下标 → 无法判窗口边界；窗口左端 <code>i-k+1</code> 算错；首次取答案的边界条件 <code>i&gt;=k-1</code> 写成 <code>i&gt;=k</code>。</p>
 </details>
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×7</span> <b>Q18</b> · LC155 最小栈</summary>
-<p><strong>考察点</strong>：辅助栈维护当前最小值。</p>
-<p><strong>关键思路</strong>：</p>
-<ul><li>主栈正常 push / pop。</li><li>辅助栈：push 时压入 <code>min(辅助栈顶, x)</code>（栈空则压 x）；pop 时辅助栈同步 pop。</li><li><code>getMin</code> 直接返回辅助栈顶，O(1)。</li><li>进阶：只用一个栈存 <code>(val, cur_min)</code> pair。</li></ul>
-<p><strong>易错</strong>：辅助栈只在 x 更小时压入（导致 pop 时不同步）；getMin 用 min(stack) 退化为 O(n)；忘了空栈检查。</p>
+<p><strong>考察点</strong>：辅助栈与主栈<strong>同步</strong> push/pop（不能只在更小时才压辅助栈）；<code>getMin</code> O(1)。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">class MinStack:
+    def __init__(self):
+        self.stack = []
+        self.min_stack = []             # 与 stack 同步，存历史最小
+
+    def push(self, x):
+        self.stack.append(x)
+        # 关键：辅助栈每次都压，压的是 min(top, x)；这样 pop 才同步
+        m = x if not self.min_stack else min(self.min_stack[-1], x)
+        self.min_stack.append(m)
+
+    def pop(self):
+        self.stack.pop()
+        self.min_stack.pop()            # 同步 pop
+
+    def top(self):
+        return self.stack[-1]
+
+    def getMin(self):
+        return self.min_stack[-1]       # O(1)</code></pre>
+<p><strong>易错</strong>：辅助栈仅在 <code>x</code> 更小时压 → pop 时不同步；<code>getMin</code> 用 <code>min(stack)</code> 退化 O(n)；忘判空栈。</p>
 </details>
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×7</span> <b>Q19</b> · LC56 合并区间</summary>
-<p><strong>考察点</strong>：按起点排序 + 一次扫描合并。</p>
-<p><strong>关键思路</strong>：</p>
-<ul><li>按 <code>start</code> 排序。</li><li>维护当前合并区间 <code>[cs, ce]</code>；下一个 <code>[s, e]</code>：若 <code>s &lt;= ce</code> 则 <code>ce = max(ce, e)</code> 合并；否则把 <code>[cs, ce]</code> 入答案、开新区间。</li><li>复杂度 O(n log n)。</li></ul>
-<p><strong>易错</strong>：按 end 排序错；<code>s &lt;= ce</code> 写成 <code>&lt;</code> 漏端点相接情况（题目通常算合并）；忘了循环结束后把最后一个区间入答案。</p>
+<p><strong>考察点</strong>：按起点排序 + 一次扫描；端点相接（<code>s&lt;=ce</code>）也算合并。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">def merge(intervals):
+    if not intervals:
+        return []
+    intervals.sort(key=lambda x: x[0])  # 按起点排序
+    res = [intervals[0][:]]
+    for s, e in intervals[1:]:
+        # 端点相接也算合并（用 &lt;= 不是 &lt;）
+        if s &lt;= res[-1][1]:
+            res[-1][1] = max(res[-1][1], e)
+        else:
+            res.append([s, e])
+    return res</code></pre>
+<p><strong>易错</strong>：按 end 排序错；<code>s &lt;= ce</code> 写成 <code>&lt;</code> 漏端点相接；<code>max(ce, e)</code> 忘 <code>max</code>（新区间可能比旧短）。</p>
 </details>
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×7</span> <b>Q20</b> · LC23 合并 K 个升序链表</summary>
-<p><strong>考察点</strong>：堆 vs 分治；时间复杂度证明。</p>
-<p><strong>关键思路</strong>：</p>
-<ul><li>堆：所有头节点入小顶堆（按值），弹堆顶接到结果尾、堆顶 next 再入堆。复杂度 O(N log K)，N 为总节点数。</li><li>分治：两两合并，logK 层，每层 O(N) → O(N log K)。</li><li>Python heap 元素是 <code>(val, idx, node)</code>，idx 防 val 相等时比较 node 报错。</li></ul>
-<p><strong>易错</strong>：直接合并 K 路得 O(N·K)；堆比较 node 报错（需加 tie-break 项）；分治合并区间边界算错。</p>
+<p><strong>考察点</strong>：小顶堆 O(N log K)；堆元素加 <code>idx</code> tie-break 防比较 <code>node</code> 报错；分治也行。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">import heapq
+
+def merge_k_lists(lists):
+    # 寻找任一非空节点拿到节点类型，构造 dummy；只看 lists[0] 会漏 [None, node] 情况
+    sample = next((h for h in lists if h), None)
+    if sample is None:
+        return None
+    dummy = type(sample)(0)
+    heap = []
+    # 所有头节点入堆；(val, idx, node)：idx 是 tie-break 防 val 相同时比较 node 报错
+    for i, head in enumerate(lists):
+        if head:
+            heapq.heappush(heap, (head.val, i, head))
+    cur = dummy
+    counter = len(lists)
+    while heap:
+        val, _, node = heapq.heappop(heap)
+        cur.next = node
+        cur = node
+        if node.next:
+            heapq.heappush(heap, (node.next.val, counter, node.next))
+            counter += 1
+    return dummy.next</code></pre>
+<p><strong>易错</strong>：堆元素 <code>(val, node)</code> val 相等时比较 node 报 TypeError；直接 K 路合并 O(N·K) 而非 O(N log K)；分治区间边界算错。</p>
 </details>
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×7</span> <b>Q21</b> · LC300 最长递增子序列</summary>
-<p><strong>考察点</strong>：DP O(n²) 经典写法 + 二分 O(n log n) 进阶。</p>
-<p><strong>关键思路</strong>：</p>
-<ul><li>DP O(n²)：<code>dp[i] = max(dp[j]) + 1</code>，j &lt; i 且 <code>nums[j] &lt; nums[i]</code>；答案 = max(dp)。</li><li>O(n log n)：维护 tails 数组（不严格是真正 LIS）；新元素若大于尾部则 append、否则二分替换第一个 ≥ 它的位置。tails 长度 = LIS 长度。</li><li>二分版需理解：tails 不是答案序列，但其长度等于 LIS 长度。</li></ul>
-<p><strong>易错</strong>：把 tails 直接当 LIS（错）；严格 vs 非严格递增（用 bisect_left vs bisect_right）；DP 初始值漏 1。</p>
+<p><strong>考察点</strong>：tails 二分 O(n log n)；tails 不是答案序列但长度=LIS 长度；严格 vs 非严格选 <code>bisect_left/right</code>。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">import bisect
+
+def length_of_lis(nums):
+    # tails[k] = 所有长度 k+1 LIS 中末尾的最小值；自然单调递增
+    tails = []
+    for x in nums:
+        # 严格递增用 bisect_left（替换第一个 &gt;= x 的位置）
+        # 若题目要求非严格递增则用 bisect_right
+        i = bisect.bisect_left(tails, x)
+        if i == len(tails):
+            tails.append(x)             # x 比所有尾部都大，扩展长度
+        else:
+            tails[i] = x                # 否则更新让该长度的尾部更小
+    return len(tails)
+
+def length_of_lis_dp(nums):
+    # O(n²) 经典 DP，便于讲解
+    if not nums:
+        return 0
+    dp = [1] * len(nums)                # 每个元素自己就是长度 1
+    for i in range(len(nums)):
+        for j in range(i):
+            if nums[j] &lt; nums[i]:
+                dp[i] = max(dp[i], dp[j] + 1)
+    return max(dp)</code></pre>
+<p><strong>易错</strong>：把 <code>tails</code> 直接当 LIS 输出（错；只长度对）；严格/非严格用错 <code>bisect_left/right</code>；DP 初值漏 1 致全 0。</p>
 </details>
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×6</span> <b>Q22</b> · LC994 腐烂的橘子</summary>
-<p><strong>考察点</strong>：多源 BFS；同时从多个起点扩散。</p>
-<p><strong>关键思路</strong>：</p>
-<ul><li>初始扫一遍，所有腐烂橘子下标入队，统计新鲜橘子数 <code>fresh</code>。</li><li>BFS 逐层；每层结束 <code>minutes += 1</code>；每"感染"一个新鲜橘子 fresh -= 1。</li><li>终止：队空。若 fresh &gt; 0 返回 -1，否则返回 minutes（注意初始层不算时间）。</li><li>复杂度 O(MN)。</li></ul>
-<p><strong>易错</strong>：BFS 终止时 minutes 多算一层（初始入队的不算新感染）；fresh==0 时直接返回 0，不进 BFS；忘了多源（单源 BFS 会漏掉早就在远处的腐烂源）。</p>
+<p><strong>考察点</strong>：多源 BFS（所有腐烂橘子同时入队）；初始层不计时间；<code>fresh&gt;0</code> 返回 -1。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">from collections import deque
+
+def oranges_rotting(grid):
+    R, C = len(grid), len(grid[0])
+    q = deque()
+    fresh = 0
+    # 多源 BFS：所有腐烂橘子先入队
+    for r in range(R):
+        for c in range(C):
+            if grid[r][c] == 2:
+                q.append((r, c))
+            elif grid[r][c] == 1:
+                fresh += 1
+    if fresh == 0:
+        return 0                        # 没新鲜橘子直接 0 分钟
+    minutes = 0
+    while q and fresh &gt; 0:
+        for _ in range(len(q)):
+            r, c = q.popleft()
+            for dr, dc in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+                nr, nc = r + dr, c + dc
+                if 0 &lt;= nr &lt; R and 0 &lt;= nc &lt; C and grid[nr][nc] == 1:
+                    grid[nr][nc] = 2    # 标记腐烂
+                    fresh -= 1
+                    q.append((nr, nc))
+        minutes += 1                    # 一轮 BFS 后才 +1（初始层不计）
+    return minutes if fresh == 0 else -1</code></pre>
+<p><strong>易错</strong>：单源 BFS 漏远处腐烂源；<code>minutes</code> 多算一层；<code>fresh==0</code> 时未直接返回 0 进入 BFS 多算 0→1。</p>
 </details>
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×6</span> <b>Q23</b> · LC32 最长有效括号</summary>
-<p><strong>考察点</strong>：栈 vs DP 两种解法。</p>
-<p><strong>关键思路</strong>：</p>
-<ul><li>栈：栈底放 -1 哨兵；遇 '(' 压下标；遇 ')' 弹栈，若栈空则压当前 i 当新哨兵，否则 <code>ans = max(ans, i - stack[-1])</code>。</li><li>DP：<code>dp[i]</code> 表"以 i 结尾的最长有效"；只在 s[i]==')' 时算：若 s[i-1]=='(' 则 <code>dp[i] = dp[i-2] + 2</code>；若 s[i-1]==')' 且 s[i - dp[i-1] - 1]=='(' 则配对再加前段。</li><li>复杂度 O(n)。</li></ul>
-<p><strong>易错</strong>：栈底没放 -1 哨兵导致首段长度算错；DP 状态转移条件漏 case；用计数器（不能区分嵌套与并列）。</p>
+<p><strong>考察点</strong>：栈底放 <code>-1</code> 哨兵，<code>i - stack[-1]</code> 算长度；'(' 入栈、')' 弹栈后栈空则用 <code>i</code> 作新哨兵。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">def longest_valid_parentheses(s):
+    stack = [-1]                        # 哨兵：例如 &quot;()&quot; 在 i=1 处弹出后，长度 = 1-(-1)=2 正确
+    ans = 0
+    for i, c in enumerate(s):
+        if c == &#x27;(&#x27;:
+            stack.append(i)
+        else:                           # &#x27;)&#x27;
+            stack.pop()
+            if not stack:
+                # 栈空说明当前 &#x27;)&#x27; 多余，用 i 作新哨兵
+                stack.append(i)
+            else:
+                # 当前合法段长度 = i - 上一未匹配位置
+                ans = max(ans, i - stack[-1])
+    return ans</code></pre>
+<p><strong>易错</strong>：忘哨兵 <code>-1</code> 致首段长度算错；')' 弹栈后忘判空致后续算法挂；用计数器无法处理 <code>()(()</code> 这类嵌套+并列。</p>
 </details>
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×6</span> <b>Q24</b> · LC72 编辑距离</summary>
-<p><strong>考察点</strong>：二维 DP；三种操作的状态转移。</p>
-<p><strong>关键思路</strong>：</p>
-<ul><li><code>dp[i][j]</code> = word1[:i] 转成 word2[:j] 的最少操作数。</li><li>边界：<code>dp[0][j]=j, dp[i][0]=i</code>。</li><li>转移：<code>w1[i-1]==w2[j-1]</code> 时 <code>dp[i][j]=dp[i-1][j-1]</code>；否则 <code>1 + min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1])</code>（删/增/改）。</li><li>O(mn)；可滚动数组到 O(min(m,n))。</li></ul>
-<p><strong>易错</strong>：下标 1 偏移；min 三项漏一项；空间优化时左上角 <code>dp[i-1][j-1]</code> 被覆盖前要先存。</p>
+<p><strong>考察点</strong>：二维 DP；三种操作（删 / 增 / 改）对应 <code>dp[i-1][j]</code>、<code>dp[i][j-1]</code>、<code>dp[i-1][j-1]</code>；边界 <code>dp[0][j]=j、dp[i][0]=i</code>。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">def min_distance(word1, word2):
+    m, n = len(word1), len(word2)
+    # dp[i][j] = word1[:i] -&gt; word2[:j] 的最少操作数
+    dp = [[0] * (n + 1) for _ in range(m + 1)]
+    for i in range(m + 1):
+        dp[i][0] = i                    # 删 i 个变空串
+    for j in range(n + 1):
+        dp[0][j] = j                    # 插 j 个变 word2[:j]
+    for i in range(1, m + 1):
+        for j in range(1, n + 1):
+            if word1[i - 1] == word2[j - 1]:
+                dp[i][j] = dp[i - 1][j - 1]
+            else:
+                # 删 word1[i-1] / 在 word1 插 word2[j-1] / 改字符
+                dp[i][j] = 1 + min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1])
+    return dp[m][n]</code></pre>
+<p><strong>易错</strong>：下标 1 偏移（<code>word1[i-1]</code>）；<code>min</code> 三项漏一项；空间优化时左上角 <code>dp[i-1][j-1]</code> 被覆盖前忘暂存。</p>
 </details>
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×6</span> <b>Q25</b> · LC5 最长回文子串</summary>
-<p><strong>考察点</strong>：中心扩展 vs Manacher；对奇偶长度的处理。</p>
-<p><strong>关键思路</strong>：</p>
-<ul><li>中心扩展 O(n²)：对每个 i，分别以 i 为中心（奇）和 (i, i+1) 为中心（偶）向两侧扩展。</li><li>记录最大长度 + 起点。</li><li>Manacher O(n)：在字符间插 '#' 把奇偶统一，再用对称性加速。</li><li>DP O(n²) 也可（空间 O(n²) 略亏）。</li></ul>
-<p><strong>易错</strong>：只处理奇数中心漏偶数；扩展时边界越界没判；返回起点和长度算错。</p>
+<p><strong>考察点</strong>：中心扩展 O(n²)；每个位置同时考虑奇中心（i,i）与偶中心（i,i+1）。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">def longest_palindrome(s):
+    if not s:
+        return &quot;&quot;
+
+    def expand(l, r):
+        # 从中心向两侧扩展，返回最长回文的 (start, length)
+        while l &gt;= 0 and r &lt; len(s) and s[l] == s[r]:
+            l -= 1; r += 1
+        return l + 1, r - l - 1         # 退出时 l/r 已越过端点
+
+    start, max_len = 0, 1
+    for i in range(len(s)):
+        s1, l1 = expand(i, i)           # 奇中心
+        s2, l2 = expand(i, i + 1)       # 偶中心（必算，不能漏）
+        if l1 &gt; max_len:
+            start, max_len = s1, l1
+        if l2 &gt; max_len:
+            start, max_len = s2, l2
+    return s[start:start + max_len]</code></pre>
+<p><strong>易错</strong>：只算奇中心漏偶；扩展时未判 <code>l&gt;=0 and r&lt;n</code> 越界；返回时起点/长度计算错误。</p>
 </details>
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×6</span> <b>Q26</b> · LC46 全排列</summary>
-<p><strong>考察点</strong>：回溯模板；used 数组 vs 交换法。</p>
-<p><strong>关键思路</strong>：</p>
-<ul><li>DFS 带 used[] 标记已用：当前 path 长度 == n 时收集；否则枚举未用元素递归。</li><li>交换法：固定前 i 个，依次把后面元素与 i 交换、递归 i+1、再换回（恢复）。</li><li>复杂度 O(n!)；含重复元素（LC47）需排序 + 同层去重：<code>if i&gt;0 and nums[i]==nums[i-1] and not used[i-1]: skip</code>。</li></ul>
-<p><strong>易错</strong>：忘 used 回滚；交换法没换回致结果污染；LC47 去重条件方向反（应在 <code>not used[i-1]</code> 时跳过同层重复枝）。</p>
+<p><strong>考察点</strong>：回溯模板；<code>used[]</code> 数组标已用；进出递归时成对地"做选择/撤销选择"。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">def permute(nums):
+    n = len(nums)
+    res = []
+    used = [False] * n
+    path = []
+
+    def dfs():
+        if len(path) == n:
+            res.append(path[:])         # 收集时必须拷贝快照
+            return
+        for i in range(n):
+            if used[i]:
+                continue
+            # 做选择
+            used[i] = True
+            path.append(nums[i])
+            dfs()
+            # 撤销选择（成对出现）
+            path.pop()
+            used[i] = False
+
+    dfs()
+    return res</code></pre>
+<p><strong>易错</strong>：收集 <code>res.append(path)</code> 而非 <code>path[:]</code> 致引用共享被改污染；忘撤销 <code>used[i]=False</code>；LC47 去重时条件方向反（应在 <code>not used[i-1]</code> 时跳过同层重复枝）。</p>
 </details>
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×6</span> <b>Q27</b> · LC19 删除链表倒数第 N 个节点</summary>
-<p><strong>考察点</strong>：快慢指针一次遍历；dummy 哨兵防删头。</p>
-<p><strong>关键思路</strong>：</p>
-<ul><li>dummy → head；slow=fast=dummy。</li><li>fast 先走 n+1 步；之后 slow、fast 同步走，fast 到 None 时 slow 在待删节点的前一个。</li><li><code>slow.next = slow.next.next</code>；返回 <code>dummy.next</code>。</li><li>复杂度 O(L) 一次遍历。</li></ul>
-<p><strong>易错</strong>：不要 dummy 时删 head 失败；fast 先走 n 步（应 n+1）致 slow 停错；fast.next 而非 fast 判 None 致越界。</p>
+<p><strong>考察点</strong>：快慢指针一次遍历；dummy 防删头节点；<code>fast</code> 先走 n 步后再与 <code>slow</code> 同步。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">def remove_nth_from_end(head, n):
+    # dummy 解决&quot;待删的是头节点&quot;的边界
+    dummy = type(head)(0)
+    dummy.next = head
+    slow = fast = dummy
+    # fast 先走 n 步；之后 slow 与 fast 同步走到 fast.next 为 None
+    # 此时 slow 恰好在待删节点的前一个
+    for _ in range(n):
+        fast = fast.next
+    while fast.next:
+        slow = slow.next
+        fast = fast.next
+    slow.next = slow.next.next          # 跳过待删节点
+    return dummy.next</code></pre>
+<p><strong>易错</strong>：不用 dummy 时删 head 失败；<code>fast</code> 走 n+1 步致 slow 停错位（取决于循环写法）；<code>fast.next</code> 判空写成 <code>fast</code> 致越界。</p>
 </details>
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>Q28</b> · LC22 括号生成</summary>
-<p><strong>考察点</strong>：回溯剪枝；左右括号数约束。</p>
-<p><strong>关键思路</strong>：</p>
-<ul><li>递归参数 <code>(path, left, right)</code>；左括号已用 left 个、右括号 right 个，目标 n 对。</li><li>剪枝：<code>left &lt; n</code> 才能加 '('；<code>right &lt; left</code> 才能加 ')'。</li><li><code>left == n and right == n</code> 时入答案。</li><li>复杂度 O(Catalan(n))。</li></ul>
-<p><strong>易错</strong>：剪枝条件 <code>right &lt; left</code> 写成 <code>right &lt;= left</code>（误判合法）；忘了两个 if 都要尝试（不是 elif）；用 count 计数但没传当前 path。</p>
+<p><strong>考察点</strong>：回溯剪枝；<code>left&lt;n</code> 才加 '('、<code>right&lt;left</code> 才加 ')'；两 if 都要尝试（不是 elif）。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">def generate_parenthesis(n):
+    res = []
+
+    def dfs(path, left, right):
+        if len(path) == 2 * n:
+            res.append(&#x27;&#x27;.join(path))
+            return
+        if left &lt; n:                    # 还能加左括号
+            path.append(&#x27;(&#x27;)
+            dfs(path, left + 1, right)
+            path.pop()
+        if right &lt; left:                # 关键：right&lt;left 才合法（不是 &lt;=）
+            path.append(&#x27;)&#x27;)
+            dfs(path, left, right + 1)
+            path.pop()
+
+    dfs([], 0, 0)
+    return res</code></pre>
+<p><strong>易错</strong>：剪枝写 <code>right&lt;=left</code> 致 <code>())</code> 类非法解漏过；用 <code>elif</code> 替代两 if 致漏解；忘 <code>path.pop</code> 回溯。</p>
 </details>
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>Q29</b> · LC1143 最长公共子序列</summary>
-<p><strong>考察点</strong>：二维 DP；与最长公共子串（连续）的区别。</p>
-<p><strong>关键思路</strong>：</p>
-<ul><li><code>dp[i][j]</code> = text1[:i] 与 text2[:j] 的 LCS 长度。</li><li>转移：<code>t1[i-1]==t2[j-1]</code> 时 <code>dp[i][j] = dp[i-1][j-1] + 1</code>；否则 <code>max(dp[i-1][j], dp[i][j-1])</code>。</li><li>边界 <code>dp[0][*] = dp[*][0] = 0</code>。</li><li>空间可滚动数组优化到 O(min(m,n))。</li></ul>
-<p><strong>易错</strong>：与最长公共子串混淆（子串需连续，错位时 dp 清零）；下标 1 偏移；max 漏 dp[i-1][j] 或 dp[i][j-1]。</p>
+<p><strong>考察点</strong>：二维 DP；子序列（可不连续）与子串（必连续）转移区别——子串错位时 <code>dp[i][j]=0</code>，子序列取 <code>max(dp[i-1][j], dp[i][j-1])</code>。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">def longest_common_subsequence(text1, text2):
+    m, n = len(text1), len(text2)
+    # dp[i][j] = text1[:i] 与 text2[:j] 的 LCS 长度
+    dp = [[0] * (n + 1) for _ in range(m + 1)]
+    for i in range(1, m + 1):
+        for j in range(1, n + 1):
+            if text1[i - 1] == text2[j - 1]:
+                # 字符匹配：继承左上 + 1
+                dp[i][j] = dp[i - 1][j - 1] + 1
+            else:
+                # 不匹配：放弃 text1[i-1] 或 text2[j-1]，取大
+                # 注意：子串（非子序列）这里应是 0，转移方式完全不同
+                dp[i][j] = max(dp[i - 1][j], dp[i][j - 1])
+    return dp[m][n]</code></pre>
+<p><strong>易错</strong>：与最长公共子串混淆（子串错位清零）；下标 1 偏移；<code>max</code> 漏一项。</p>
 </details>
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×4</span> <b>Q30</b> · LC169 多数元素</summary>
-<p><strong>考察点</strong>：Boyer-Moore 投票算法；为何成立。</p>
-<p><strong>关键思路</strong>：</p>
-<ul><li>维护 <code>cand, count</code>，count=0 时 cand=x、count=1；x == cand 时 count+=1，否则 count-=1。</li><li>遍历结束 cand 即多数元素（题目保证存在）。</li><li>复杂度 O(n) / 空间 O(1)。</li><li>不保证存在时需第二次遍历验证 <code>count(cand) &gt; n/2</code>。</li></ul>
-<p><strong>易错</strong>：把题目当"出现 &gt; n/2"反复改成"出现最多"——LC229 是变体（次数 &gt; n/3）；count=0 时不重置 cand 致最终错误。</p>
+<p><strong>考察点</strong>：Boyer-Moore 投票；多数元素（出现 &gt; n/2）必能胜出；O(n)/O(1)。</p>
+<p><strong>实现</strong>：</p>
+<pre><code class="language-python">def majority_element(nums):
+    # cand: 当前候选；count: 净计数
+    cand, count = None, 0
+    for x in nums:
+        if count == 0:
+            cand = x                    # 重置候选
+            count = 1
+        elif x == cand:
+            count += 1
+        else:
+            count -= 1                  # 互相抵消
+    # 题目保证存在多数元素；不保证时再扫一遍验证 count(cand) &gt; n/2
+    return cand</code></pre>
+<p><strong>易错</strong>：把多数元素当"出现最多"（不一定 &gt;n/2）；<code>count=0</code> 时不重置 <code>cand</code> 致结果错；LC229（&gt;n/3）需要两个候选。</p>
 </details>
 <hr />
 <h2 id="2-ml-系统设计5-题">§2 ML 系统设计（5 题）</h2>
@@ -729,8 +1217,8 @@ footer.aris-footer a { color: var(--ink-muted); border-bottom: 1px dotted var(--
 <footer class="aris-footer">
   Generated by <a href="https://github.com/wanshuiyin/Auto-claude-code-research-in-sleep/blob/main/skills/render-html/SKILL.md">ARIS <code>/render-html</code></a> ·
   source path <code>docs/interviews/08_coding_systemdesign.md</code> ·
-  SHA256 <code>5d466188e31e</code> ·
-  generated at 2026-05-22 01:27 UTC.
+  SHA256 <code>673c3caab8f3</code> ·
+  generated at 2026-05-22 03:11 UTC.
   This is a generated view — edit the source Markdown, then re-render.
 </footer>
 </main>
