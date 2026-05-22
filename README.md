@@ -66,19 +66,20 @@
 
 ---
 
-## 七卷目录
+## 八卷目录
 
 | 卷 | 主题 | 题数 | 一句话 |
 |---|---|---:|---|
-| [一](https://winstonjq.github.io/embodied-interview-qa/interviews/01_basics.html) | **通识基础** | 44 | DL 基本盘 + RL 入门 + 机器人学，一面常从这里开题 |
-| [二](https://winstonjq.github.io/embodied-interview-qa/interviews/02_rl_algo.html) | **RL 算法** | 40 | PPO / SAC / TD3 / 离线 RL / RLHF 的设计动机与取舍 |
-| [三](https://winstonjq.github.io/embodied-interview-qa/interviews/03_vla_il.html) | **VLA / 模仿学习** | 58 | OpenVLA / RT-2 / π 系列 / Diffusion Policy，投 VLA 岗几乎必问 |
+| [一](https://winstonjq.github.io/embodied-interview-qa/interviews/01_basics.html) | **通识基础**（含 §H 手撕） | 54 | DL 基本盘 + RL 入门 + 机器人学 + 手撕（Attention / LayerNorm / Bellman / VAE ELBO） |
+| [二](https://winstonjq.github.io/embodied-interview-qa/interviews/02_rl_algo.html) | **RL 算法**（含 §H 手撕） | 50 | PPO / SAC / TD3 / 离线 RL / RLHF + 手撕（PPO clipped / GAE / DPO / GRPO 核心公式） |
+| [三](https://winstonjq.github.io/embodied-interview-qa/interviews/03_vla_il.html) | **VLA / 模仿学习**（含 §H 手撕） | 66 | OpenVLA / π 系列 / Diffusion Policy + 手撕（BC / DP 训练 step / ACT chunking / CLIP InfoNCE） |
 | [四](https://winstonjq.github.io/embodied-interview-qa/interviews/04_world_sim.html) | **世界模型 / Sim2Real** | 31 | Dreamer / V-JEPA / 域随机化 / Isaac Lab，人形和四足公司重点 |
-| [五](https://winstonjq.github.io/embodied-interview-qa/interviews/05_engineering.html) | **工程落地** | 39 | VLA 怎么塞进 Jetson、FSDP/ZeRO、teleop 数据飞轮、开放题与系统设计 |
+| [五](https://winstonjq.github.io/embodied-interview-qa/interviews/05_engineering.html) | **工程落地**（含 §H 手撕） | 47 | VLA 部署 / FSDP / teleop 数据飞轮 + 手撕（数值稳定 softmax / CE / KL / Adam） |
 | [六](https://winstonjq.github.io/embodied-interview-qa/interviews/06_legged_control.html) | **腿足机器人控制 / 遥操作** | 48 | 浮动基座、MPC / WBC、RL-locomotion、AVP teleop、HumanPlus、actuator network sim2real |
-| [七](https://winstonjq.github.io/embodied-interview-qa/interviews/07_perception_nav.html) | **3D 感知 / SLAM / VLN / ObjectNav / Embodied VLM** | 60 | 点云 / 深度估计 / NeRF / 3DGS / ORB-SLAM3 / VINS / Nav2 / HAMT / DUET / NaVid / Uni-NaVid / VLFM / OpenFMNav / Grounding DINO / SAM 2 / VLMaps，投 VLN / 导航 / VLM 算法岗专用 |
+| [七](https://winstonjq.github.io/embodied-interview-qa/interviews/07_perception_nav.html) | **3D 感知 / SLAM / VLN / ObjectNav / Embodied VLM**（含 §H 手撕） | 67 | 点云 / NeRF / SLAM / Nav2 / HAMT / NaVid / VLFM / SAM 2 + 手撕（IoU / NMS / BFS·DFS / A* / ViT patch） |
+| [八](https://winstonjq.github.io/embodied-interview-qa/interviews/08_coding_systemdesign.html) | **通用工程：LeetCode + 系统设计** | 40 | LeetCode 高频 30 题 + ML 系统设计 5 + 机器人系统设计 5（所有具身 / 自动驾驶岗通用） |
 
-**主表共 317 题**，另含 ~19 题低频备选（每卷末单列）。
+**主表共 403 题**，另含 ~19 题低频备选（每卷末单列）。**新增 §H 手撕代码**散布在卷一/二/三/五/七（共 43 题），**新增第八卷**专攻 LeetCode 与系统设计（40 题）。
 
 ---
 

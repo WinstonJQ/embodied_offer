@@ -1,0 +1,86 @@
+{
+  "doc": "docs/interviews/08_coding_systemdesign.md",
+  "title": "卷八 · 通用工程：LeetCode 高频 + 系统设计",
+  "questions_total": 40,
+  "sections": {
+    "leetcode": 30,
+    "ml_system_design": 5,
+    "robot_system_design": 5
+  },
+  "difficulty_distribution": {"L1": 8, "L2": 19, "L3": 13},
+  "rounds": [
+    {
+      "round": 1,
+      "model": "gpt-5.5",
+      "reasoning_effort": "xhigh",
+      "verdict": "FAIL",
+      "blocking_issues": [
+        "Q31 / Q36 / Q40 答案体 >500 字 (506/512/527)",
+        "Q26 LC47 去重条件方向错 (used[i-1] && nums[i]==nums[i-1] → 应改 not used[i-1])",
+        "Q33 ≥3 标注员一致性不应写 Cohen's κ (二人指标) → 应改 Fleiss' κ 或 Krippendorff's α"
+      ],
+      "warnings": [
+        "Q06 typo: Kadama → Kadane",
+        "Q02 / Q24 / Q32-Q35 / Q37-Q39 答案体 351-500 字 WARN"
+      ]
+    },
+    {
+      "round": 2,
+      "model": "gpt-5.5",
+      "reasoning_effort": "xhigh",
+      "verdict": "WARN",
+      "fixes_applied": [
+        "Q06: Kadama → Kadane",
+        "Q26: 去重条件改为 if i>0 and nums[i]==nums[i-1] and not used[i-1]: skip",
+        "Q33: Cohen's κ → Fleiss' κ / Krippendorff's α",
+        "Q31 trimmed 506 → 482 chars",
+        "Q36 trimmed 512 → 493 chars",
+        "Q40 trimmed 527 → <500 chars",
+        "Q02 / Q24 微调收敛 WARN"
+      ],
+      "blocking_issues": [],
+      "warnings": [
+        "Header difficulty distribution: L2=22 / L3=10 与实际 L2=19 / L3=13 不一致",
+        "Q31-Q40 仍在 350-500 WARN 带（spec 允许，不 blocking）"
+      ]
+    },
+    {
+      "round": 3,
+      "model": "gpt-5.5",
+      "reasoning_effort": "xhigh",
+      "verdict": "PASS",
+      "fixes_applied": [
+        "Line 7 难度分布：L2 22 → 19、L3 10 → 13"
+      ],
+      "blocking_issues": [],
+      "warnings": [],
+      "summary": "Round 3 confirms the Round 2 metadata inconsistency is fixed. No new blocking issue. Answer lengths within policy: 30 PASS, 10 WARN, 0 FAIL."
+    }
+  ],
+  "final_verdict": "PASS",
+  "key_facts_verified": [
+    "LC 题号与真实 LeetCode 题号一致 (LC1/LC3/LC15/LC19/LC20/LC22/LC23/LC25/LC32/LC42/LC46/LC53/LC56/LC72/LC102/LC121/LC141/LC143/LC146/LC155/LC169/LC200/LC206/LC215/LC236/LC239/LC300/LC560/LC994)",
+    "算法名称正确: Floyd / Boyer-Moore / Manacher / QuickSelect / Kadane / PagedAttention",
+    "Fleiss' κ 适用 ≥3 标注员、Cohen's κ 仅适用 2 人对比",
+    "vLLM / SGLang 是当前主流 LLM offline batch inference 框架",
+    "ROS 2 三种通信模式 topic / service / action 区分正确",
+    "VIO 主流融合方案：EKF / UKF / Factor graph (GTSAM / Ceres)"
+  ],
+  "sources_consulted": [
+    "notes/handcoding_research.md §2 LeetCode 30 (CodeTop 频次合并)",
+    "notes/handcoding_research.md §3 系统设计 10 题 (ML 5 + Robot 5)",
+    "OpenVLA: https://openvla.github.io/",
+    "vLLM docs: https://docs.vllm.ai/",
+    "SGLang offline engine: https://docs.sglang.io/docs/basic_usage/offline_engine_api",
+    "Physical Intelligence π0: https://www.pi.website/"
+  ],
+  "length_audit": {
+    "PASS_count": 30,
+    "WARN_count": 10,
+    "FAIL_count": 0,
+    "max_chars": 489,
+    "threshold_PASS": 350,
+    "threshold_FAIL": 500
+  },
+  "notes": "整个 vol-8 跨模型审查共 3 轮收敛（Round 1 FAIL → Round 2 WARN → Round 3 PASS），远低于 CLAUDE.md §11.2 预测的典型 5-6 轮。原因：LeetCode 30 题的题源（CodeTop）非常成熟、错误率低；系统设计 10 题的争议点主要在长度而非内容正确性。"
+}

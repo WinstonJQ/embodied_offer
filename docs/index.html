@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>具身智能高频面试题库 · Embodied-AI Interview QA Bank</title>
-<meta name="description" content="中文具身智能秋招高频面试题库 · VLA / 模仿学习 / RL / 世界模型 / 工程落地 / 腿足机器人 / 3D 感知 / VLN / ObjectNav / VLM。题目来自公开面经，频次 ≥3 才入卷。">
+<meta name="description" content="中文具身智能秋招高频面试题库 · VLA / 模仿学习 / RL / 世界模型 / 工程落地 / 腿足机器人 / 3D 感知 / VLN / ObjectNav / VLM / LeetCode 与系统设计。题目来自公开面经，频次 ≥3 才入卷。">
 <style>
 :root {
   --bg: #fdfcf7;
@@ -233,7 +233,7 @@ footer.foot a:hover { color: var(--primary); border-bottom-color: var(--primary)
 </header>
 
 <section>
-  <h2><span class="num">§1</span>七卷目录</h2>
+  <h2><span class="num">§1</span>八卷目录</h2>
   <div class="volumes">
 
     <div class="volume-card active">
@@ -241,9 +241,9 @@ footer.foot a:hover { color: var(--primary); border-bottom-color: var(--primary)
       <div class="vol-line">
         <span class="vol-id">VOL · 01</span>
         <span class="vol-title">通识基础</span>
-        <span class="vol-status s-done">44 题</span>
+        <span class="vol-status s-done">54 题</span>
       </div>
-      <p class="vol-scope">深度学习的梯度、归一化、Transformer 等基本功；强化学习的 MDP、贝尔曼方程、Q-learning 等入门概念；以及机器人学绕不开的坐标变换、雅可比矩阵和控制频率。一面常从这里开题，建议先扫一遍补齐知识盲区。</p>
+      <p class="vol-scope">深度学习的梯度、归一化、Transformer 等基本功；强化学习的 MDP、贝尔曼方程、Q-learning 等入门概念；以及机器人学绕不开的坐标变换、雅可比矩阵和控制频率。一面常从这里开题，建议先扫一遍补齐知识盲区。<strong>新增 §H 手撕代码 10 题</strong>（Attention / LayerNorm / RMSNorm / BN / Bellman / REINFORCE / 高斯 KL / VAE ELBO）。</p>
       </a>
     </div>
 
@@ -252,9 +252,9 @@ footer.foot a:hover { color: var(--primary); border-bottom-color: var(--primary)
       <div class="vol-line">
         <span class="vol-id">VOL · 02</span>
         <span class="vol-title">RL 算法</span>
-        <span class="vol-status s-done">40 题</span>
+        <span class="vol-status s-done">50 题</span>
       </div>
-      <p class="vol-scope">把强化学习的主要算法挨个拆开来问——PPO、SAC、TD3、DDPG 的设计动机与取舍，CQL / IQL 等离线 RL 怎么解决分布外动作高估，RLHF 与 DPO / GRPO 在大模型对齐里的角色。技术深度比卷一高一档，二面三面常考的"为什么这么设计"集中在这里。</p>
+      <p class="vol-scope">把强化学习的主要算法挨个拆开来问——PPO、SAC、TD3、DDPG 的设计动机与取舍，CQL / IQL 等离线 RL 怎么解决分布外动作高估，RLHF 与 DPO / GRPO 在大模型对齐里的角色。技术深度比卷一高一档，二面三面常考的"为什么这么设计"集中在这里。<strong>新增 §H 手撕代码 10 题</strong>（Q-learning / DQN / PPO clipped / GAE / TD3 / SAC / DPO / GRPO 等核心公式手撕）。</p>
       </a>
     </div>
 
@@ -263,9 +263,9 @@ footer.foot a:hover { color: var(--primary); border-bottom-color: var(--primary)
       <div class="vol-line">
         <span class="vol-id">VOL · 03</span>
         <span class="vol-title">VLA / 模仿学习</span>
-        <span class="vol-status s-done">58 题</span>
+        <span class="vol-status s-done">66 题</span>
       </div>
-      <p class="vol-scope">具身智能 2024-2026 最热的方向——OpenVLA、RT-2、π 系列、GR00T-N1 等视觉-语言-动作模型的架构与差别；Diffusion Policy、ACT、Flow Matching 等动作生成方式的对比；模仿学习从行为克隆到 DAgger 的演进。投 VLA 算法岗几乎必问。</p>
+      <p class="vol-scope">具身智能 2024-2026 最热的方向——OpenVLA、RT-2、π 系列、GR00T-N1 等视觉-语言-动作模型的架构与差别；Diffusion Policy、ACT、Flow Matching 等动作生成方式的对比；模仿学习从行为克隆到 DAgger 的演进。投 VLA 算法岗几乎必问。<strong>新增 §H 手撕代码 8 题</strong>（BC / Diffusion Policy 训练 step / ACT chunking loss / OpenVLA action token / CLIP InfoNCE / DAgger / cross-attention / KV cache）。</p>
       </a>
     </div>
 
@@ -285,9 +285,9 @@ footer.foot a:hover { color: var(--primary); border-bottom-color: var(--primary)
       <div class="vol-line">
         <span class="vol-id">VOL · 05</span>
         <span class="vol-title">工程落地</span>
-        <span class="vol-status s-done">39 题</span>
+        <span class="vol-status s-done">47 题</span>
       </div>
-      <p class="vol-scope">从算法到产品要踩的工程坑——VLA 怎么塞进 Jetson Orin 跑实时推理，FSDP / ZeRO 怎么选，teleop 数据采集流程，DROID 和 Ego4D 等数据集的位置；最后一节是开放题与系统设计，例如"给你一年时间和一支队伍，怎么做一台家务机器人"。</p>
+      <p class="vol-scope">从算法到产品要踩的工程坑——VLA 怎么塞进 Jetson Orin 跑实时推理，FSDP / ZeRO 怎么选，teleop 数据采集流程，DROID 和 Ego4D 等数据集的位置；最后一节是开放题与系统设计，例如"给你一年时间和一支队伍，怎么做一台家务机器人"。<strong>新增 §H 手撕代码 8 题</strong>（数值稳定 softmax / LogSumExp / cross-entropy / KL / train loop / warmup+cosine / Adam / dropout）。</p>
       </a>
     </div>
 
@@ -307,9 +307,20 @@ footer.foot a:hover { color: var(--primary); border-bottom-color: var(--primary)
       <div class="vol-line">
         <span class="vol-id">VOL · 07</span>
         <span class="vol-title">3D 感知 / SLAM / VLN / 零样本 ObjectNav / Embodied VLM</span>
-        <span class="vol-status s-done">60 题</span>
+        <span class="vol-status s-done">67 题</span>
       </div>
-      <p class="vol-scope">具身导航算法岗的核心面——点云 / 深度估计 / NeRF 与 3DGS、ORB-SLAM3 / VINS-Fusion / 因子图、Nav2 / 占用栅格 / 路径规划是底层基本盘；上层覆盖 <strong>VLN</strong>（R2R / RxR / REVERIE / HAMT / DUET / NaVid / Uni-NaVid / NaVILA / VLN-R1）、<strong>零样本 ObjectNav</strong>（SemExp / ZSON / L3MVN / VLFM / OpenFMNav / CoW / PIRLNav）、<strong>Embodied VLM</strong>（CLIP / SigLIP / Grounding DINO / SAM 2 / VLMaps / ConceptFusion，含幻觉处理与延迟取舍）。VLN/导航研究方向的算法岗专用。</p>
+      <p class="vol-scope">具身导航算法岗的核心面——点云 / 深度估计 / NeRF 与 3DGS、ORB-SLAM3 / VINS-Fusion / 因子图、Nav2 / 占用栅格 / 路径规划是底层基本盘；上层覆盖 <strong>VLN</strong>（R2R / RxR / REVERIE / HAMT / DUET / NaVid / Uni-NaVid / NaVILA / VLN-R1）、<strong>零样本 ObjectNav</strong>（SemExp / ZSON / L3MVN / VLFM / OpenFMNav / CoW / PIRLNav）、<strong>Embodied VLM</strong>（CLIP / SigLIP / Grounding DINO / SAM 2 / VLMaps / ConceptFusion，含幻觉处理与延迟取舍）。VLN/导航研究方向的算法岗专用。<strong>新增 §H 手撕代码 7 题</strong>（IoU / NMS / Conv 维度 / BFS·DFS / A*·Dijkstra / K-Means / ViT patch embedding）。</p>
+      </a>
+    </div>
+
+    <div class="volume-card active">
+      <a href="interviews/08_coding_systemdesign.html">
+      <div class="vol-line">
+        <span class="vol-id">VOL · 08</span>
+        <span class="vol-title">通用工程：LeetCode 高频 + 系统设计</span>
+        <span class="vol-status s-done">40 题</span>
+      </div>
+      <p class="vol-scope">脱开具身主题、聚焦"通用工程能力"的一卷——<strong>§1 LeetCode 高频 30 题</strong>（无重复字符最长子串 / 反转链表 / 三数之和 / LRU / 接雨水 / 滑动窗口最大值 / 编辑距离 / LIS 等，来自 CodeTop 与跨公司面经合并）；<strong>§2 ML 系统设计 5 题</strong>（VLA 训练 pipeline / VLA 推理服务 / RLHF 数据采集 / multi-robot fleet / LLM batch inference）；<strong>§3 机器人系统设计 5 题</strong>（perception-planning-control 全栈 / multi-sensor fusion / VLN agent / SLAM 状态估计 / ROS 2 双臂节点架构）。所有具身 / 自动驾驶 / VLA 岗一面 coding + senior 面 system design 都吃这卷。</p>
       </a>
     </div>
 

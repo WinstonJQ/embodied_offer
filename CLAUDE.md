@@ -50,15 +50,24 @@ Phase 7  → 报告发布 URL + 题数 + 审查轮数
 
 | 卷 | slug | 主题 | 状态 |
 |---|---|---|---|
-| 一 | basics | 通识基础（DL / RL 基础 / 机器人学） | 已完成 |
-| 二 | rl_algo | RL 算法（PPO / SAC / Offline RL） | 已完成 |
-| 三 | vla_il | VLA / 模仿学习（OpenVLA / π / Diffusion Policy / BC） | 已完成 |
+| 一 | basics | 通识基础（DL / RL 基础 / 机器人学） **+ §H 手撕** | 已完成 |
+| 二 | rl_algo | RL 算法（PPO / SAC / Offline RL） **+ §H 手撕** | 已完成 |
+| 三 | vla_il | VLA / 模仿学习（OpenVLA / π / Diffusion Policy / BC） **+ §H 手撕** | 已完成 |
 | 四 | world_sim | 世界模型 / Sim2Real | 已完成 |
-| 五 | engineering | 工程落地 / 系统设计 / 开放题 | 已完成 |
+| 五 | engineering | 工程落地 / 系统设计 / 开放题 **+ §H 手撕** | 已完成 |
 | 六 | legged_control | 腿足控制 / WBC / 遥操作 | 已完成 |
-| 七 | perception_nav | 3D 感知 / SLAM / VLN / ObjectNav / Embodied VLM | 已完成 |
+| 七 | perception_nav | 3D 感知 / SLAM / VLN / ObjectNav / Embodied VLM **+ §H 手撕** | 已完成 |
+| 八 | coding_systemdesign | 通用工程：LeetCode 高频 + 系统设计 | 已完成 |
 
 题量灵活：调研出多少进卷由频次决定，不强求 50。
+
+**§H 手撕代码段约定**（Option C，2026-05-22 实施）：
+- 卷一/二/三/五/七 各加一节 `## §H 手撕代码`，位于该卷末尾（备选段之后）
+- 题号用 `<b>✍ H##</b>`（带钩号前缀，与原 `Q##` 区分）
+- `<details>` class 用 `qa qa-handcoding`（与原 `qa` 区分）
+- 答案体只写"考察点 + 关键实现要点 + 易错"，**不贴完整代码**，仍守 ≤350 字硬约束
+- 题源：notes/handcoding_research.md（如未来需补题请参考该文件）
+- 卷八是独立的"通用工程"卷（LeetCode + 系统设计），与"区分但不脱离"无关；卷八内统一用 `Q01-Q40` 题号
 
 ## 4. 题目格式
 
