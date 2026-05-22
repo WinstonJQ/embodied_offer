@@ -112,5 +112,43 @@
     "部分答案在 350-500 字 WARN 区间（共 6 题），均未超过 500 字上限",
     "AWAC 年份口径轻微不一致（无技术错误）"
   ],
-  "max_rounds_reached": false
+  "max_rounds_reached": false,
+  "handcoding_review": {
+    "section": "§H 手撕代码 (10 items, H01-H10)",
+    "model": "gpt-5.5",
+    "reasoning_effort": "xhigh",
+    "total_rounds": 2,
+    "final_verdict": "WARN",
+    "rounds": [
+      {
+        "round": 1,
+        "verdict": "FAIL",
+        "blocking_issues": [
+          "H08 GRPO loss 缺 response mask（prompt/padding token 进入 loss 平均）",
+          "H08 GRPO loss 缺 KL/ref-policy 正则项"
+        ],
+        "warnings": [
+          "H03/H08 torch.std() 默认 unbiased=True 在 batch/group=1 时 NaN"
+        ]
+      },
+      {
+        "round": 2,
+        "verdict": "WARN",
+        "fixes_applied": [
+          "H08 添加 resp_mask 参数 + k3 KL 估计（log_r.exp() - log_r - 1）+ mask 加权归一",
+          "H03/H08 std 改用 unbiased=False"
+        ],
+        "remaining_warnings": [
+          "H04 compute_gae 用 torch.zeros(T)，未自适应 device/dtype",
+          "H05/H06 critic 输出 [B,1] 与 reward [B] 广播潜在 [B,B] 风险"
+        ]
+      }
+    ],
+    "checks_run": [
+      "answer_conciseness",
+      "details_block_well_formed",
+      "code_correctness"
+    ],
+    "code_audit_summary": "10 题代码 ≤30 行；关键 API 正确（rsample 走 reparam path / detach old logp / 双 Q min / tanh 雅可比 / GRPO mask 加权）。最终 WARN 因 H04/H05/H06 非阻断 device/广播 robustness 提示，与教学场景代码风格一致，未修。"
+  }
 }

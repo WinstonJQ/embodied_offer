@@ -805,154 +805,325 @@ Actor 仍用标准 SAC 风格最大化 Q，不是 in-sample max（IQL 才是）�
 
 ## §H 手撕代码（10 题）
 
-> RL 核心公式手撕段——与上文"概念+答案"题区分开。本节只给"考察点 / 关键实现要点 / 易错"，不贴完整代码。
+> RL 核心公式手撕段——与上文"概念+答案"题区分开。本节每题给"考察点 / 实现 / 易错"——附 ≤30 行 Python 实现。
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×8</span> <b>✍ H01</b> · 手撕 Q-learning 更新（TD(0) 表格版）</summary>
 
-**考察点**：`Q[s,a] += α·(r + γ·max_a' Q[s',a'] - Q[s,a])`；α、γ 含义；为何是 off-policy。
+**考察点**：`Q[s,a] += α·(r + γ·max_a' Q[s',a'] - Q[s,a])`；off-policy 因为 target 用 max 而非实际所采动作。
 
-**关键实现要点**：
-- 表格 `Q[S×A]` 初始化为 0 或小常数。
-- ε-greedy 探索：以 ε 随机动作、否则 `argmax_a Q[s]`。
-- 终止状态 `V(s_T) = 0` → 在 update 里乘 `(1 - done)`。
-- 学习率 α 一般 0.1，γ 一般 0.95-0.99。
+**实现**：
 
-**易错**：α 太大不收敛、太小爬太慢；终止时还加 `γ·max Q(s')` 导致 bootstrap 出 episode；连续动作不能用 max → 应换 DDPG/SAC。
+```python
+import numpy as np
+
+def q_learning_step(Q, s, a, r, s2, done, alpha=0.1, gamma=0.99):
+    # 终止时 V(s_T)=0：用 (1-done) 截断，避免跨 episode bootstrap
+    td_target = r + gamma * Q[s2].max() * (1.0 - done)
+    Q[s, a] += alpha * (td_target - Q[s, a])
+    return Q
+
+def eps_greedy(Q, s, eps, n_actions, rng):
+    # 探索-利用平衡；ε 通常从 1.0 退到 0.05
+    if rng.random() < eps:
+        return rng.integers(n_actions)
+    return int(Q[s].argmax())  # argmax 平 tie 时取索引最小
+```
+
+**易错**：α 太大不收敛、太小爬太慢；终止还加 `γ·max Q(s')` 导致跨 episode bootstrap；连续动作不能 max → 换 DDPG/SAC。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×6</span> <b>✍ H02</b> · 手撕 DQN（含 target net + replay buffer）</summary>
 
-**考察点**：经验回放打破时序相关性；target network 稳定 bootstrap。
+**考察点**：replay buffer 打破时序相关性；target net 稳定 bootstrap；target 上必须 `detach`。
 
-**关键实现要点**：
-- 主网络 `Q(s,a;θ)`；target 网络 `Q(s,a;θ⁻)` 每 N 步硬拷贝（或软更新 `θ⁻ ← τθ + (1-τ)θ⁻`）。
-- replay buffer 存 `(s, a, r, s', done)`；mini-batch 训练。
-- `target = r + γ · max_a' Q_target(s', a') · (1 - done)`，target 上必须 `.detach()`。
-- loss = `MSE(Q(s,a), target)` 或 Huber loss。
+**实现**：
 
-**易错**：target 未 detach 导致梯度回灌；done=True 还加 `γV(s')`；replay 容量太小导致样本相关性高、训练不稳。
+```python
+import random
+from collections import deque
+import torch
+import torch.nn.functional as F
+
+class ReplayBuffer:
+    def __init__(self, cap): self.buf = deque(maxlen=cap)
+    def push(self, *t): self.buf.append(t)
+    def sample(self, n):
+        s, a, r, s2, d = zip(*random.sample(self.buf, n))
+        # 一次性堆叠为 batch tensor
+        return [torch.as_tensor(x).float() if i != 1 else torch.as_tensor(x).long()
+                for i, x in enumerate([s, a, r, s2, d])]
+
+def dqn_loss(q_net, q_target_net, batch, gamma=0.99):
+    s, a, r, s2, d = batch
+    q_sa = q_net(s).gather(1, a.unsqueeze(1)).squeeze(1)
+    with torch.no_grad():  # target net 不回传梯度
+        target = r + gamma * q_target_net(s2).max(1).values * (1.0 - d)
+    return F.smooth_l1_loss(q_sa, target)  # Huber 比 MSE 更稳
+```
+
+**易错**：target 未 detach 导致梯度回灌；done=True 还加 `γV(s')`；replay 容量太小样本相关性高。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×14</span> <b>✍ H03</b> · 手撕 PPO clipped objective（含 value loss + entropy）</summary>
 
-**考察点**：`min(r·A, clip(r, 1-ε, 1+ε)·A)`；为何用 min；多 epoch 更新与 ratio 偏离的关系。
+**考察点**：`min(r·A, clip(r,1-ε,1+ε)·A)`；为何用 min（取悲观下界）；多 epoch 更新 ratio 偏离。
 
-**关键实现要点**：
-- `ratio = exp(log_π_new(a|s) - log_π_old(a|s))`，old logprob 采样时存好，不用现网络重算。
-- 策略损失：`-min(ratio·A, clip(ratio, 1-ε, 1+ε)·A)` 的均值。
-- 总 loss：`L_policy + c1·MSE(V_pred, V_target) - c2·H(π)`，常用 `ε=0.2, c1=0.5, c2=0.01`。
-- advantage 做 mean-std 归一化。
+**实现**：
 
-**易错**：old logprob 没 detach → 重复梯度；entropy 符号错（应加）；多 epoch 时 ratio 漂太远未 early stop。
+```python
+import torch
+import torch.nn.functional as F
+
+def ppo_loss(logp_new, logp_old, adv, value, ret, entropy,
+             clip=0.2, c1=0.5, c2=0.01):
+    # logp_old 来自采样时旧策略，必须已 detach；adv 已做 GAE+归一化
+    ratio = torch.exp(logp_new - logp_old)
+    # advantage 标准化降方差；unbiased=False 防 batch=1 时 NaN
+    adv = (adv - adv.mean()) / (adv.std(unbiased=False) + 1e-8)
+    # min 取悲观下界：A>0 时上裁、A<0 时下裁
+    unclipped = ratio * adv
+    clipped = torch.clamp(ratio, 1 - clip, 1 + clip) * adv
+    policy_loss = -torch.min(unclipped, clipped).mean()
+    value_loss = F.mse_loss(value, ret)  # 或 clipped value loss
+    # entropy 鼓励探索，整体 loss 取负 entropy
+    return policy_loss + c1 * value_loss - c2 * entropy.mean()
+```
+
+**易错**：`logp_old` 没 detach → 重复梯度；entropy 符号错（loss 里应 -c2·H）；多 epoch 不监控 KL，ratio 漂太远。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×9</span> <b>✍ H04</b> · 手撕 GAE 优势估计</summary>
 
-**考察点**：λ 在 0/1 间的 bias/variance 权衡；从后向前递归计算。
+**考察点**：λ 在 0/1 之间权衡 bias/variance；必须从后向前递归；`done` 处截断 bootstrap。
 
-**关键实现要点**：
-- TD 残差：`δ_t = r_t + γ·V(s_{t+1})·(1 - done) - V(s_t)`。
-- 反向递归：`A_t = δ_t + γ·λ·A_{t+1}·(1 - done)`；终止时 `A_T = δ_T`。
-- λ=0 → TD(0)（高 bias 低 var）；λ=1 → MC（低 bias 高 var）；常用 `λ=0.95, γ=0.99`。
-- value target：`V_target = A + V_old`，供 critic 学。
+**实现**：
 
-**易错**：正向遍历（应反向）；done 处没截断 bootstrap；V_target 没用 `V_old`（用当前 critic 输出 → 训练抖）。
+```python
+import torch
+
+def compute_gae(rewards, values, dones, last_value, gamma=0.99, lam=0.95):
+    # rewards/values/dones: [T]；last_value: V(s_T)（bootstrap 用）
+    T = len(rewards)
+    adv = torch.zeros(T)
+    gae = 0.0
+    for t in reversed(range(T)):  # 必须反向
+        # done 处截断：next_value 与 next_gae 都被 mask 掉
+        next_v = last_value if t == T - 1 else values[t + 1]
+        mask = 1.0 - dones[t]
+        delta = rewards[t] + gamma * next_v * mask - values[t]
+        gae = delta + gamma * lam * mask * gae
+        adv[t] = gae
+    # V_target 用旧 critic 的 values + adv，避免 critic 自指漂移
+    returns = adv + values
+    return adv, returns
+```
+
+**易错**：正向遍历；`done` 处没 mask；`V_target` 用当前 critic 输出而非 `V_old` 导致训练抖。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>✍ H05</b> · 手撕 DDPG / TD3 critic update</summary>
 
-**考察点**：DDPG 是连续动作 Q-learning；TD3 三大改进——双 Q、actor 延迟、target policy smoothing。
+**考察点**：DDPG = 连续动作 Q-learning；TD3 三大改进——双 Q、actor 延迟、target policy smoothing。
 
-**关键实现要点**：
-- DDPG target：`y = r + γ · Q_target(s', μ_target(s'))`。
-- TD3：`a' = μ_target(s') + clip(ε, -c, c)`；`y = r + γ · min(Q1_t, Q2_t)(s', a')` 并对 done 截断。
-- 双 critic：`L = MSE(Q1, y) + MSE(Q2, y)`。
-- Actor（TD3）：`-mean(Q1(s, μ(s)))`，每 2 个 critic step 更新一次。
+**实现**：
 
-**易错**：target 未 detach；TD3 actor 用 `min(Q1,Q2)` 反而抑制学习（用 Q1 即可）；探索 noise 与 target smoothing noise 混淆。
+```python
+import torch
+import torch.nn.functional as F
+
+def td3_critic_loss(q1, q2, q1_tgt, q2_tgt, mu_tgt, batch,
+                    gamma=0.99, sigma=0.2, c=0.5):
+    s, a, r, s2, d = batch
+    with torch.no_grad():  # target 必须 detach
+        # target policy smoothing：给 target 动作加 clipped noise
+        noise = (torch.randn_like(a) * sigma).clamp(-c, c)
+        a2 = (mu_tgt(s2) + noise).clamp(-1.0, 1.0)
+        # 双 Q 取 min 抑制高估
+        y = r + gamma * torch.min(q1_tgt(s2, a2), q2_tgt(s2, a2)) * (1.0 - d)
+    return F.mse_loss(q1(s, a), y) + F.mse_loss(q2(s, a), y)
+
+def td3_actor_loss(q1, mu, s):
+    # actor 只用 Q1 上升（用 min 反而抑制学习）；每 2 个 critic step 调一次
+    return -q1(s, mu(s)).mean()
+```
+
+**易错**：target 未 detach；actor 用 `min(Q1,Q2)` 抑制学习；探索 noise 与 target smoothing noise 混淆（两件事）。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×6</span> <b>✍ H06</b> · 手撕 SAC（reparameterize + 可学温度 α）</summary>
 
-**考察点**：max-entropy RL 目标；reparameterize 让梯度穿过采样；tanh 雅可比修正。
+**考察点**：max-entropy RL 目标；reparam 让梯度穿过采样；tanh 雅可比修正保证 `log π` 归一化。
 
-**关键实现要点**：
-- actor 输出 `μ, log_σ`；`u = μ + σ·ε, ε~N(0,I)`；`a = tanh(u)`。
-- log_prob 修正：`log π(a|s) = log N(u; μ, σ) - Σ log(1 - tanh(u)² + 1e-6)`。
-- Q target：`r + γ·(min(Q1_t, Q2_t)(s', a') - α·log π(a'|s'))`，a' 重新采样。
-- α 自适应：`loss_α = -log_α · (log π(a|s) + target_ent).detach()`，`target_ent = -|A|`。
+**实现**：
 
-**易错**：忘 tanh 雅可比修正 → π 不归一；α 不可学卡死；target_ent 设错；两个 critic 共用同一组采样 a' 导致 bias。
+```python
+import torch
+import torch.nn.functional as F
+from torch.distributions import Normal
+
+def sample_action(mu, log_std):
+    # reparameterize：u = μ + σ·ε，ε 与策略参数独立
+    std = log_std.exp()
+    normal = Normal(mu, std)
+    u = normal.rsample()  # rsample 走 reparam path，sample 会断梯度
+    a = torch.tanh(u)
+    # tanh 雅可比修正：log π(a) = log p(u) - Σ log(1 - tanh(u)²)
+    log_p = normal.log_prob(u) - torch.log(1 - a.pow(2) + 1e-6)
+    return a, log_p.sum(-1, keepdim=True)
+
+def sac_critic_target(r, s2, mu_t, logstd_t, q1_t, q2_t, log_alpha,
+                      gamma=0.99, done=0.0):
+    with torch.no_grad():
+        a2, logp2 = sample_action(mu_t(s2), logstd_t(s2))
+        # 双 Q min 抑制高估；减 α·log π 体现 max-entropy 目标
+        q_next = torch.min(q1_t(s2, a2), q2_t(s2, a2)) - log_alpha.exp() * logp2
+        return r + gamma * q_next * (1.0 - done)
+
+def alpha_loss(log_alpha, log_pi, target_ent):
+    # target_ent 一般 -|A|；log π 须 detach
+    return -(log_alpha * (log_pi.detach() + target_ent)).mean()
+```
+
+**易错**：用 `sample()` 而非 `rsample()` 断梯度；忘 tanh 雅可比 → π 不归一；`α` 不学卡死；`target_ent` 设错。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×8</span> <b>✍ H07</b> · 手撕 DPO loss</summary>
 
-**考察点**：从 RLHF 推导而来；只需 ref + policy 两个模型，不要 reward model；β 控制 KL 强度。
+**考察点**：从 RLHF 推导；只需 ref + policy 两个模型（无 reward model）；β 控制 KL 强度。
 
-**关键实现要点**：
-- 对每对 `(prompt, y_w, y_l)`：算 `log_π_θ(y|x) - log_π_ref(y|x)` 的差值（token-level sum 再做差）。
-- `r_w = β·(log_π_θ(y_w|x) - log_π_ref(y_w|x))`；`r_l` 同理。
-- `loss = -log σ(r_w - r_l)`，沿 batch 平均。
-- `π_ref` 必须 `eval() + no_grad()`，参数 freeze。
+**实现**：
 
-**易错**：ref 没 freeze 导致协同漂移；β 跟温度搞混（β 越大越接近 reward model 风格）；log_prob 没 padding mask；忘把 prompt token 的 loss 屏蔽。
+```python
+import torch
+import torch.nn.functional as F
+
+def dpo_loss(policy, ref, batch, beta=0.1):
+    # batch: prompt + chosen/rejected response token ids + mask（标记 response 段）
+    # 只在 response token 上累加 log_prob，prompt 段必须屏蔽
+    def logp_seq(model, ids, resp_mask):
+        logits = model(ids).logits[:, :-1]  # 预测下一 token
+        tgt = ids[:, 1:]
+        m = resp_mask[:, 1:].float()  # 与 tgt 对齐
+        # gather token-level log_prob，再按 response mask 求和
+        lp = F.log_softmax(logits, -1).gather(-1, tgt.unsqueeze(-1)).squeeze(-1)
+        return (lp * m).sum(-1)
+
+    lp_w_pi = logp_seq(policy, batch['ids_w'], batch['mask_w'])
+    lp_l_pi = logp_seq(policy, batch['ids_l'], batch['mask_l'])
+    with torch.no_grad():  # ref 必须 freeze
+        lp_w_ref = logp_seq(ref, batch['ids_w'], batch['mask_w'])
+        lp_l_ref = logp_seq(ref, batch['ids_l'], batch['mask_l'])
+    # 隐式 reward 差：β·[(logπ-logπ_ref)_w - (logπ-logπ_ref)_l]
+    logits = beta * ((lp_w_pi - lp_w_ref) - (lp_l_pi - lp_l_ref))
+    return -F.logsigmoid(logits).mean()
+```
+
+**易错**：ref 未 freeze 协同漂移；β 跟温度混淆；prompt token 的 log_prob 未屏蔽；padding token 也累加。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l3">L3</span> <span class="freq">🔥×5</span> <b>✍ H08</b> · 手撕 GRPO loss（group relative policy opt）</summary>
 
-**考察点**：DeepSeek-R1 用的 RL 算法；group baseline 替代 critic；为何省内存。
+**考察点**：DeepSeek-R1 用的 RL；group baseline 替代 critic（省一份 value 模型显存）；在线 RL（vs DPO 离线）。
 
-**关键实现要点**：
-- 同一 prompt 采 G 个 response → reward `r_1..r_G`。
-- baseline = `mean(r)`，advantage `A_i = (r_i - mean) / (std + ε)`（组内 z-score）。
-- 用 PPO clipped 形式：`min(ratio·A, clip(ratio, 1-ε, 1+ε)·A)`。
-- 无 value head，省一份模型显存；G 一般 4-8。
+**实现**：
 
-**易错**：把 GRPO 当 DPO（DPO 是离线偏好对、GRPO 是在线 RL）；group size 太小 → baseline 噪声大；std 没加 ε 出现除零。
+```python
+import torch
+
+def grpo_advantage(rewards):
+    # rewards: [B, G]，每 prompt 采 G 个 response
+    # baseline=组内均值；除组内 std 做 z-score；unbiased=False 防 G=1 NaN
+    mean = rewards.mean(dim=-1, keepdim=True)
+    std = rewards.std(dim=-1, keepdim=True, unbiased=False) + 1e-8
+    return (rewards - mean) / std
+
+def grpo_loss(logp_new, logp_old, logp_ref, rewards, resp_mask,
+              clip=0.2, kl_coef=0.04):
+    # logp_*: [B, G, T]；resp_mask: [B, G, T] 标记 response token（屏蔽 prompt/padding）
+    adv = grpo_advantage(rewards).unsqueeze(-1)            # [B, G, 1]
+    ratio = torch.exp(logp_new - logp_old.detach())
+    unclipped = ratio * adv
+    clipped = torch.clamp(ratio, 1 - clip, 1 + clip) * adv
+    pg = -torch.min(unclipped, clipped)                    # token-level
+    # k3 KL 估计（DeepSeekMath 用法）：log(p/q)+(q/p)-1，对 ref 做正则
+    log_r = logp_ref.detach() - logp_new
+    kl = log_r.exp() - log_r - 1
+    loss = (pg + kl_coef * kl) * resp_mask                 # 只在 response 段计 loss
+    return loss.sum() / resp_mask.sum().clamp(min=1.0)     # 按有效 token 数归一
+```
+
+**易错**：把 GRPO 当 DPO（GRPO 在线 RL）；忘 response mask 把 prompt/padding 也算进 loss；漏 KL/ref 正则；`std` 用 `unbiased=True` 在 G=1 时 NaN。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>✍ H09</b> · 手撕 importance sampling 比率</summary>
 
-**考察点**：`E_p[f(x)] = E_q[f(x)·p(x)/q(x)]`；为何 off-policy 必须用；多步 IS 方差爆炸。
+**考察点**：`E_p[f]=E_q[f·p/q]`；off-policy 必须用；多步累乘 IS 方差指数爆炸 → PPO clip / V-trace 截断。
 
-**关键实现要点**：
-- `ratio = π_new(a|s) / π_old(a|s) = exp(log_π_new - log_π_old)`。
-- 单步可用；多步累乘 → 方差指数级增长。
-- PPO 通过 clip(ratio, 1-ε, 1+ε) 抑制极端值。
-- V-trace 做截断 IS（`ρ = min(ratio, ρ_bar)`）。
+**实现**：
 
-**易错**：把 ratio 当 reward；忘 detach old policy；累乘多步 IS 时不截断；用概率而非 log_prob 计算 → 数值不稳。
+```python
+import torch
+
+def is_ratio(logp_new, logp_old):
+    # 用 log_prob 之差再 exp，避免概率小数下溢
+    # logp_old 必须来自采样时旧策略（detach），不可用当前网络重算
+    return torch.exp(logp_new - logp_old.detach())
+
+def vtrace_truncated(logp_new, logp_old, rho_bar=1.0, c_bar=1.0):
+    # V-trace 双截断：ρ 控 target、c 控 trace 传播
+    log_r = logp_new - logp_old.detach()
+    rho = torch.exp(log_r).clamp(max=rho_bar)
+    c = torch.exp(log_r).clamp(max=c_bar)
+    return rho, c
+```
+
+**易错**：用 `probs` 比例而非 `log_prob` 之差 → 数值不稳；忘 detach old；多步累乘不截断方差爆炸。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×3</span> <b>✍ H10</b> · 手撕 Categorical 采样 + log_prob</summary>
 
-**考察点**：多项式采样；为何用 logits 比 probs 数值稳。
+**考察点**：多项式采样；为何 `logits` 比 `probs` 数值稳（避免 `log(0)`）；与 `multinomial` 区别。
 
-**关键实现要点**：
-- 用 `torch.distributions.Categorical(logits=logits)`，避免 `Categorical(probs=...)` 在 0 概率处 `log(0)`。
-- 采样：`a = dist.sample()`，shape `[B]`。
-- log_prob：`dist.log_prob(a)` 等价于 `F.log_softmax(logits, -1).gather(-1, a.unsqueeze(-1)).squeeze(-1)`。
-- entropy：`dist.entropy()`，正则项常用。
+**实现**：
 
-**易错**：用 `probs` 输入但内部还要 log（数值不稳）；`torch.multinomial` 不返回 log_prob 需另算；忘 reshape gather 索引维度。
+```python
+import torch
+import torch.nn.functional as F
+from torch.distributions import Categorical
+
+def categorical_sample(logits):
+    # logits: [B, n_actions]；推荐用 logits 入参，内部做 log_softmax
+    dist = Categorical(logits=logits)
+    a = dist.sample()                # [B]
+    log_prob = dist.log_prob(a)      # [B]，等价于下方 gather 公式
+    entropy = dist.entropy()         # [B]，policy 正则常用
+    return a, log_prob, entropy
+
+def manual_log_prob(logits, a):
+    # 等价于 Categorical.log_prob，但展示底层
+    # F.log_softmax 比 log(softmax) 数值稳（用 LogSumExp）
+    return F.log_softmax(logits, -1).gather(-1, a.unsqueeze(-1)).squeeze(-1)
+```
+
+**易错**：用 `probs` 输入但概率为 0 时 `log(0)`；`torch.multinomial` 不直接返回 log_prob；gather 维度未 unsqueeze。
 
 </details>
