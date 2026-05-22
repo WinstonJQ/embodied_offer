@@ -243,7 +243,7 @@ footer.foot a:hover { color: var(--primary); border-bottom-color: var(--primary)
         <span class="vol-title">通识基础</span>
         <span class="vol-status s-done">54 题</span>
       </div>
-      <p class="vol-scope">深度学习的梯度、归一化、Transformer 等基本功；强化学习的 MDP、贝尔曼方程、Q-learning 等入门概念；以及机器人学绕不开的坐标变换、雅可比矩阵和控制频率。一面常从这里开题，建议先扫一遍补齐知识盲区。<strong>新增 §H 手撕代码 10 题</strong>（Attention / LayerNorm / RMSNorm / BN / Bellman / REINFORCE / 高斯 KL / VAE ELBO）。</p>
+      <p class="vol-scope">一面常考的入门概念，覆盖三块基础——深度学习侧的梯度、归一化、Transformer；强化学习侧的 MDP、贝尔曼方程、Q-learning；机器人学侧的坐标变换、雅可比矩阵与控制频率。建议作为知识盲区自查的起点。</p>
       </a>
     </div>
 
@@ -254,7 +254,7 @@ footer.foot a:hover { color: var(--primary); border-bottom-color: var(--primary)
         <span class="vol-title">RL 算法</span>
         <span class="vol-status s-done">50 题</span>
       </div>
-      <p class="vol-scope">把强化学习的主要算法挨个拆开来问——PPO、SAC、TD3、DDPG 的设计动机与取舍，CQL / IQL 等离线 RL 怎么解决分布外动作高估，RLHF 与 DPO / GRPO 在大模型对齐里的角色。技术深度比卷一高一档，二面三面常考的"为什么这么设计"集中在这里。<strong>新增 §H 手撕代码 10 题</strong>（Q-learning / DQN / PPO clipped / GAE / TD3 / SAC / DPO / GRPO 等核心公式手撕）。</p>
+      <p class="vol-scope">强化学习主流算法的设计取舍与对比——在线策略与值函数方法（PPO、SAC、TD3、DDPG）的设计动机；离线 RL（CQL、IQL 等）对分布外动作高估的处理思路；以及 RLHF、DPO / GRPO 在大模型对齐中的角色。技术深度高于卷一，是二面、三面考察"为什么这么设计"的主要范围。</p>
       </a>
     </div>
 
@@ -265,7 +265,7 @@ footer.foot a:hover { color: var(--primary); border-bottom-color: var(--primary)
         <span class="vol-title">VLA / 模仿学习</span>
         <span class="vol-status s-done">66 题</span>
       </div>
-      <p class="vol-scope">具身智能 2024-2026 最热的方向——OpenVLA、RT-2、π 系列、GR00T-N1 等视觉-语言-动作模型的架构与差别；Diffusion Policy、ACT、Flow Matching 等动作生成方式的对比；模仿学习从行为克隆到 DAgger 的演进。投 VLA 算法岗几乎必问。<strong>新增 §H 手撕代码 8 题</strong>（BC / Diffusion Policy 训练 step / ACT chunking loss / OpenVLA action token / CLIP InfoNCE / DAgger / cross-attention / KV cache）。</p>
+      <p class="vol-scope">具身智能 2024-2026 的核心研究方向——主流视觉-语言-动作模型（OpenVLA、RT-2、π 系列、GR00T-N1）的架构与差别；动作生成方式（Diffusion Policy、ACT、Flow Matching）的对比；模仿学习从行为克隆到 DAgger 的演进。VLA 算法岗的必考范围。</p>
       </a>
     </div>
 
@@ -276,7 +276,7 @@ footer.foot a:hover { color: var(--primary); border-bottom-color: var(--primary)
         <span class="vol-title">世界模型 / Sim2Real</span>
         <span class="vol-status s-done">31 题</span>
       </div>
-      <p class="vol-scope">让机器人在脑子里"做梦"训练的世界模型流派——Dreamer 系列、TD-MPC2、V-JEPA 2 的设计思路；以及仿真到真机迁移的工程命题——域随机化、教师-学生蒸馏、Isaac Lab / MuJoCo / Genesis 的取舍。人形和四足公司这两年面试的重点。</p>
+      <p class="vol-scope">覆盖两类紧密相关的命题——世界模型（Dreamer 系列、TD-MPC2、V-JEPA 2）的设计思路及其在策略学习中的角色；以及仿真到真机的迁移路径，包括域随机化、教师-学生蒸馏，以及 Isaac Lab、MuJoCo、Genesis 等仿真平台的取舍。近两年人形与四足公司面试的重点方向。</p>
       </a>
     </div>
 
@@ -287,7 +287,7 @@ footer.foot a:hover { color: var(--primary); border-bottom-color: var(--primary)
         <span class="vol-title">工程落地</span>
         <span class="vol-status s-done">47 题</span>
       </div>
-      <p class="vol-scope">从算法到产品要踩的工程坑——VLA 怎么塞进 Jetson Orin 跑实时推理，FSDP / ZeRO 怎么选，teleop 数据采集流程，DROID 和 Ego4D 等数据集的位置；最后一节是开放题与系统设计，例如"给你一年时间和一支队伍，怎么做一台家务机器人"。<strong>新增 §H 手撕代码 8 题</strong>（数值稳定 softmax / LogSumExp / cross-entropy / KL / train loop / warmup+cosine / Adam / dropout）。</p>
+      <p class="vol-scope">从算法走向产品的工程命题——VLA 在 Jetson Orin 等边缘平台的实时推理部署；分布式训练框架（FSDP / ZeRO）的选型；teleop 数据采集流程；DROID、Ego4D 等公开数据集的定位与差别。末节为开放题与系统设计，例如"在一年周期内组建团队交付一台家务机器人"的方案规划。</p>
       </a>
     </div>
 
@@ -298,7 +298,7 @@ footer.foot a:hover { color: var(--primary); border-bottom-color: var(--primary)
         <span class="vol-title">腿足机器人控制 / 全身控制 / 遥操作</span>
         <span class="vol-status s-done">58 题</span>
       </div>
-      <p class="vol-scope">人形和四足公司面试的硬核底层——浮动基座动力学、MIT Cheetah 的 Convex MPC、WBC / TSID 任务优先级、RL-based locomotion（RMA / Walk These Ways / ASAP）、Apple Vision Pro 遥操作、HumanPlus / OmniH2O / ExBody 全身模仿、actuator network 和域随机化 sim-to-real。投宇树 / 智元 / 银河通用 / 星海图 / Figure / 1X 等岗位绕不开。<strong>新增 §H 控制类手撕代码 10 题</strong>（PID / anti-windup / KF / EKF / LQR / 四元数 / 数值 IK / 互补滤波 / DH FK / MPC QP）。</p>
+      <p class="vol-scope">人形与四足机器人运动控制的核心面——底层是浮动基座动力学、Convex MPC 与全身控制（WBC / TSID）等经典最优控制框架；中间层是 RL-based locomotion 的主流策略（Walk These Ways、ASAP 等）；上层是 Apple Vision Pro 遥操作链路与 sim-to-real 迁移路径。人形与四足公司（宇树、智元、Figure、1X 等）的核心考察范围。</p>
       </a>
     </div>
 
@@ -309,7 +309,7 @@ footer.foot a:hover { color: var(--primary); border-bottom-color: var(--primary)
         <span class="vol-title">3D 感知 / SLAM / VLN / 零样本 ObjectNav / Embodied VLM</span>
         <span class="vol-status s-done">67 题</span>
       </div>
-      <p class="vol-scope">具身导航算法岗的核心面——点云 / 深度估计 / NeRF 与 3DGS、ORB-SLAM3 / VINS-Fusion / 因子图、Nav2 / 占用栅格 / 路径规划是底层基本盘；上层覆盖 <strong>VLN</strong>（R2R / RxR / REVERIE / HAMT / DUET / NaVid / Uni-NaVid / NaVILA / VLN-R1）、<strong>零样本 ObjectNav</strong>（SemExp / ZSON / L3MVN / VLFM / OpenFMNav / CoW / PIRLNav）、<strong>Embodied VLM</strong>（CLIP / SigLIP / Grounding DINO / SAM 2 / VLMaps / ConceptFusion，含幻觉处理与延迟取舍）。VLN/导航研究方向的算法岗专用。<strong>新增 §H 手撕代码 7 题</strong>（IoU / NMS / Conv 维度 / BFS·DFS / A*·Dijkstra / K-Means / ViT patch embedding）。</p>
+      <p class="vol-scope">具身导航与感知方向的算法岗核心面——底层覆盖 3D 表示（点云 / 深度估计 / NeRF / 3DGS）与 SLAM 状态估计（ORB-SLAM3、VINS-Fusion、因子图）；上层延伸到语言条件下的导航与交互——指令跟随的 VLN、零样本 ObjectNav，以及 CLIP / SAM 等视觉基础模型在具身场景中的接入方式。VLN / 导航研究方向的算法岗专用。</p>
       </a>
     </div>
 
@@ -320,7 +320,7 @@ footer.foot a:hover { color: var(--primary); border-bottom-color: var(--primary)
         <span class="vol-title">通用工程：LeetCode 高频 + 系统设计</span>
         <span class="vol-status s-done">40 题</span>
       </div>
-      <p class="vol-scope">脱开具身主题、聚焦"通用工程能力"的一卷——<strong>§1 LeetCode 高频 30 题</strong>（无重复字符最长子串 / 反转链表 / 三数之和 / LRU / 接雨水 / 滑动窗口最大值 / 编辑距离 / LIS 等，来自 CodeTop 与跨公司面经合并）；<strong>§2 ML 系统设计 5 题</strong>（VLA 训练 pipeline / VLA 推理服务 / RLHF 数据采集 / multi-robot fleet / LLM batch inference）；<strong>§3 机器人系统设计 5 题</strong>（perception-planning-control 全栈 / multi-sensor fusion / VLN agent / SLAM 状态估计 / ROS 2 双臂节点架构）。所有具身 / 自动驾驶 / VLA 岗一面 coding + senior 面 system design 都吃这卷。</p>
+      <p class="vol-scope">脱离具身主题的通用工程卷，覆盖一面 coding 与 senior 面 system design 两类常考题型——LeetCode 高频 30 题（链表、滑动窗口、动态规划、LRU 等 CodeTop 头部题）、ML 系统设计（VLA 训练 / 推理服务、RLHF 数据 pipeline）、机器人系统设计（perception-planning-control 全栈、多传感器融合、双臂 ROS 2 架构）。具身 / 自动驾驶 / VLA 岗均会考察。</p>
       </a>
     </div>
 
