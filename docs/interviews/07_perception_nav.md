@@ -1124,110 +1124,264 @@ SAM (prompt=bbox) → pixel-precise mask
 
 ## §H 手撕代码（7 题）
 
-> 感知 / 导航 / 视觉 backbone 手撕段——与上文"概念+答案"题区分开。本节只给"考察点 / 关键实现要点 / 易错"，不贴完整代码。
+> 感知 / 导航 / 视觉 backbone 手撕段——与上文"概念+答案"题区分开。本节每题给"考察点 / 实现 / 易错"——附 ≤30 行 Python 实现。
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×11</span> <b>✍ H01</b> · 手撕 IoU（两个矩形框）</summary>
 
-**考察点**：交集 / 并集；为何要 `max(0, ·)` 防负值；axis-aligned 与 rotated IoU 的区别。
+**考察点**：交并比；`max(0,·)` 防负宽高；axis-aligned 与 rotated 求法差异。
 
-**关键实现要点**：
-- 交集宽：`iw = max(0, min(x2a, x2b) - max(x1a, x1b))`，高度同理。
-- `inter = iw * ih`；`area_a, area_b` 各自算。
-- `iou = inter / (area_a + area_b - inter + 1e-6)`，加 ε 防除零。
-- 旋转框需用 polygon 求交（shapely）或 OpenCV `rotatedRectangleIntersection`。
+**实现**：
 
-**易错**：负宽/高没 clip 导致 IoU > 1；除零；忘了边界包含约定（半开/闭区间影响 +1 偏移）。
+```python
+import numpy as np
+
+def iou(a, b):
+    # a, b: [x1, y1, x2, y2]，axis-aligned
+    # 交集左上角取 max、右下角取 min
+    x1 = max(a[0], b[0]); y1 = max(a[1], b[1])
+    x2 = min(a[2], b[2]); y2 = min(a[3], b[3])
+    # 不相交时 x2<x1 或 y2<y1，用 max(0,·) clip 防负面积
+    inter = max(0.0, x2 - x1) * max(0.0, y2 - y1)
+    area_a = (a[2] - a[0]) * (a[3] - a[1])
+    area_b = (b[2] - b[0]) * (b[3] - b[1])
+    return inter / (area_a + area_b - inter + 1e-6)  # +eps 防除零
+
+def iou_batch(boxes_a, boxes_b):
+    # boxes: [N, 4]、[M, 4]；返回 [N, M]，向量化
+    a, b = boxes_a[:, None], boxes_b[None]
+    x1 = np.maximum(a[..., 0], b[..., 0]); y1 = np.maximum(a[..., 1], b[..., 1])
+    x2 = np.minimum(a[..., 2], b[..., 2]); y2 = np.minimum(a[..., 3], b[..., 3])
+    inter = np.clip(x2 - x1, 0, None) * np.clip(y2 - y1, 0, None)
+    area_a = (a[..., 2] - a[..., 0]) * (a[..., 3] - a[..., 1])
+    area_b = (b[..., 2] - b[..., 0]) * (b[..., 3] - b[..., 1])
+    return inter / (area_a + area_b - inter + 1e-6)
+```
+
+**易错**：负宽/高没 clip 致 IoU>1；除零；边界半开/闭区间约定（+1 偏移）；旋转框直接套此式错（应 polygon 求交）。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×11</span> <b>✍ H02</b> · 手撕 NMS（非极大值抑制）</summary>
 
-**考察点**：排序 + 贪心 + IoU 过滤；soft-NMS 的差别。
+**考察点**：排序 + 贪心 + IoU 过滤；soft-NMS 按 IoU 衰减而非删；多类应分类做。
 
-**关键实现要点**：
-- 按 score 降序排，可先做 score thresh 预过滤。
-- 取首框入 keep；与剩余框算 IoU；IoU > thresh 的丢弃。
-- 重复直到候选集为空，复杂度 O(N²)（GPU 上可用 `torchvision.ops.nms`）。
-- soft-NMS：不删，按 IoU 做 score 衰减（`score *= exp(-IoU²/σ)`）。
+**实现**：
 
-**易错**：没按类别分别 NMS（不同类不该互相抑制）；IoU 阈值取 1.0 等于不抑制；忘 score thresh 预过滤导致 N 太大 TLE。
+```python
+import numpy as np
+
+def nms(boxes, scores, iou_thresh=0.5):
+    # boxes: [N, 4] (x1,y1,x2,y2)；scores: [N]
+    order = scores.argsort()[::-1]  # 按 score 降序索引
+    keep = []
+    x1, y1 = boxes[:, 0], boxes[:, 1]
+    x2, y2 = boxes[:, 2], boxes[:, 3]
+    areas = (x2 - x1) * (y2 - y1)
+    while order.size > 0:
+        i = order[0]
+        keep.append(i)
+        # 当前框与剩余框做向量化 IoU
+        xx1 = np.maximum(x1[i], x1[order[1:]])
+        yy1 = np.maximum(y1[i], y1[order[1:]])
+        xx2 = np.minimum(x2[i], x2[order[1:]])
+        yy2 = np.minimum(y2[i], y2[order[1:]])
+        inter = np.clip(xx2 - xx1, 0, None) * np.clip(yy2 - yy1, 0, None)
+        iou = inter / (areas[i] + areas[order[1:]] - inter + 1e-6)
+        # 保留 iou <= thresh 的；+1 因为 order[0] 已剔除
+        order = order[1:][iou <= iou_thresh]
+    return keep
+```
+
+**易错**：未按类别分别 NMS（不同类不该互抑）；忘 score thresh 预过滤 → N 大 TLE；`iou_thresh` 取 1.0 等于不抑制。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×8</span> <b>✍ H03</b> · 手撕 Conv2d 输出维度 / 感受野</summary>
 
-**考察点**：`out = ⌊(in + 2P - D·(K-1) - 1) / S⌋ + 1`；感受野递推公式。
+**考察点**：`out=⌊(in+2P-D·(K-1)-1)/S⌋+1`；感受野是累加而非累乘；pooling 层也算 stride。
 
-**关键实现要点**：
-- 输出尺寸：`out_h = (in_h + 2·pad - dil·(k-1) - 1) // stride + 1`，宽同理。
-- 感受野递推：`RF_l = RF_{l-1} + (K_l - 1) · ∏_{i<l} S_i`，pooling 层也算 stride。
-- "same" padding：`pad = (k - 1) // 2`（stride=1, dil=1）；stride>1 时 same 含义模糊。
-- 反卷积 / 转置卷积：`out = (in - 1)·S - 2P + D·(K-1) + out_pad + 1`。
+**实现**：
 
-**易错**：忘 dilation；以为感受野是累乘（其实是累加）；忽略 pooling 层贡献。
+```python
+def conv_out_dim(in_size, kernel, stride=1, padding=0, dilation=1):
+    # PyTorch 标准公式（与 nn.Conv2d 一致）
+    return (in_size + 2 * padding - dilation * (kernel - 1) - 1) // stride + 1
+
+def deconv_out_dim(in_size, kernel, stride, padding=0, out_pad=0, dilation=1):
+    # 转置卷积输出尺寸
+    return (in_size - 1) * stride - 2 * padding + dilation * (kernel - 1) + out_pad + 1
+
+def receptive_field(layers):
+    # layers: [(kernel, stride), ...] 顺序排列；pooling 也按 (k,s) 计入
+    rf, jump = 1, 1
+    for k, s in layers:
+        # RF_{l} = RF_{l-1} + (k-1)·∏_{i<l} s_i；累加而非累乘
+        rf += (k - 1) * jump
+        jump *= s
+    return rf
+```
+
+**易错**：忘 `dilation`；以为感受野累乘（实是累加）；忽略 pooling 层 stride 贡献；same padding 在 stride>1 时含义模糊。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×9</span> <b>✍ H04</b> · 手撕 BFS / DFS 在 grid 上找最短路径</summary>
 
-**考察点**：BFS 必给最短（无权图）、DFS 不一定；4 邻居 vs 8 邻居；visited 怎么打标记。
+**考察点**：BFS 必给最短（无权图）；visited 入队即标（非出队）；DFS 求所有路径不能求最短。
 
-**关键实现要点**：
-- BFS：`deque` 初始入起点；逐层 expand；用 `visited[x][y]` 标记入队即标，不要等出队再标。
-- 模板：`dx=[-1,1,0,0]; dy=[0,0,-1,1]` 四邻居；八邻居加对角。
-- 边界检查 + 障碍格跳过；找到终点立即返回当前层数。
-- DFS 求所有路径用栈或递归 + 回溯撤销 visited。
+**实现**：
 
-**易错**：visited 等出队才标记 → 重复入队 TLE；DFS 求最短（应 BFS）；八邻居斜走要按 √2 算代价（非纯计步时）。
+```python
+from collections import deque
+
+def bfs_shortest(grid, start, goal):
+    # grid: 2D list；0 通行、1 障碍；返回最短步数或 -1
+    R, C = len(grid), len(grid[0])
+    if grid[start[0]][start[1]] or grid[goal[0]][goal[1]]:
+        return -1
+    visited = [[False] * C for _ in range(R)]
+    q = deque([(start[0], start[1], 0)])
+    visited[start[0]][start[1]] = True  # 入队即标，防重复入队 TLE
+    dx, dy = (-1, 1, 0, 0), (0, 0, -1, 1)  # 四邻居
+    while q:
+        x, y, d = q.popleft()
+        if (x, y) == goal:
+            return d
+        for k in range(4):
+            nx, ny = x + dx[k], y + dy[k]
+            # 边界 + 障碍 + visited 三道闸
+            if 0 <= nx < R and 0 <= ny < C and not visited[nx][ny] and not grid[nx][ny]:
+                visited[nx][ny] = True
+                q.append((nx, ny, d + 1))
+    return -1
+```
+
+**易错**：visited 出队才标 → 重复入队 TLE；用 DFS 求最短（应 BFS）；八邻居斜走代价应 √2 而非 1。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×7</span> <b>✍ H05</b> · 手撕 A* / Dijkstra 路径规划</summary>
 
-**考察点**：Dijkstra 无启发；A* 用 `f = g + h`，h 需 admissible；为何 A* 比 BFS 快。
+**考察点**：Dijkstra h=0、A* `f=g+h`；h 必须 admissible（≤真实代价）保证最优；用 `g_best` 替代 closed set。
 
-**关键实现要点**：
-- 用 `heapq` 优先队列，结点 `(f, g, position)`。
-- Dijkstra：h=0；A*：`h` 取 Manhattan（4 邻居）/ Euclidean（8 邻居或自由方向）/ Chebyshev。
-- 维护 `g_best[pos]`，仅当新 g 更小才入队（替代 closed set 更简洁）。
-- 终点出堆即可返回（路径可用 parent 字典回溯）。
+**实现**：
 
-**易错**：h 不 admissible（高估）→ 解不最优；用 `(g, pos)` 入堆不对（要按 f）；同一节点多次入队但忘了懒删除。
+```python
+import heapq
+
+def heuristic(p, goal):
+    # 4 邻居用 Manhattan；8 邻居/自由方向用 Euclidean；都 admissible
+    return abs(p[0] - goal[0]) + abs(p[1] - goal[1])
+
+def astar(grid, start, goal):
+    R, C = len(grid), len(grid[0])
+    g_best = {start: 0}
+    pq = [(heuristic(start, goal), 0, start)]  # (f, g, pos)
+    dx, dy = (-1, 1, 0, 0), (0, 0, -1, 1)
+    while pq:
+        f, g, p = heapq.heappop(pq)
+        if p == goal:
+            return g
+        if g > g_best.get(p, float('inf')):  # 懒删除：过期条目跳过
+            continue
+        for k in range(4):
+            nx, ny = p[0] + dx[k], p[1] + dy[k]
+            if not (0 <= nx < R and 0 <= ny < C) or grid[nx][ny]:
+                continue
+            ng = g + 1
+            np_ = (nx, ny)
+            # 仅当新 g 更小才入队（替代 closed set，更简洁）
+            if ng < g_best.get(np_, float('inf')):
+                g_best[np_] = ng
+                heapq.heappush(pq, (ng + heuristic(np_, goal), ng, np_))
+    return -1
+```
+
+**易错**：`h` 不 admissible（高估）→ 解不最优；按 `g` 入堆而非 `f`；同节点重复入队忘懒删除致路径错。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×4</span> <b>✍ H06</b> · 手撕 K-Means 聚类</summary>
 
-**考察点**：E-step（分配）+ M-step（更新中心）；k 的选择；初始化敏感性。
+**考察点**：E-step 分配 + M-step 更新；K-Means++ 初始化远胜随机；空簇要重选远点。
 
-**关键实现要点**：
-- 初始化：K-Means++（按距离平方加权采样）远胜随机。
-- E-step：每点找最近中心 `argmin_k ‖x - μ_k‖²`。
-- M-step：`μ_k = mean(points 分到 cluster k)`。
-- 终止：中心变化 < eps 或迭代次数到上限。
+**实现**：
 
-**易错**：用随机初始化导致局部最优；空簇没处理（应重选远点）；k 选错可用肘部法（inertia）或 silhouette。
+```python
+import numpy as np
+
+def kmeans_pp_init(X, k, rng):
+    # K-Means++：第一个中心随机；后续按距已选中心最近距离的平方加权采样
+    n = X.shape[0]
+    centers = [X[rng.integers(n)]]
+    for _ in range(1, k):
+        d2 = np.min(((X[:, None] - np.array(centers)[None]) ** 2).sum(-1), axis=1)
+        probs = d2 / d2.sum()
+        centers.append(X[rng.choice(n, p=probs)])
+    return np.array(centers)
+
+def kmeans(X, k, max_iter=100, tol=1e-4, rng=None):
+    rng = rng or np.random.default_rng(0)
+    centers = kmeans_pp_init(X, k, rng)
+    for _ in range(max_iter):
+        # E-step：每点找最近中心（argmin |x - μ_k|²）
+        dist = ((X[:, None] - centers[None]) ** 2).sum(-1)  # [N, k]
+        labels = dist.argmin(axis=1)
+        # M-step：更新中心；空簇用全局最远点替换
+        new_centers = np.array([
+            X[labels == j].mean(0) if (labels == j).any()
+            else X[dist.min(1).argmax()]  # 空簇 → 取目前最难拟合的点
+            for j in range(k)
+        ])
+        if np.linalg.norm(new_centers - centers) < tol:
+            break
+        centers = new_centers
+    return centers, labels
+```
+
+**易错**：用随机初始化局部最优；空簇未处理；用 `==` 比 `float` 距离判收敛；k 选错（用肘部法 / silhouette）。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×6</span> <b>✍ H07</b> · 手撕 ViT patch embedding</summary>
 
-**考察点**：用 `Conv2d` 一步切+映射；为何 patch 大小决定序列长度。
+**考察点**：用 `Conv2d` 一步切+映射；patch 大小决定序列长度 `N=(H/p)·(W/p)`；CLS token + learnable PE。
 
-**关键实现要点**：
-- `nn.Conv2d(in_c, dim, kernel_size=patch, stride=patch)` 输出 `[B, dim, H/p, W/p]`。
-- `flatten(2).transpose(1, 2)` → `[B, N, dim]`，N = (H/p)·(W/p)。
-- 拼 CLS token（`[B, 1, dim]` 可学）→ `[B, N+1, dim]`，再加 learnable positional embedding。
-- DINOv2 / SigLIP / CLIP-ViT 共用此结构，patch 一般 14 或 16。
+**实现**：
 
-**易错**：H/W 不能被 patch 整除（要 pad 或 crop）；忘加 CLS token；PE 长度与 patch 数不一致（换分辨率需 interpolate）。
+```python
+import torch
+import torch.nn as nn
+
+class PatchEmbed(nn.Module):
+    def __init__(self, img_size=224, patch=16, in_c=3, dim=768):
+        super().__init__()
+        assert img_size % patch == 0, "img_size 必须能被 patch 整除"
+        self.n_patch = (img_size // patch) ** 2
+        # Conv2d 同时实现切 patch + 线性投影：kernel=stride=patch
+        self.proj = nn.Conv2d(in_c, dim, kernel_size=patch, stride=patch)
+        self.cls_token = nn.Parameter(torch.zeros(1, 1, dim))
+        # PE 长度 = n_patch+1（含 CLS）；换分辨率需 interpolate
+        self.pos_embed = nn.Parameter(torch.zeros(1, self.n_patch + 1, dim))
+
+    def forward(self, x):  # x: [B, 3, H, W]
+        B = x.size(0)
+        # Conv 输出 [B, dim, H/p, W/p] → 展平为 [B, N, dim]
+        x = self.proj(x).flatten(2).transpose(1, 2)
+        # 拼 CLS token 到序列首
+        cls = self.cls_token.expand(B, -1, -1)
+        x = torch.cat([cls, x], dim=1)
+        return x + self.pos_embed
+```
+
+**易错**：H/W 不被 patch 整除（要 pad/crop）；忘加 CLS token；PE 长度与 patch 数不一致致换分辨率失败。
 
 </details>
 
