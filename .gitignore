@@ -5,3 +5,8 @@ __pycache__/
 .idea/
 *.log
 node_modules/
+
+# Claude Code: local skills symlinks + per-user overrides (keep settings.json tracked)
+.claude/skills/
+.claude/settings.local.json
+.aris/

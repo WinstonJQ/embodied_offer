@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__codex__codex",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push origin master)"
+    ]
+  }
+}
