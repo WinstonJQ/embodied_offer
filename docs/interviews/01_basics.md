@@ -796,154 +796,317 @@ $$T = \begin{bmatrix} R_{3\times3} & p_{3\times1} \\ 0_{1\times3} & 1 \end{bmatr
 
 ## §H 手撕代码（10 题）
 
-> 与上文"概念+答案"题区分开的**手撕实现**段。本节每题只给"考察点 / 关键实现要点 / 易错"，**不贴完整代码**——把动手验证留给候选人。题源来自公开手撕题面经合并统计（详见 `notes/handcoding_research.md`）。
+> 与上文"概念+答案"题区分开的**手撕实现**段。本节每题给"考察点 / 实现 / 易错"——附 ≤30 行 Python 实现，关键处中文注释。题源来自公开手撕题面经合并统计（详见 `notes/handcoding_research.md`）。
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×15</span> <b>✍ H01</b> · 手撕 scaled dot-product attention</summary>
 
-**考察点**：Attention(Q,K,V) = softmax(QK^T / √d_k) V 公式与 PyTorch/NumPy 实现；为何要除 √d_k。
+**考察点**：`Attention(Q,K,V) = softmax(QK^T/√d_k) V` 公式；为何要除 √d_k（防 softmax 饱和、梯度消失）。
 
-**关键实现要点**：
-- `Q @ K.transpose(-2, -1) / sqrt(d_k)`，dtype 与 d_k 一致再开根号。
-- softmax 沿最后一维（`dim=-1`）。
-- mask 在 softmax **之前**用加性 -inf（`logits.masked_fill(mask, -inf)`），不是乘 0/1。
-- 最后 `@ V` 得 `[B, ..., L, d_v]`。
+**实现**：
 
-**易错**：忘 transpose 维度；scale 用 d_k 而非 √d_k（softmax 进入饱和区，梯度消失）；mask 用乘性 0/1 在 softmax 后非零项不为 0。
+```python
+import math
+import torch
+import torch.nn.functional as F
+
+def sdpa(q, k, v, mask=None):
+    # q,k,v: [B, ..., L, d_k]；mask: True 处屏蔽
+    d_k = q.size(-1)
+    scores = q @ k.transpose(-2, -1) / math.sqrt(d_k)  # 缩放避免 softmax 饱和
+    if mask is not None:
+        scores = scores.masked_fill(mask, float('-inf'))  # 加性 -inf 而非乘 0
+    attn = F.softmax(scores, dim=-1)
+    return attn @ v  # [B, ..., L, d_v]
+```
+
+**易错**：忘 transpose；scale 用 `d_k` 而非 `√d_k`；mask 用乘性 0/1（softmax 后非 0 项不为 0）。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×12</span> <b>✍ H02</b> · 手撕 multi-head attention</summary>
 
-**考察点**：拆头/合头的 view/transpose/contiguous 流程；为何多头优于单头。
+**考察点**：拆头/合头流程；4 个 Linear（W_q/W_k/W_v/W_o）；mask 广播形状。
 
-**关键实现要点**：
-- 4 个 Linear：`W_q / W_k / W_v / W_o`；`embed_dim % num_heads == 0` 校验。
-- 拆头：`x.view(B, L, h, d_k).transpose(1, 2)` → `[B, h, L, d_k]`。
-- 每个头独立做 SDPA。
-- 合头：`transpose(1, 2).contiguous().view(B, L, h*d_k)` → `W_o`。
-- mask 形状一般 `[B, 1, 1, L]` 自动广播。
+**实现**：
 
-**易错**：`embed_dim % num_heads != 0` 维度错；忘 `contiguous()` 直接 `view()` 报 stride 错；mask 形状广播失败。
+```python
+import math
+import torch.nn as nn
+import torch.nn.functional as F
+
+class MHA(nn.Module):
+    def __init__(self, d, h):
+        super().__init__()
+        assert d % h == 0  # 必须整除
+        self.h, self.d_k = h, d // h
+        self.qkv = nn.Linear(d, 3 * d)
+        self.o = nn.Linear(d, d)
+
+    def forward(self, x, mask=None):
+        B, L, _ = x.shape
+        q, k, v = self.qkv(x).chunk(3, dim=-1)
+        # 拆头：[B, L, d] -> [B, h, L, d_k]
+        q, k, v = [t.view(B, L, self.h, self.d_k).transpose(1, 2) for t in (q, k, v)]
+        scores = q @ k.transpose(-2, -1) / math.sqrt(self.d_k)
+        if mask is not None:  # mask 形状 [B,1,1,L] 自动广播
+            scores = scores.masked_fill(mask, float('-inf'))
+        out = F.softmax(scores, -1) @ v
+        # 合头：transpose 后必须 contiguous 才能 view
+        out = out.transpose(1, 2).contiguous().view(B, L, -1)
+        return self.o(out)
+```
+
+**易错**：`d % h != 0` 维度错；忘 `contiguous()` 直接 `view()` 报 stride 错；mask 广播形状不对。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×6</span> <b>✍ H03</b> · 手撕 sinusoidal positional encoding</summary>
 
-**考察点**：`PE(pos, 2i) = sin(pos / 10000^(2i/d))`、`PE(pos, 2i+1) = cos(...)`；为什么相对位置可由线性变换编码。
+**考察点**：`PE(pos,2i)=sin(pos/10000^(2i/d))`、`PE(pos,2i+1)=cos(...)`；相对位置可由线性变换编码。
 
-**关键实现要点**：
-- 用 broadcast 一次生成 `[L, d]` 矩阵。
-- 偶数列 sin、奇数列 cos；`div_term = exp(arange(0, d, 2) * -log(10000)/d)` 避免大幂。
-- 注册为 `buffer`（`register_buffer`），不参与梯度。
-- 加到 token embedding 后再过 dropout。
+**实现**：
 
-**易错**：d 是奇数切片错；忘做 buffer 导致每次重算；与 token embedding 维度不齐。
+```python
+import math
+import torch
+import torch.nn as nn
+
+class SinPE(nn.Module):
+    def __init__(self, d, max_len=5000):
+        super().__init__()
+        assert d % 2 == 0, "d 必须偶数；奇数会让 sin/cos 列数不匹配"
+        pe = torch.zeros(max_len, d)
+        pos = torch.arange(max_len).unsqueeze(1).float()
+        # 用 exp(log) 形式避免直接做 10000^(2i/d) 的大幂溢出
+        div = torch.exp(torch.arange(0, d, 2) * (-math.log(10000.0) / d))
+        pe[:, 0::2] = torch.sin(pos * div)  # 偶数列 sin
+        pe[:, 1::2] = torch.cos(pos * div)  # 奇数列 cos
+        self.register_buffer('pe', pe)  # 不参与梯度
+
+    def forward(self, x):  # x: [B, L, d]
+        return x + self.pe[:x.size(1)]
+```
+
+**易错**：d 为奇数时切片错；忘 `register_buffer` 导致每次重算 & 设备不同步；与 token embedding 维度不齐。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×10</span> <b>✍ H04</b> · 手撕 LayerNorm</summary>
 
-**考察点**：沿哪个维度 norm；γ/β 的形状；为何 Transformer 用 LN 不用 BN。
+**考察点**：沿最后特征维 norm；γ/β 形状等于 `normalized_shape`；LN 不依赖 batch，batch=1 也稳（vs BN）。
 
-**关键实现要点**：
-- 沿最后一维（或 `normalized_shape` 指定的尾部维度）算 mean 与 var。
-- `(x - mean) / sqrt(var + eps) * gamma + beta`。
-- `gamma, beta` 形状等于 `normalized_shape`；`eps` 一般 1e-5。
-- LN 不依赖 batch 维，batch=1 也稳；BN 是沿 batch+spatial 维。
+**实现**：
 
-**易错**：把 var 写成 std；eps 忘加（var=0 时除零）；与 BN 的归一化维度记混。
+```python
+import torch
+import torch.nn as nn
+
+class LayerNorm(nn.Module):
+    def __init__(self, d, eps=1e-5):
+        super().__init__()
+        self.gamma = nn.Parameter(torch.ones(d))
+        self.beta = nn.Parameter(torch.zeros(d))
+        self.eps = eps
+
+    def forward(self, x):  # x: [..., d]
+        mean = x.mean(-1, keepdim=True)
+        # 用有偏方差 (unbiased=False)，与 PyTorch nn.LayerNorm 一致
+        var = x.var(-1, keepdim=True, unbiased=False)
+        return (x - mean) / torch.sqrt(var + self.eps) * self.gamma + self.beta
+```
+
+**易错**：var 写成 std；忘 `eps` 导致除零；用 `unbiased=True`（默认）与官方实现差异；与 BN 的归一化维度记混。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×8</span> <b>✍ H05</b> · 手撕 RMSNorm</summary>
 
-**考察点**：与 LN 的区别（去掉 mean 与 β）；LLaMA / Mistral / π0 为何用 RMSNorm。
+**考察点**：与 LN 的区别（去掉减均值与 β，只做 re-scale）；LLaMA / Mistral / π0 为何选 RMSNorm。
 
-**关键实现要点**：
-- `rms = sqrt(mean(x**2, dim=-1, keepdim=True) + eps)`。
-- `out = x / rms * gamma`，无 β（不做 re-center）。
-- 仅一次平方-均值-开方，少一次减均值，省 7%-64% 计算。
-- gamma 形状 `[d]`。
+**实现**：
 
-**易错**：还减 mean（变回 LN）；忘 keepdim 导致广播错；与 weight 形状对不上。
+```python
+import torch
+import torch.nn as nn
+
+class RMSNorm(nn.Module):
+    def __init__(self, d, eps=1e-6):
+        super().__init__()
+        self.gamma = nn.Parameter(torch.ones(d))
+        self.eps = eps
+
+    def forward(self, x):  # x: [..., d]
+        # 不减均值，只用平方均值开方做 re-scale；省一次减法
+        rms = torch.sqrt(x.pow(2).mean(-1, keepdim=True) + self.eps)
+        return x / rms * self.gamma
+```
+
+**易错**：还减 mean（变回 LN）；忘 `keepdim` 导致广播错；无 β 但实现里加上（破坏 RMSNorm 定义）。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×7</span> <b>✍ H06</b> · 手撕 BatchNorm（区分训练 vs 推理）</summary>
 
-**考察点**：train 用 mini-batch 统计 + 滑动平均更新 `running_mean / running_var`；eval 用 running 统计；BN 在 batch=1 失效。
+**考察点**：train 用 mini-batch 统计 + 滑动平均更新 running；eval 用 running；BN 在 batch=1 失效。
 
-**关键实现要点**：
-- train：当前 batch 算 mean/var；`running_*` 用 momentum 指数滑动（PyTorch `momentum=0.1` 表示 new=0.1·batch + 0.9·running）。
-- eval：直接用 running 统计，不更新。
-- `gamma, beta` 形状 `[C]`，沿 batch + spatial 维归一化（CNN）。
+**实现**：
 
-**易错**：忘 `model.eval()` 导致推理还更新 running stats；PyTorch 与 TF 的 momentum 方向相反；batch=1 时 var=0 训练崩溃。
+```python
+import torch
+import torch.nn as nn
+
+class BatchNorm2d(nn.Module):
+    def __init__(self, C, eps=1e-5, momentum=0.1):
+        super().__init__()
+        self.gamma = nn.Parameter(torch.ones(C))
+        self.beta = nn.Parameter(torch.zeros(C))
+        # running 用 buffer 不参与梯度；momentum 0.1 = 新值占 0.1
+        self.register_buffer('running_mean', torch.zeros(C))
+        self.register_buffer('running_var', torch.ones(C))
+        self.eps, self.m = eps, momentum
+
+    def forward(self, x):  # x: [N, C, H, W]
+        if self.training:
+            mean = x.mean(dim=(0, 2, 3))           # 沿 N+spatial
+            var = x.var(dim=(0, 2, 3), unbiased=False)
+            # in-place 更新 running（detach 防梯度回传）
+            self.running_mean.mul_(1 - self.m).add_(self.m * mean.detach())
+            self.running_var.mul_(1 - self.m).add_(self.m * var.detach())
+        else:
+            mean, var = self.running_mean, self.running_var
+        x = (x - mean[None, :, None, None]) / torch.sqrt(var[None, :, None, None] + self.eps)
+        return x * self.gamma[None, :, None, None] + self.beta[None, :, None, None]
+```
+
+**易错**：忘 `model.eval()` 导致推理还更新；PyTorch 与 TF 的 `momentum` 方向相反；batch=1 且 H·W=1 时 var=0 训练崩溃。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×9</span> <b>✍ H07</b> · 手撕 Bellman 方程（V/Q/Advantage 三个版本）</summary>
 
-**考察点**：贝尔曼期望 vs 最优方程；Q-learning 用 max（off-policy）、SARSA 不用 max（on-policy）。
+**考察点**：期望 vs 最优方程；Q-learning 用 max（off-policy）/ SARSA 不用 max（on-policy）；`done` 截断 bootstrap。
 
-**关键实现要点**：
-- 期望：`V^π(s) = Σ_a π(a|s) Σ_{s',r} p(s',r|s,a)[r + γ V^π(s')]`。
-- 最优：把外层 `Σ_a π` 换成 `max_a`，得到 `V*(s) = max_a Σ ...`。
-- `Q(s,a) = E[r + γ V(s')]`；`A(s,a) = Q(s,a) - V(s)`。
-- 终止状态：`V(s_T) = 0`，写代码时要显式 `* (1 - done)` 截断。
+**实现**：
 
-**易错**：把期望与最优混；γ 设 1 → 长 horizon 不收敛；done 不截断导致 bootstrap 跨 episode。
+```python
+import numpy as np
+
+# 期望方程 V^π：策略评估一步迭代
+def bellman_expect(V, pi, P, R, gamma=0.99):
+    # P[s,a,s']: 转移概率；R[s,a]: 即时回报；pi[s,a]: 策略
+    Q = R + gamma * (P * V[None, None, :]).sum(-1)  # E_{s'}[R + γV(s')]
+    return (pi * Q).sum(-1)  # 沿 a 加权 -> V[s]
+
+# 最优方程 V*：值迭代一步
+def bellman_optimal(V, P, R, gamma=0.99):
+    Q = R + gamma * (P * V[None, None, :]).sum(-1)
+    return Q.max(-1)  # 把 Σ_a π 换成 max_a
+
+# Q-learning TD 目标（带 done 截断）
+def q_target(r, q_next, done, gamma=0.99):
+    # 终止时 V(s_T)=0，必须乘 (1-done) 截断 bootstrap
+    return r + gamma * q_next.max(-1) * (1.0 - done)
+
+# Advantage：A(s,a) = Q(s,a) - V(s)
+def advantage(Q, V):
+    return Q - V[:, None]  # 沿动作维广播
+```
+
+**易错**：把期望与最优混；γ 设 1 → 长 horizon 不收敛；`done` 不截断导致跨 episode bootstrap。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×7</span> <b>✍ H08</b> · 手撕 REINFORCE / Policy Gradient 推导</summary>
 
-**考察点**：`∇J(θ) = E[∇log π(a|s) · G_t]`；baseline 为何不引入 bias。
+**考察点**：`∇J(θ) = E[∇log π(a|s)·G_t]`；baseline 与动作无关 → 不引入 bias 但降方差。
 
-**关键实现要点**：
-- 完整 rollout 一段 episode → 算 `G_t = Σ_{k≥t} γ^{k-t} r_k`（从后向前累计）。
-- `loss = -mean(log_prob(a) * (G_t - b(s)))`，b(s) 可取状态值 V(s) 作为 baseline。
-- baseline 与动作无关 → `E[∇log π · b] = 0`，不引入 bias 但能降方差。
-- 优势 `(G_t - V(s))` 应 `.detach()`，不让 baseline 进策略梯度。
+**实现**：
 
-**易错**：忘负号（最大化 → loss 取负）；G_t 正向算（应反向）；advantage 没 detach；γ=1 在长 episode 上方差爆炸。
+```python
+import torch
+
+def returns_to_go(rewards, gamma=0.99):
+    # G_t = r_t + γG_{t+1}，必须从后向前算
+    G, out = 0.0, []
+    for r in reversed(rewards):
+        G = r + gamma * G
+        out.append(G)
+    return torch.tensor(list(reversed(out)))
+
+def reinforce_loss(log_probs, rewards, values=None, gamma=0.99):
+    # log_probs: [T] 当前策略对所采动作的 log π(a|s)
+    G = returns_to_go(rewards, gamma).to(log_probs.device)
+    if values is not None:
+        adv = (G - values).detach()  # baseline 须 detach，不让其进策略梯度
+    else:
+        adv = G
+    # 最大化期望回报 -> loss 取负
+    return -(log_probs * adv).mean()
+```
+
+**易错**：忘负号（最大化）；`G_t` 正向算（应反向）；baseline 未 detach 导致梯度回灌；γ=1 在长 episode 方差爆炸。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×6</span> <b>✍ H09</b> · 手撕高斯 KL 闭式（一维 & VAE 特例）</summary>
 
-**考察点**：`KL(N(μ1,σ1²) ‖ N(μ2,σ2²))` 一维公式；VAE 中对 `N(0,I)` 的特例。
+**考察点**：`KL(N(μ1,σ1²)‖N(μ2,σ2²))` 闭式；VAE 中对 `N(0,I)` 的特例；用 `log_σ²` 参数化更稳。
 
-**关键实现要点**：
-- 一维：`log(σ2/σ1) + (σ1² + (μ1-μ2)²) / (2σ2²) - 0.5`。
-- 多维对角：沿特征维 sum；非对角需 `tr(Σ2⁻¹Σ1) + (μ2-μ1)^T Σ2⁻¹ (μ2-μ1) - d + log(|Σ2|/|Σ1|)`，整体乘 0.5。
-- VAE 特例（vs `N(0,I)`）：`0.5 * Σ(μ² + σ² - 1 - log σ²)`，沿 latent 维 sum。
-- 实务用 `log_σ²` 参数化更稳：`σ² = exp(log_σ²)`。
+**实现**：
 
-**易错**：log 用 σ 还是 σ²（差一倍）；维度 d 漏减；多维 trace 项漏写；用 σ 但模型输出的是 log_σ²。
+```python
+import torch
+
+def kl_gauss(mu1, logvar1, mu2, logvar2):
+    # 对角高斯之间 KL；输入是 log(σ²) 而非 σ，数值稳定
+    # KL = 0.5 * (log(σ2²/σ1²) + (σ1² + (μ1-μ2)²)/σ2² - 1)
+    var1, var2 = logvar1.exp(), logvar2.exp()
+    return 0.5 * ((logvar2 - logvar1) + (var1 + (mu1 - mu2).pow(2)) / var2 - 1).sum(-1)
+
+def kl_to_std_normal(mu, logvar):
+    # VAE 特例：q(z|x)=N(μ,σ²)，p(z)=N(0,I)
+    # KL = 0.5 * Σ(μ² + σ² - 1 - log σ²)
+    return 0.5 * (mu.pow(2) + logvar.exp() - 1 - logvar).sum(-1)
+```
+
+**易错**：`log` 用 σ 还是 σ²（差一倍）；维度 d 漏减；用 σ 但模型实际输出 `log σ²`；忘 sum 沿 latent 维。
 
 </details>
 
 <details class="qa qa-handcoding">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×7</span> <b>✍ H10</b> · 手撕 VAE ELBO + 重参数化</summary>
 
-**考察点**：`ELBO = E_q[log p(x|z)] - KL(q(z|x) ‖ p(z))`；reparameterize 让梯度可穿过采样。
+**考察点**：`ELBO = E_q[log p(x|z)] - KL(q(z|x)‖p(z))`；reparameterize 让梯度穿过采样。
 
-**关键实现要点**：
-- encoder 输出 `μ, log_σ²`；`σ = exp(0.5 * log_σ²)`。
-- 重参数化：`z = μ + σ · ε`，`ε ~ N(0, I)` 独立采样。
-- recon loss：图像常用 BCE/MSE，连续向量用高斯 NLL。
-- 总 loss：`recon + β · KL`（β-VAE）；KL 用 §H09 闭式。
+**实现**：
 
-**易错**：直接采样 `N(μ,σ)` → 梯度断；把 `log_σ` 当 σ 用；KL 符号错；recon 对 BCE 用错激活（应配 sigmoid）。
+```python
+import torch
+import torch.nn.functional as F
+
+def reparameterize(mu, logvar):
+    # z = μ + σ·ε，σ=exp(0.5·log_σ²)；ε 独立采样断开图，避免梯度断
+    std = (0.5 * logvar).exp()
+    eps = torch.randn_like(std)
+    return mu + std * eps
+
+def vae_loss(x, x_recon, mu, logvar, beta=1.0):
+    # recon 对 [0,1] 图像用 BCE（logits 版本数值稳）
+    recon = F.binary_cross_entropy_with_logits(x_recon, x, reduction='sum') / x.size(0)
+    # KL(q‖N(0,I)) 闭式
+    kl = 0.5 * (mu.pow(2) + logvar.exp() - 1 - logvar).sum(-1).mean()
+    return recon + beta * kl
+```
+
+**易错**：直接采样 `N(μ,σ)` 梯度断；把 `log σ` 当 σ；KL 符号错；BCE 对已 sigmoid 的输出再用 `binary_cross_entropy_with_logits`。
 
 </details>

@@ -116,5 +116,40 @@
     "部分答案在 350-500 字 WARN 区间（共 10 题），均未超过 500 字上限",
     "正文无内联引用链接（面试题库格式，非技术错误）"
   ],
-  "max_rounds_reached": false
+  "max_rounds_reached": false,
+  "handcoding_review": {
+    "section": "§H 手撕代码 (10 items, H01-H10)",
+    "model": "gpt-5.5",
+    "reasoning_effort": "xhigh",
+    "total_rounds": 2,
+    "final_verdict": "PASS",
+    "rounds": [
+      {
+        "round": 1,
+        "verdict": "FAIL",
+        "blocking_issues": [
+          "H03 SinPE 对奇数 d 出现张量列数不匹配（pe[:, 1::2] floor(d/2) vs div ceil(d/2)）"
+        ],
+        "warnings": [
+          "H06 易错『batch=1 时 var=0』在 BatchNorm2d 下不准确（沿 (N,H,W) 求方差，需 H·W=1 才严格成立）",
+          "H07 标题含 Advantage 但实现未给 A=Q-V"
+        ]
+      },
+      {
+        "round": 2,
+        "verdict": "PASS",
+        "fixes_applied": [
+          "H03 添加 assert d % 2 == 0",
+          "H06 易错改为『batch=1 且 H·W=1 时 var=0』",
+          "H07 添加 advantage(Q, V) 函数实现 A=Q-V"
+        ]
+      }
+    ],
+    "checks_run": [
+      "answer_conciseness",
+      "details_block_well_formed",
+      "code_correctness"
+    ],
+    "code_audit_summary": "10 个手撕代码片段全部 12-24 行（≤30 行约束）、API 用法正确（masked_fill / F.softmax dim=-1 / register_buffer / unbiased=False / detach）、数学公式实现匹配（attention 除 √d_k、KL 闭式、Bellman done 截断、reparam 用 logvar）。"
+  }
 }
