@@ -326,3 +326,63 @@ CLAUDE.md §7 的 codex prompt 在审查含 `qa-handcoding` 题的文件时，**
 - ❌ 不要把手撕题用作"教程章节"——仍是"题目+实现+易错"三段式，不是"原理→公式→实现→优化→实战"五段式
 - ❌ 不要给 vol-8 §2/§3 系统设计题加代码——架构题给代码反而 awkward
 - ❌ 不要在 Q## 题（class="qa" 无 "qa-handcoding"）里塞代码——这是 §0 硬约束，不动
+
+---
+
+## 13. 工作流复现指南（面向其他读者）
+
+> 本节面向想把这套「**调研 → 用户审过 → 起草 → 跨模型审查 → 渲染 → 发布**」工作流复用到自己项目的读者。**不依赖本仓库具体内容**，可迁移到任何「累积型知识库 / 题库 / 文档集 / 教程系列」类项目。
+
+### 13.1 核心思路
+
+一句话：**把 LLM 写作当成科研流程**——先调研、用户审过大纲、再起草、跨模型审查直到 PASS、渲染发布。每步留 artifact（清单 / 草稿 / 审计 JSON / HTML / git 提交）便于回溯。
+
+为什么这样设计：
+- LLM 单轮直出长文档**幻觉率高 + 用户改稿成本大**——把决策点前移到「清单」阶段，沉没成本最低
+- 同模型自我审查有盲点——**跨模型 + fresh thread** 能稳定发现 5-8 类自查漏掉的问题
+- artifact 可审计——`.review.json` + git 提交 = 任何一条结论可追溯到「第几轮、什么模型、什么证据」
+
+### 13.2 步骤与所用 skill / 工具
+
+| Phase | 做什么 | 工具 / skill |
+|---|---|---|
+| **Phase 1 调研** | 多关键词 × 多平台爬取原始素材，去重 / 合并 / 打频次或质量标签，产出 `/tmp/<topic>_research.md` 清单 | `WebSearch` / `WebFetch` |
+| **Phase 0 用户审过** | 把清单（**不含正文**）按主题 + 频次降序展示，等用户删 / 加 / 换 | `AskUserQuestion`（提供 ≤4 个明确决策点，避免开放式问"你觉得呢"） |
+| **Phase 2 起草** | 按统一模板写 Markdown 草稿（折叠块 / 表格 / 字段约束） | `Write` / `Edit` / `Read` |
+| **Phase 3 跨模型审查** | 用 Codex (GPT-5.5 xhigh) **fresh thread** 跑 N 项检查，输出 JSON verdict；FAIL 即修 → 再开 fresh thread；典型 5-6 轮收敛 | `mcp__codex__codex`（`sandbox=read-only`、**绝不**调 `codex-reply`） |
+| **Phase 4 渲染** | Markdown → 单文件 HTML（含 CSS / 折叠 / 响应式） | 项目自带渲染脚本 或 `/render-html` skill |
+| **Phase 5 更新索引** | 主册 `index.html` 更新入口卡片 + Top N 链接 | `Edit` |
+| **Phase 6 提交** | git add → commit（conventional commit 风格）→ push origin | `Bash`（git） |
+| **Phase 7 报告** | 回报 URL + 产物指标（条数 / 字数 / 审查轮数） | 文本回复 |
+
+### 13.3 关键约束（所有复用项目都适用）
+
+1. **Phase 0 必停下等用户**——不要先起草再问"对不对"，沉没成本太大
+2. **每轮跨模型审查必开 fresh thread**——不复用 threadId，否则 codex 偏见 / 上下文污染累积
+3. **审查 prompt 第 1 轮就明确所有阈值**（字数 / 字段 / 引用格式）——否则后期 codex 自定标准越来越苛，浪费轮次
+4. **每轮告知 codex「本轮已应用 N 个 fix」**——避免重复发现已修问题
+5. **JSON schema 在 prompt 里明示**——`{verdict, checks, blocking_issues, warnings, summary}`；散文输出难解析
+6. **审计日志落盘**（`<file>.review.json`）——每轮 verdict + 关键 fix + `sources_consulted` + `key_facts_verified`
+7. **审查时 `sandbox=read-only`**——防 codex 误改文件
+8. **不 force push** / **不跳过审查直接渲染** / **不在 commit 信息里加营销话术**
+
+### 13.4 在自己项目里接入
+
+在自己项目根目录的 `CLAUDE.md` 顶部，按以下骨架填入：
+
+```
+## 0. 项目定位            ← 一句话说清楚做什么、不做什么
+## 1. 用户偏好 HARD RULES  ← 不可违反的硬约束（格式 / 字数 / 禁忌）
+## 2. 标准工作流           ← Phase 1 → 7 的顺序，参考本仓库 §2
+## 3-N. 分册 / 单条格式 / 题源 / 审查 prompt / 路径 / 远程仓库
+##  最后. 经验沉淀         ← 实战后补；只记会复发的模式，不堆一次性 fix 清单
+```
+
+然后用户输入「做 X」「继续 Y」「复盘 Z」时，Claude 就会按这套流程跑。
+
+### 13.5 何时**不适用**这套流程
+
+- ❌ 单次 ad-hoc 写作（一篇 README / 一封邮件）——杀鸡用牛刀
+- ❌ 代码实现 / bug 修复 / 重构——这是「写作 + 审查」流程，不是「TDD + 调试」流程（那些走 `superpowers:test-driven-development` / `superpowers:systematic-debugging`）
+- ❌ 没有「累积型 artifact」的项目——本流程价值在「artifact 跨次复用 + 审计可回溯」，一次性产出用不上
+- ❌ 内容高度依赖**实时数据**（如股价 / 实时新闻）——跨模型审查窗口期内信息会过期
