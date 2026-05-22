@@ -792,3 +792,129 @@
 </details>
 
 ---
+
+## §H 手撕代码（8 题）
+
+> 数值稳定与训练工程手撕段——与上文"概念+答案"题区分开。本节只给"考察点 / 关键实现要点 / 易错"，不贴完整代码。
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×8</span> <b>✍ H01</b> · 手撕数值稳定 softmax</summary>
+
+**考察点**：为何要减 max；float32 仍可能溢出的边界情况。
+
+**关键实现要点**：
+- `x_max = x.max(dim=-1, keepdim=True).values`。
+- `exp_x = (x - x_max).exp()`。
+- `softmax = exp_x / exp_x.sum(dim=-1, keepdim=True)`。
+- `keepdim=True` 保证 broadcast 正确。
+
+**易错**：没 keepdim 导致 reduce 后维度对不上；`x - x_max` 后还出现 -inf 时 exp=0、sum=0 → 除零（极端 case，通常被 attention mask 之类的预过滤）。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>✍ H02</b> · 手撕 LogSumExp / log_softmax</summary>
+
+**考察点**：`log Σ exp(x) = x_max + log Σ exp(x - x_max)`；log_softmax 为何要一步算。
+
+**关键实现要点**：
+- `lse(x) = x_max + log((x - x_max).exp().sum(dim=-1))`。
+- `log_softmax(x) = x - lse(x).unsqueeze(-1)`。
+- 不要做 `log(softmax(x))`（softmax 输出在 0 附近时 log 接近 -inf，数值不稳）。
+- F.log_softmax 内部就是这套写法。
+
+**易错**：直接 `log(softmax(x))`；忘加 keepdim/unsqueeze 导致广播错；用 float16 时 lse 仍可能上溢，需 float32 中间量。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×7</span> <b>✍ H03</b> · 手撕 cross-entropy（含数值稳定）</summary>
+
+**考察点**：CE 与 NLL Loss 的关系；为何要用 log_softmax 而非 softmax + log。
+
+**关键实现要点**：
+- `CE(logits, target) = -log_softmax(logits).gather(-1, target.unsqueeze(-1))`。
+- one-hot 形式：`-Σ y_i · log p_i`（label smoothing 时常用 soft label）。
+- PyTorch `F.cross_entropy(logits, target)` 已内部数值稳定，不要先 softmax。
+- ignore_index：padding token loss 屏蔽（NLP / VLA 训练常用）。
+
+**易错**：先 softmax 再 log 导致数值不稳；padding 没 mask（loss 被噪声拉偏）；用 `reduction='mean'` 但 ignore 多导致样本数算错。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>✍ H04</b> · 手撕 KL divergence（离散 / 高斯 / forward vs reverse）</summary>
+
+**考察点**：KL(p‖q) 与 KL(q‖p) 不对称；高斯之间的闭式；PyTorch `F.kl_div` 的输入约定。
+
+**关键实现要点**：
+- 离散：`KL = Σ p(x) · (log p(x) - log q(x))`，输入用 log_prob 比 prob 稳。
+- 高斯 vs `N(0,I)`：`0.5 · Σ(μ² + σ² - 1 - log σ²)`（VAE 常用）。
+- forward `KL(p‖q)` 是 mode-covering；reverse `KL(q‖p)` 是 mode-seeking。
+- `F.kl_div(input=log_q, target=p)` 计算的是 `Σ p · (log p - log q)`，注意输入是 log_q。
+
+**易错**：log 用 σ 还是 σ²（差一倍）；F.kl_div 输入第一参传 prob 而非 log_prob；forward / reverse 方向反。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×9</span> <b>✍ H05</b> · 手撕 mini-batch 训练循环</summary>
+
+**考察点**：`zero_grad → forward → loss → backward → step` 顺序；为何要 `zero_grad`。
+
+**关键实现要点**：
+- 标准：`opt.zero_grad(); pred = model(x); loss = crit(pred, y); loss.backward(); opt.step()`。
+- 推理：`model.eval()` + `with torch.no_grad():`，关 dropout / 停 BN running stats 更新。
+- 混合精度：`GradScaler.scale(loss).backward(); scaler.step(opt); scaler.update()`。
+- 梯度累加：累 K 步后再 step、再 zero_grad。
+
+**易错**：zero_grad 漏掉 → 梯度累加；忘 eval 致 BN/Dropout 异常；no_grad 没包导致显存炸；累加完忘 zero_grad。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×4</span> <b>✍ H06</b> · 手撕 warmup + cosine 学习率 schedule</summary>
+
+**考察点**：warmup 防初始 lr 过大；cosine 末期渐降；边界连续性。
+
+**关键实现要点**：
+- warmup：`t < t_w` 时 `lr = lr_max · t / t_w`（线性增）。
+- cosine：`t ≥ t_w` 时 `lr = 0.5 · lr_max · (1 + cos(π · (t - t_w) / (T - t_w)))`。
+- `T` 是总 step 数（不是 epoch 数，注意 step 粒度）。
+- 实务用 `LambdaLR` 或 HuggingFace `get_cosine_schedule_with_warmup`。
+
+**易错**：warmup_end 处 lr 跳变（公式不连续）；T 用 epoch 数导致末期还没降到底；step 与 batch 关系算错。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>✍ H07</b> · 手撕 Adam / AdamW 更新规则</summary>
+
+**考察点**：一阶/二阶 momentum；bias correction；AdamW 与 Adam 在 weight decay 上的差别。
+
+**关键实现要点**：
+- `m_t = β1·m + (1-β1)·g`；`v_t = β2·v + (1-β2)·g²`，常用 β1=0.9, β2=0.999。
+- bias correct：`m̂ = m / (1 - β1^t)`，`v̂ = v / (1 - β2^t)`。
+- 更新：`θ ← θ - lr · m̂ / (√v̂ + ε)`，ε=1e-8。
+- AdamW：解耦 weight decay，`θ ← θ - lr·(m̂/(√v̂+ε) + λ·θ)`，不混进 momentum。
+
+**易错**：忘 bias correction；把 weight decay 加到 grad 里（这是 L2 正则，不是 AdamW）；ε 太小导致除零。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×3</span> <b>✍ H08</b> · 手撕 dropout（train vs eval + inverted scale）</summary>
+
+**考察点**：train 时随机置零并 scale；eval 时直接通过；inverted dropout 把 scale 放训练侧。
+
+**关键实现要点**：
+- train：`mask ~ Bernoulli(1-p)`；`out = x * mask / (1 - p)`（inverted dropout）。
+- eval：`out = x`，不做任何事。
+- 保证 `E[out] = x` 跨 train/eval 一致。
+- PyTorch `nn.Dropout` 自动按 `model.train()` / `eval()` 切换。
+
+**易错**：推理时还 drop（用 `F.dropout` 直接 forward 但忘传 `training=...`）；忘 scale 导致 train/test 期望不匹配；在残差分支前后位置放错。
+
+</details>
+
+---
