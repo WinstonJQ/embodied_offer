@@ -1120,3 +1120,114 @@ SAM (prompt=bbox) → pixel-precise mask
 
 </details>
 
+---
+
+## §H 手撕代码（7 题）
+
+> 感知 / 导航 / 视觉 backbone 手撕段——与上文"概念+答案"题区分开。本节只给"考察点 / 关键实现要点 / 易错"，不贴完整代码。
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×11</span> <b>✍ H01</b> · 手撕 IoU（两个矩形框）</summary>
+
+**考察点**：交集 / 并集；为何要 `max(0, ·)` 防负值；axis-aligned 与 rotated IoU 的区别。
+
+**关键实现要点**：
+- 交集宽：`iw = max(0, min(x2a, x2b) - max(x1a, x1b))`，高度同理。
+- `inter = iw * ih`；`area_a, area_b` 各自算。
+- `iou = inter / (area_a + area_b - inter + 1e-6)`，加 ε 防除零。
+- 旋转框需用 polygon 求交（shapely）或 OpenCV `rotatedRectangleIntersection`。
+
+**易错**：负宽/高没 clip 导致 IoU > 1；除零；忘了边界包含约定（半开/闭区间影响 +1 偏移）。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×11</span> <b>✍ H02</b> · 手撕 NMS（非极大值抑制）</summary>
+
+**考察点**：排序 + 贪心 + IoU 过滤；soft-NMS 的差别。
+
+**关键实现要点**：
+- 按 score 降序排，可先做 score thresh 预过滤。
+- 取首框入 keep；与剩余框算 IoU；IoU > thresh 的丢弃。
+- 重复直到候选集为空，复杂度 O(N²)（GPU 上可用 `torchvision.ops.nms`）。
+- soft-NMS：不删，按 IoU 做 score 衰减（`score *= exp(-IoU²/σ)`）。
+
+**易错**：没按类别分别 NMS（不同类不该互相抑制）；IoU 阈值取 1.0 等于不抑制；忘 score thresh 预过滤导致 N 太大 TLE。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×8</span> <b>✍ H03</b> · 手撕 Conv2d 输出维度 / 感受野</summary>
+
+**考察点**：`out = ⌊(in + 2P - D·(K-1) - 1) / S⌋ + 1`；感受野递推公式。
+
+**关键实现要点**：
+- 输出尺寸：`out_h = (in_h + 2·pad - dil·(k-1) - 1) // stride + 1`，宽同理。
+- 感受野递推：`RF_l = RF_{l-1} + (K_l - 1) · ∏_{i<l} S_i`，pooling 层也算 stride。
+- "same" padding：`pad = (k - 1) // 2`（stride=1, dil=1）；stride>1 时 same 含义模糊。
+- 反卷积 / 转置卷积：`out = (in - 1)·S - 2P + D·(K-1) + out_pad + 1`。
+
+**易错**：忘 dilation；以为感受野是累乘（其实是累加）；忽略 pooling 层贡献。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×9</span> <b>✍ H04</b> · 手撕 BFS / DFS 在 grid 上找最短路径</summary>
+
+**考察点**：BFS 必给最短（无权图）、DFS 不一定；4 邻居 vs 8 邻居；visited 怎么打标记。
+
+**关键实现要点**：
+- BFS：`deque` 初始入起点；逐层 expand；用 `visited[x][y]` 标记入队即标，不要等出队再标。
+- 模板：`dx=[-1,1,0,0]; dy=[0,0,-1,1]` 四邻居；八邻居加对角。
+- 边界检查 + 障碍格跳过；找到终点立即返回当前层数。
+- DFS 求所有路径用栈或递归 + 回溯撤销 visited。
+
+**易错**：visited 等出队才标记 → 重复入队 TLE；DFS 求最短（应 BFS）；八邻居斜走要按 √2 算代价（非纯计步时）。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×7</span> <b>✍ H05</b> · 手撕 A* / Dijkstra 路径规划</summary>
+
+**考察点**：Dijkstra 无启发；A* 用 `f = g + h`，h 需 admissible；为何 A* 比 BFS 快。
+
+**关键实现要点**：
+- 用 `heapq` 优先队列，结点 `(f, g, position)`。
+- Dijkstra：h=0；A*：`h` 取 Manhattan（4 邻居）/ Euclidean（8 邻居或自由方向）/ Chebyshev。
+- 维护 `g_best[pos]`，仅当新 g 更小才入队（替代 closed set 更简洁）。
+- 终点出堆即可返回（路径可用 parent 字典回溯）。
+
+**易错**：h 不 admissible（高估）→ 解不最优；用 `(g, pos)` 入堆不对（要按 f）；同一节点多次入队但忘了懒删除。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×4</span> <b>✍ H06</b> · 手撕 K-Means 聚类</summary>
+
+**考察点**：E-step（分配）+ M-step（更新中心）；k 的选择；初始化敏感性。
+
+**关键实现要点**：
+- 初始化：K-Means++（按距离平方加权采样）远胜随机。
+- E-step：每点找最近中心 `argmin_k ‖x - μ_k‖²`。
+- M-step：`μ_k = mean(points 分到 cluster k)`。
+- 终止：中心变化 < eps 或迭代次数到上限。
+
+**易错**：用随机初始化导致局部最优；空簇没处理（应重选远点）；k 选错可用肘部法（inertia）或 silhouette。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×6</span> <b>✍ H07</b> · 手撕 ViT patch embedding</summary>
+
+**考察点**：用 `Conv2d` 一步切+映射；为何 patch 大小决定序列长度。
+
+**关键实现要点**：
+- `nn.Conv2d(in_c, dim, kernel_size=patch, stride=patch)` 输出 `[B, dim, H/p, W/p]`。
+- `flatten(2).transpose(1, 2)` → `[B, N, dim]`，N = (H/p)·(W/p)。
+- 拼 CLS token（`[B, 1, dim]` 可学）→ `[B, N+1, dim]`，再加 learnable positional embedding。
+- DINOv2 / SigLIP / CLIP-ViT 共用此结构，patch 一般 14 或 16。
+
+**易错**：H/W 不能被 patch 整除（要 pad 或 crop）；忘加 CLS token；PE 长度与 patch 数不一致（换分辨率需 interpolate）。
+
+</details>
+

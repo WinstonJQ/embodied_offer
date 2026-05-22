@@ -7,8 +7,8 @@
 
 <meta name="generator" content="ARIS render-html (academic, v1)">
 <meta name="aris:source-path" content="docs/interviews/07_perception_nav.md">
-<meta name="aris:source-sha256" content="25e3585b1c533b2206d9daed96783bee4c9b384423f52c67b02fafb1a6217cc8">
-<meta name="aris:generated-at" content="2026-05-21 18:08 UTC">
+<meta name="aris:source-sha256" content="14079fb2b48c058e924df05c761a616ca9d6e067a176e11f584d86de79b25fe3">
+<meta name="aris:generated-at" content="2026-05-22 01:00 UTC">
 
 <!-- MathJax 3 -->
 <script>
@@ -402,6 +402,8 @@ footer.aris-footer a { color: var(--ink-muted); border-bottom: 1px dotted var(--
 <li><a href="#8-端到端-vln-vla-与前沿判断5-题">§8 端到端 VLN-VLA 与前沿判断（5 题）</a>
 </li>
 <li><a href="#9-低频备选3-题">§9 低频备选（3 题）</a>
+</li>
+<li><a href="#h-手撕代码7-题">§H 手撕代码（7 题）</a>
 </li>
 </ol>
 </nav>
@@ -912,12 +914,64 @@ SAM (prompt=bbox) → pixel-precise mask</code></pre>
 <p><strong>预测</strong>：2026-2027 神经 SLAM 在 Jetson Orin 等嵌入式 GPU 普及后会扩大份额；ORB-SLAM3 在 IMU + 多传感器融合方向仍领先。</p>
 <p><strong>易错</strong>：DROID/DPVO 是<strong>视觉 odometry</strong>，回环检测要外挂传统 BoW / NetVLAD；现代工业方案通常<strong>神经 VO + 传统 loop closure</strong> 混合。</p>
 </details>
+<hr />
+<h2 id="h-手撕代码7-题">§H 手撕代码（7 题）</h2>
+<blockquote><p>感知 / 导航 / 视觉 backbone 手撕段——与上文"概念+答案"题区分开。本节只给"考察点 / 关键实现要点 / 易错"，不贴完整代码。</p></blockquote>
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×11</span> <b>✍ H01</b> · 手撕 IoU（两个矩形框）</summary>
+<p><strong>考察点</strong>：交集 / 并集；为何要 <code>max(0, ·)</code> 防负值；axis-aligned 与 rotated IoU 的区别。</p>
+<p><strong>关键实现要点</strong>：</p>
+<ul><li>交集宽：<code>iw = max(0, min(x2a, x2b) - max(x1a, x1b))</code>，高度同理。</li><li><code>inter = iw * ih</code>；<code>area_a, area_b</code> 各自算。</li><li><code>iou = inter / (area_a + area_b - inter + 1e-6)</code>，加 ε 防除零。</li><li>旋转框需用 polygon 求交（shapely）或 OpenCV <code>rotatedRectangleIntersection</code>。</li></ul>
+<p><strong>易错</strong>：负宽/高没 clip 导致 IoU &gt; 1；除零；忘了边界包含约定（半开/闭区间影响 +1 偏移）。</p>
+</details>
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×11</span> <b>✍ H02</b> · 手撕 NMS（非极大值抑制）</summary>
+<p><strong>考察点</strong>：排序 + 贪心 + IoU 过滤；soft-NMS 的差别。</p>
+<p><strong>关键实现要点</strong>：</p>
+<ul><li>按 score 降序排，可先做 score thresh 预过滤。</li><li>取首框入 keep；与剩余框算 IoU；IoU &gt; thresh 的丢弃。</li><li>重复直到候选集为空，复杂度 O(N²)（GPU 上可用 <code>torchvision.ops.nms</code>）。</li><li>soft-NMS：不删，按 IoU 做 score 衰减（<code>score *= exp(-IoU²/σ)</code>）。</li></ul>
+<p><strong>易错</strong>：没按类别分别 NMS（不同类不该互相抑制）；IoU 阈值取 1.0 等于不抑制；忘 score thresh 预过滤导致 N 太大 TLE。</p>
+</details>
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×8</span> <b>✍ H03</b> · 手撕 Conv2d 输出维度 / 感受野</summary>
+<p><strong>考察点</strong>：<code>out = ⌊(in + 2P - D·(K-1) - 1) / S⌋ + 1</code>；感受野递推公式。</p>
+<p><strong>关键实现要点</strong>：</p>
+<ul><li>输出尺寸：<code>out_h = (in_h + 2·pad - dil·(k-1) - 1) // stride + 1</code>，宽同理。</li><li>感受野递推：<code>RF_l = RF_{l-1} + (K_l - 1) · ∏_{i&lt;l} S_i</code>，pooling 层也算 stride。</li><li>"same" padding：<code>pad = (k - 1) // 2</code>（stride=1, dil=1）；stride&gt;1 时 same 含义模糊。</li><li>反卷积 / 转置卷积：<code>out = (in - 1)·S - 2P + D·(K-1) + out_pad + 1</code>。</li></ul>
+<p><strong>易错</strong>：忘 dilation；以为感受野是累乘（其实是累加）；忽略 pooling 层贡献。</p>
+</details>
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×9</span> <b>✍ H04</b> · 手撕 BFS / DFS 在 grid 上找最短路径</summary>
+<p><strong>考察点</strong>：BFS 必给最短（无权图）、DFS 不一定；4 邻居 vs 8 邻居；visited 怎么打标记。</p>
+<p><strong>关键实现要点</strong>：</p>
+<ul><li>BFS：<code>deque</code> 初始入起点；逐层 expand；用 <code>visited[x][y]</code> 标记入队即标，不要等出队再标。</li><li>模板：<code>dx=[-1,1,0,0]; dy=[0,0,-1,1]</code> 四邻居；八邻居加对角。</li><li>边界检查 + 障碍格跳过；找到终点立即返回当前层数。</li><li>DFS 求所有路径用栈或递归 + 回溯撤销 visited。</li></ul>
+<p><strong>易错</strong>：visited 等出队才标记 → 重复入队 TLE；DFS 求最短（应 BFS）；八邻居斜走要按 √2 算代价（非纯计步时）。</p>
+</details>
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×7</span> <b>✍ H05</b> · 手撕 A* / Dijkstra 路径规划</summary>
+<p><strong>考察点</strong>：Dijkstra 无启发；A<em> 用 <code>f = g + h</code>，h 需 admissible；为何 A</em> 比 BFS 快。</p>
+<p><strong>关键实现要点</strong>：</p>
+<ul><li>用 <code>heapq</code> 优先队列，结点 <code>(f, g, position)</code>。</li><li>Dijkstra：h=0；A*：<code>h</code> 取 Manhattan（4 邻居）/ Euclidean（8 邻居或自由方向）/ Chebyshev。</li><li>维护 <code>g_best[pos]</code>，仅当新 g 更小才入队（替代 closed set 更简洁）。</li><li>终点出堆即可返回（路径可用 parent 字典回溯）。</li></ul>
+<p><strong>易错</strong>：h 不 admissible（高估）→ 解不最优；用 <code>(g, pos)</code> 入堆不对（要按 f）；同一节点多次入队但忘了懒删除。</p>
+</details>
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×4</span> <b>✍ H06</b> · 手撕 K-Means 聚类</summary>
+<p><strong>考察点</strong>：E-step（分配）+ M-step（更新中心）；k 的选择；初始化敏感性。</p>
+<p><strong>关键实现要点</strong>：</p>
+<ul><li>初始化：K-Means++（按距离平方加权采样）远胜随机。</li><li>E-step：每点找最近中心 <code>argmin_k ‖x - μ_k‖²</code>。</li><li>M-step：<code>μ_k = mean(points 分到 cluster k)</code>。</li><li>终止：中心变化 &lt; eps 或迭代次数到上限。</li></ul>
+<p><strong>易错</strong>：用随机初始化导致局部最优；空簇没处理（应重选远点）；k 选错可用肘部法（inertia）或 silhouette。</p>
+</details>
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×6</span> <b>✍ H07</b> · 手撕 ViT patch embedding</summary>
+<p><strong>考察点</strong>：用 <code>Conv2d</code> 一步切+映射；为何 patch 大小决定序列长度。</p>
+<p><strong>关键实现要点</strong>：</p>
+<ul><li><code>nn.Conv2d(in_c, dim, kernel_size=patch, stride=patch)</code> 输出 <code>[B, dim, H/p, W/p]</code>。</li><li><code>flatten(2).transpose(1, 2)</code> → <code>[B, N, dim]</code>，N = (H/p)·(W/p)。</li><li>拼 CLS token（<code>[B, 1, dim]</code> 可学）→ <code>[B, N+1, dim]</code>，再加 learnable positional embedding。</li><li>DINOv2 / SigLIP / CLIP-ViT 共用此结构，patch 一般 14 或 16。</li></ul>
+<p><strong>易错</strong>：H/W 不能被 patch 整除（要 pad 或 crop）；忘加 CLS token；PE 长度与 patch 数不一致（换分辨率需 interpolate）。</p>
+</details>
 
 <footer class="aris-footer">
   Generated by <a href="https://github.com/wanshuiyin/Auto-claude-code-research-in-sleep/blob/main/skills/render-html/SKILL.md">ARIS <code>/render-html</code></a> ·
   source path <code>docs/interviews/07_perception_nav.md</code> ·
-  SHA256 <code>25e3585b1c53</code> ·
-  generated at 2026-05-21 18:08 UTC.
+  SHA256 <code>14079fb2b48c</code> ·
+  generated at 2026-05-22 01:00 UTC.
   This is a generated view — edit the source Markdown, then re-render.
 </footer>
 </main>
