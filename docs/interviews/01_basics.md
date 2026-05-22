@@ -791,3 +791,159 @@ $$T = \begin{bmatrix} R_{3\times3} & p_{3\times1} \\ 0_{1\times3} & 1 \end{bmatr
 **易错**：谱归一化≠权重归一化（WeightNorm）——后者只归一化模长，不控制奇异值分布；两者作用不同。
 
 </details>
+
+---
+
+## §H 手撕代码（10 题）
+
+> 与上文"概念+答案"题区分开的**手撕实现**段。本节每题只给"考察点 / 关键实现要点 / 易错"，**不贴完整代码**——把动手验证留给候选人。题源来自公开手撕题面经合并统计（详见 `notes/handcoding_research.md`）。
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×15</span> <b>✍ H01</b> · 手撕 scaled dot-product attention</summary>
+
+**考察点**：Attention(Q,K,V) = softmax(QK^T / √d_k) V 公式与 PyTorch/NumPy 实现；为何要除 √d_k。
+
+**关键实现要点**：
+- `Q @ K.transpose(-2, -1) / sqrt(d_k)`，dtype 与 d_k 一致再开根号。
+- softmax 沿最后一维（`dim=-1`）。
+- mask 在 softmax **之前**用加性 -inf（`logits.masked_fill(mask, -inf)`），不是乘 0/1。
+- 最后 `@ V` 得 `[B, ..., L, d_v]`。
+
+**易错**：忘 transpose 维度；scale 用 d_k 而非 √d_k（softmax 进入饱和区，梯度消失）；mask 用乘性 0/1 在 softmax 后非零项不为 0。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×12</span> <b>✍ H02</b> · 手撕 multi-head attention</summary>
+
+**考察点**：拆头/合头的 view/transpose/contiguous 流程；为何多头优于单头。
+
+**关键实现要点**：
+- 4 个 Linear：`W_q / W_k / W_v / W_o`；`embed_dim % num_heads == 0` 校验。
+- 拆头：`x.view(B, L, h, d_k).transpose(1, 2)` → `[B, h, L, d_k]`。
+- 每个头独立做 SDPA。
+- 合头：`transpose(1, 2).contiguous().view(B, L, h*d_k)` → `W_o`。
+- mask 形状一般 `[B, 1, 1, L]` 自动广播。
+
+**易错**：`embed_dim % num_heads != 0` 维度错；忘 `contiguous()` 直接 `view()` 报 stride 错；mask 形状广播失败。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×6</span> <b>✍ H03</b> · 手撕 sinusoidal positional encoding</summary>
+
+**考察点**：`PE(pos, 2i) = sin(pos / 10000^(2i/d))`、`PE(pos, 2i+1) = cos(...)`；为什么相对位置可由线性变换编码。
+
+**关键实现要点**：
+- 用 broadcast 一次生成 `[L, d]` 矩阵。
+- 偶数列 sin、奇数列 cos；`div_term = exp(arange(0, d, 2) * -log(10000)/d)` 避免大幂。
+- 注册为 `buffer`（`register_buffer`），不参与梯度。
+- 加到 token embedding 后再过 dropout。
+
+**易错**：d 是奇数切片错；忘做 buffer 导致每次重算；与 token embedding 维度不齐。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×10</span> <b>✍ H04</b> · 手撕 LayerNorm</summary>
+
+**考察点**：沿哪个维度 norm；γ/β 的形状；为何 Transformer 用 LN 不用 BN。
+
+**关键实现要点**：
+- 沿最后一维（或 `normalized_shape` 指定的尾部维度）算 mean 与 var。
+- `(x - mean) / sqrt(var + eps) * gamma + beta`。
+- `gamma, beta` 形状等于 `normalized_shape`；`eps` 一般 1e-5。
+- LN 不依赖 batch 维，batch=1 也稳；BN 是沿 batch+spatial 维。
+
+**易错**：把 var 写成 std；eps 忘加（var=0 时除零）；与 BN 的归一化维度记混。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×8</span> <b>✍ H05</b> · 手撕 RMSNorm</summary>
+
+**考察点**：与 LN 的区别（去掉 mean 与 β）；LLaMA / Mistral / π0 为何用 RMSNorm。
+
+**关键实现要点**：
+- `rms = sqrt(mean(x**2, dim=-1, keepdim=True) + eps)`。
+- `out = x / rms * gamma`，无 β（不做 re-center）。
+- 仅一次平方-均值-开方，少一次减均值，省 7%-64% 计算。
+- gamma 形状 `[d]`。
+
+**易错**：还减 mean（变回 LN）；忘 keepdim 导致广播错；与 weight 形状对不上。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×7</span> <b>✍ H06</b> · 手撕 BatchNorm（区分训练 vs 推理）</summary>
+
+**考察点**：train 用 mini-batch 统计 + 滑动平均更新 `running_mean / running_var`；eval 用 running 统计；BN 在 batch=1 失效。
+
+**关键实现要点**：
+- train：当前 batch 算 mean/var；`running_*` 用 momentum 指数滑动（PyTorch `momentum=0.1` 表示 new=0.1·batch + 0.9·running）。
+- eval：直接用 running 统计，不更新。
+- `gamma, beta` 形状 `[C]`，沿 batch + spatial 维归一化（CNN）。
+
+**易错**：忘 `model.eval()` 导致推理还更新 running stats；PyTorch 与 TF 的 momentum 方向相反；batch=1 时 var=0 训练崩溃。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×9</span> <b>✍ H07</b> · 手撕 Bellman 方程（V/Q/Advantage 三个版本）</summary>
+
+**考察点**：贝尔曼期望 vs 最优方程；Q-learning 用 max（off-policy）、SARSA 不用 max（on-policy）。
+
+**关键实现要点**：
+- 期望：`V^π(s) = Σ_a π(a|s) Σ_{s',r} p(s',r|s,a)[r + γ V^π(s')]`。
+- 最优：把外层 `Σ_a π` 换成 `max_a`，得到 `V*(s) = max_a Σ ...`。
+- `Q(s,a) = E[r + γ V(s')]`；`A(s,a) = Q(s,a) - V(s)`。
+- 终止状态：`V(s_T) = 0`，写代码时要显式 `* (1 - done)` 截断。
+
+**易错**：把期望与最优混；γ 设 1 → 长 horizon 不收敛；done 不截断导致 bootstrap 跨 episode。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×7</span> <b>✍ H08</b> · 手撕 REINFORCE / Policy Gradient 推导</summary>
+
+**考察点**：`∇J(θ) = E[∇log π(a|s) · G_t]`；baseline 为何不引入 bias。
+
+**关键实现要点**：
+- 完整 rollout 一段 episode → 算 `G_t = Σ_{k≥t} γ^{k-t} r_k`（从后向前累计）。
+- `loss = -mean(log_prob(a) * (G_t - b(s)))`，b(s) 可取状态值 V(s) 作为 baseline。
+- baseline 与动作无关 → `E[∇log π · b] = 0`，不引入 bias 但能降方差。
+- 优势 `(G_t - V(s))` 应 `.detach()`，不让 baseline 进策略梯度。
+
+**易错**：忘负号（最大化 → loss 取负）；G_t 正向算（应反向）；advantage 没 detach；γ=1 在长 episode 上方差爆炸。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×6</span> <b>✍ H09</b> · 手撕高斯 KL 闭式（一维 & VAE 特例）</summary>
+
+**考察点**：`KL(N(μ1,σ1²) ‖ N(μ2,σ2²))` 一维公式；VAE 中对 `N(0,I)` 的特例。
+
+**关键实现要点**：
+- 一维：`log(σ2/σ1) + (σ1² + (μ1-μ2)²) / (2σ2²) - 0.5`。
+- 多维对角：沿特征维 sum；非对角需 `tr(Σ2⁻¹Σ1) + (μ2-μ1)^T Σ2⁻¹ (μ2-μ1) - d + log(|Σ2|/|Σ1|)`，整体乘 0.5。
+- VAE 特例（vs `N(0,I)`）：`0.5 * Σ(μ² + σ² - 1 - log σ²)`，沿 latent 维 sum。
+- 实务用 `log_σ²` 参数化更稳：`σ² = exp(log_σ²)`。
+
+**易错**：log 用 σ 还是 σ²（差一倍）；维度 d 漏减；多维 trace 项漏写；用 σ 但模型输出的是 log_σ²。
+
+</details>
+
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×7</span> <b>✍ H10</b> · 手撕 VAE ELBO + 重参数化</summary>
+
+**考察点**：`ELBO = E_q[log p(x|z)] - KL(q(z|x) ‖ p(z))`；reparameterize 让梯度可穿过采样。
+
+**关键实现要点**：
+- encoder 输出 `μ, log_σ²`；`σ = exp(0.5 * log_σ²)`。
+- 重参数化：`z = μ + σ · ε`，`ε ~ N(0, I)` 独立采样。
+- recon loss：图像常用 BCE/MSE，连续向量用高斯 NLL。
+- 总 loss：`recon + β · KL`（β-VAE）；KL 用 §H09 闭式。
+
+**易错**：直接采样 `N(μ,σ)` → 梯度断；把 `log_σ` 当 σ 用；KL 符号错；recon 对 BCE 用错激活（应配 sigmoid）。
+
+</details>
