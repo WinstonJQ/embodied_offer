@@ -143,15 +143,21 @@ def render_inline(text: str) -> str:
     text = _RE_CODE_INLINE.sub(_code_sub, text)
 
     # 1b. Display math (passthrough; MathJax will render).
+    #     Escape <, >, & inside the body: a literal '<' (e.g. in s_{<t}) would
+    #     otherwise be parsed by the browser as the start of an HTML tag,
+    #     corrupting the DOM and swallowing the closing '$$' so MathJax never
+    #     pairs the delimiters. The browser decodes the entities back in the
+    #     text node, and MathJax 3 reads decoded textContent — so math still
+    #     renders correctly while the HTML stays valid.
     def _md_sub(m: re.Match[str]) -> str:
-        body = m.group(1)
+        body = html_lib.escape(m.group(1), quote=False)
         return store(f"$${body}$$")
 
     text = _RE_MATH_DISPLAY.sub(_md_sub, text)
 
-    # 1c. Inline math (passthrough).
+    # 1c. Inline math (passthrough; see _md_sub for why we escape <, >, &).
     def _mi_sub(m: re.Match[str]) -> str:
-        body = m.group(1)
+        body = html_lib.escape(m.group(1), quote=False)
         return store(f"${body}$")
 
     text = _RE_MATH_INLINE.sub(_mi_sub, text)
@@ -450,7 +456,11 @@ def render_table(header: str, divider: str, rows: list[str]) -> str:
             s = s[1:]
         if s.endswith("|"):
             s = s[:-1]
-        return [c.strip() for c in s.split("|")]
+        # Split on pipes that are NOT backslash-escaped. A `\|` is a literal
+        # pipe inside a cell (standard Markdown escape) — most often the LaTeX
+        # norm \|x\| inside $...$. Left intact so MathJax renders ‖·‖ instead
+        # of the cell being shredded at the escaped pipes.
+        return [c.strip() for c in re.split(r"(?<!\\)\|", s)]
 
     header_cells = split_row(header)
     align = []

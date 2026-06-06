@@ -8,7 +8,7 @@
 <meta name="generator" content="ARIS render-html (academic, v1)">
 <meta name="aris:source-path" content="docs/interviews/01_basics.md">
 <meta name="aris:source-sha256" content="97654b08b3a08b2f0beebc52862827805e33301b24397148ea077bf56576c643">
-<meta name="aris:generated-at" content="2026-05-22 01:58 UTC">
+<meta name="aris:generated-at" content="2026-06-06 03:19 UTC">
 
 <!-- MathJax 3 -->
 <script>
@@ -424,7 +424,7 @@ footer.aris-footer a { color: var(--ink-muted); border-bottom: 1px dotted var(--
 <p><strong>消失</strong>：链式法则反传时，若激活函数（如 sigmoid）导数 &lt; 1，多层连乘后梯度指数衰减 → 浅层几乎不更新。</p>
 <p><strong>爆炸</strong>：权重矩阵乘积特征值 &gt; 1，梯度指数增长 → 更新步过大、训练发散。</p>
 <p><strong>解决梯度消失</strong>：① <strong>换激活函数</strong>：ReLU/Leaky ReLU 导数在正区间为 1；② <strong>残差连接</strong>（skip connection）提供梯度高速公路；③ <strong>BatchNorm/LayerNorm</strong> 归一化激活分布；④ <strong>LSTM 门机制</strong>（序列模型）。</p>
-<p><strong>解决梯度爆炸</strong>：① <strong>梯度裁剪</strong>（Gradient Clipping）：若 $\|g\| > \tau$ 则 $g \leftarrow g \cdot \tau / \|g\|$；② <strong>权重初始化</strong>（Xavier/He）；③ <strong>BatchNorm</strong>。</p>
+<p><strong>解决梯度爆炸</strong>：① <strong>梯度裁剪</strong>（Gradient Clipping）：若 $\|g\| &gt; \tau$ 则 $g \leftarrow g \cdot \tau / \|g\|$；② <strong>权重初始化</strong>（Xavier/He）；③ <strong>BatchNorm</strong>。</p>
 <p><strong>易错</strong>：ReLU 有 dying ReLU 问题（负值区梯度永久为 0），大批量 + 大学习率下死亡神经元显著，Leaky ReLU / ELU 可缓解。</p>
 </details>
 <details class="qa">
@@ -557,7 +557,7 @@ footer.aris-footer a { color: var(--ink-muted); border-bottom: 1px dotted var(--
 </details>
 <details class="qa">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>Q20</b> · 什么是 Knowledge Distillation（知识蒸馏）？在机器人策略压缩中怎么用？</summary>
-<p><strong>答</strong>：<strong>知识蒸馏</strong>：用大模型（Teacher）的 soft 输出（softmax 概率分布，含类间相似性信息）作为小模型（Student）的训练目标，而非 one-hot 标签。温度参数 $T > 1$ 让分布变软，信息量更多。</p>
+<p><strong>答</strong>：<strong>知识蒸馏</strong>：用大模型（Teacher）的 soft 输出（softmax 概率分布，含类间相似性信息）作为小模型（Student）的训练目标，而非 one-hot 标签。温度参数 $T &gt; 1$ 让分布变软，信息量更多。</p>
 <p><strong>损失</strong>：$L = \alpha L_{CE}(y, \hat{p}) + (1-\alpha) T^2 L_{KL}(\sigma(z_T/T), \sigma(z_S/T))$</p>
 <p><strong>机器人策略压缩</strong>：① VLA（7B）蒸馏到小策略网络（100M-300M），保留连续动作的分布知识；② 用大 diffusion policy 的多模态输出作为 soft target 训练快速 MLP 策略；③ 离线 RL 中 behavior cloning + teacher soft label 的组合。</p>
 <p><strong>易错</strong>：蒸馏不是"把大模型权重复制给小模型"；小模型容量不足时蒸馏也无法弥补；温度 $T$ 太小退化回 one-hot，太大噪声过多。</p>
@@ -569,7 +569,7 @@ footer.aris-footer a { color: var(--ink-muted); border-bottom: 1px dotted var(--
 <summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×14</span> <b>Q21</b> · 什么是 MDP（马尔可夫决策过程）？五元组分别是什么？</summary>
 <p><strong>答</strong>：MDP 是强化学习的数学框架：$\langle S, A, P, R, \gamma \rangle$</p>
 <ul><li>$S$：状态空间（机器人关节角度、视觉观测等）</li><li>$A$：动作空间（连续关节速度/位置，或离散动作）</li><li>$P(s' \mid s, a)$：状态转移概率（环境动力学）</li><li>$R(s, a, s')$：即时奖励函数</li><li>$\gamma \in [0,1)$：折扣因子，权衡即时 vs 长期奖励</li></ul>
-<p><strong>Markov 性质</strong>：$P(s_{t+1} \mid s_t, a_t, s_{<t}) = P(s_{t+1} \mid s_t, a_t)$，下一状态只依赖当前状态和动作，与历史无关。</p>
+<p><strong>Markov 性质</strong>：$P(s_{t+1} \mid s_t, a_t, s_{&lt;t}) = P(s_{t+1} \mid s_t, a_t)$，下一状态只依赖当前状态和动作，与历史无关。</p>
 <p><strong>机器人现实</strong>：几乎都是 POMDP（观测不完整），但以 MDP 作近似或用历史帧 stack 来还原 Markov 性。</p>
 <p><strong>易错</strong>：Markov 性是对<strong>状态</strong>的假设，不是对<strong>观测</strong>的假设；如果状态包含足够历史信息（如 RNN 隐状态），POMDP 也可被 MDP 框架处理。</p>
 </details>
@@ -624,7 +624,7 @@ footer.aris-footer a { color: var(--ink-muted); border-bottom: 1px dotted var(--
 <details class="qa">
 <summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×7</span> <b>Q28</b> · 折扣因子 $\gamma$ 的作用是什么？设置过大/过小会怎样？</summary>
 <p><strong>答</strong>：$\gamma \in [0,1)$ 对未来奖励的权重指数衰减：$G_t = \sum_{k=0}^\infty \gamma^k r_{t+k}$。</p>
-<p><strong>直觉</strong>：① 数学上保证无限 horizon 的回报收敛（$\gamma < 1$）；② 语义上表示"对未来不确定性的折价"，近期奖励更可靠。</p>
+<p><strong>直觉</strong>：① 数学上保证无限 horizon 的回报收敛（$\gamma &lt; 1$）；② 语义上表示"对未来不确定性的折价"，近期奖励更可靠。</p>
 <p><strong>$\gamma$ 太大（如 → 1）</strong>：对遥远未来奖励权重高，bootstrap 误差远程传播，训练不稳定；长期规划强但 credit assignment 难（某奖励追溯很多步前的动作）。</p>
 <p><strong>$\gamma$ 太小（如 → 0）</strong>：只看即时奖励，变成贪心策略（myopic）；长程任务中错过关键延迟奖励。</p>
 <p><strong>机器人取值</strong>：通常 $\gamma \in [0.95, 0.99]$；稀疏奖励长程任务（200步以上）用 0.99；短程密集奖励（10步内）可用 0.95。</p>
@@ -648,7 +648,7 @@ footer.aris-footer a { color: var(--ink-muted); border-bottom: 1px dotted var(--
 <details class="qa">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×6</span> <b>Q31</b> · PPO 的 Clip 机制是什么？为什么比 TRPO 更实用？</summary>
 <p><strong>答</strong>：$L^{CLIP} = \mathbb{E}_t[\min(r_t \hat{A}_t,\ \text{clip}(r_t, 1\!-\!\epsilon, 1\!+\!\epsilon)\hat{A}_t)]$，其中 $r_t = \pi_\theta(a_t|s_t)/\pi_{\theta_{old}}(a_t|s_t)$，$\epsilon \approx 0.1$-$0.2$。</p>
-<p><strong>直觉</strong>：$\hat{A}_t > 0$（好动作）时增大 $r_t$，但截到 $1+\epsilon$；$\hat{A}_t < 0$ 时减小 $r_t$，但截到 $1-\epsilon$。防止更新幅度过大，新旧策略保持接近。</p>
+<p><strong>直觉</strong>：$\hat{A}_t &gt; 0$（好动作）时增大 $r_t$，但截到 $1+\epsilon$；$\hat{A}_t &lt; 0$ 时减小 $r_t$，但截到 $1-\epsilon$。防止更新幅度过大，新旧策略保持接近。</p>
 <p><strong>关键对比</strong>：</p>
 <ul><li><strong>TRPO</strong>：KL 散度硬约束 + 共轭梯度二阶优化，理论严格但计算复杂；</li><li><strong>PPO</strong>：clip 是软约束，一阶梯度即可，实现简单，是 RLHF 偏好对齐的工程主流；VLA 动作策略本身更多用 BC/flow-matching 监督学习。</li></ul>
 <p><strong>易错</strong>：PPO 不保证真正的 trust region（多次 mini-epoch 后 $r_t$ 可能超出 clip 范围）；clip 是启发式，不是严格约束。</p>
@@ -687,7 +687,7 @@ footer.aris-footer a { color: var(--ink-muted); border-bottom: 1px dotted var(--
 <details class="qa">
 <summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×12</span> <b>Q35</b> · 旋转矩阵、欧拉角、四元数三种姿态表示的区别和联系？</summary>
 <p><strong>答</strong>：</p>
-<table><thead><tr><th>表示</th><th>参数数</th><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>旋转矩阵 $R \in SO(3)$</td><td>9（实际 3 自由度）</td><td>无奇异、组合简单（矩阵乘法）</td><td>冗余参数，存储/传输大</td></tr><tr><td>欧拉角（roll/pitch/yaw）</td><td>3</td><td>直观（人类可理解）</td><td><strong>万向节死锁</strong>（Gimbal Lock），依赖轴顺序</td></tr><tr><td>四元数 $q = [w,x,y,z]$，$\</td><td>q\</td><td>=1$</td><td>4（实际 3 自由度）</td><td>无奇异、插值平滑（SLERP）、计算高效</td><td>不直观，有双倍映射（$q$ 和 $-q$ 表示同一转）</td></tr></tbody></table>
+<table><thead><tr><th>表示</th><th>参数数</th><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>旋转矩阵 $R \in SO(3)$</td><td>9（实际 3 自由度）</td><td>无奇异、组合简单（矩阵乘法）</td><td>冗余参数，存储/传输大</td></tr><tr><td>欧拉角（roll/pitch/yaw）</td><td>3</td><td>直观（人类可理解）</td><td><strong>万向节死锁</strong>（Gimbal Lock），依赖轴顺序</td></tr><tr><td>四元数 $q = [w,x,y,z]$，$\|q\|=1$</td><td>4（实际 3 自由度）</td><td>无奇异、插值平滑（SLERP）、计算高效</td><td>不直观，有双倍映射（$q$ 和 $-q$ 表示同一转）</td></tr></tbody></table>
 <p><strong>联系</strong>：三者等价，可互相转换（旋转矩阵 ↔ 四元数 ↔ 轴角 ↔ 欧拉角）。</p>
 <p><strong>机器人实践</strong>：运动规划/插值用四元数；人机界面 / 调试显示用欧拉角；姿态矩阵运算用旋转矩阵；神经网络输出姿态通常用 6D 旋转表示（$R$ 的前两列）或四元数。</p>
 <p><strong>易错</strong>：欧拉角的旋转顺序（ZYX vs XYZ vs ZYZ）不同结果完全不同——拿到欧拉角必须确认约定；Gimbal Lock 发生在 pitch = ±90° 时 roll 和 yaw 轴重合。</p>
@@ -695,10 +695,10 @@ footer.aris-footer a { color: var(--ink-muted); border-bottom: 1px dotted var(--
 <details class="qa">
 <summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×10</span> <b>Q36</b> · 齐次变换矩阵（Homogeneous Transformation Matrix）是什么？如何用它表示坐标系变换？</summary>
 <p><strong>答</strong>：<strong>齐次变换矩阵</strong> $T \in SE(3)$，将旋转 $R$ 和平移 $p$ 合并为 4×4 矩阵：</p>
-<p>$$T = \begin{bmatrix} R_{3\times3} & p_{3\times1} \\ 0_{1\times3} & 1 \end{bmatrix}$$</p>
+<p>$$T = \begin{bmatrix} R_{3\times3} &amp; p_{3\times1} \\ 0_{1\times3} &amp; 1 \end{bmatrix}$$</p>
 <p><strong>坐标变换</strong>：若点在 frame B 中坐标为 $\tilde{q}_B = [x, y, z, 1]^\top$，在 frame A 中：$\tilde{q}_A = {}^A T_B \cdot \tilde{q}_B$。</p>
 <p><strong>链式组合</strong>：多个变换可直接矩阵连乘：${}^0 T_n = {}^0 T_1 \cdot {}^1 T_2 \cdots {}^{n-1} T_n$（正向运动学本质）。</p>
-<p><strong>逆变换</strong>：$T^{-1} = \begin{bmatrix} R^\top & -R^\top p \\ 0 & 1 \end{bmatrix}$，旋转部分取转置（正交矩阵性质）。</p>
+<p><strong>逆变换</strong>：$T^{-1} = \begin{bmatrix} R^\top &amp; -R^\top p \\ 0 &amp; 1 \end{bmatrix}$，旋转部分取转置（正交矩阵性质）。</p>
 <p><strong>易错</strong>：旋转矩阵的逆是其转置（$R^{-1} = R^\top$），但整个齐次矩阵的逆<strong>不是</strong>直接转置 $T^\top$（平移部分要另外处理）。</p>
 </details>
 <details class="qa">
@@ -1031,7 +1031,7 @@ def vae_loss(x, x_recon, mu, logvar, beta=1.0):
   Generated by <a href="https://github.com/wanshuiyin/Auto-claude-code-research-in-sleep/blob/main/skills/render-html/SKILL.md">ARIS <code>/render-html</code></a> ·
   source path <code>docs/interviews/01_basics.md</code> ·
   SHA256 <code>97654b08b3a0</code> ·
-  generated at 2026-05-22 01:58 UTC.
+  generated at 2026-06-06 03:19 UTC.
   This is a generated view — edit the source Markdown, then re-render.
 </footer>
 </main>
