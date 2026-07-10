@@ -146,11 +146,11 @@
 
 ## 项目幕后 · Vibe Coding 实战记录
 
-本项目本身就是一次完整的 **vibe coding** 实践案例——7 卷题库的题源调研、答案起草、跨模型审查、HTML 渲染、Git 发布**全部在维护者睡眠期间由 AI agent 自动完成**。维护者醒来只做最终验收和文案微调。
+本项目本身就是一次完整的 **vibe coding** 实践案例——八卷题库的题源调研、答案起草、跨模型审查、HTML 渲染、Git 发布主要由 AI agent 自动完成，维护者负责最终验收、题源取舍和文案微调。
 
 **调度模式**：
 
-- 主控 Claude Code（Opus 4.7 · 1M context）串行派遣多个 subagent，每个 agent 独立完成 1 卷的完整 7 阶段工作流（调研 → 起草 → 跨模型审查 → 渲染 → 发布）；当前已完成 7 卷题库
+- 主控 Claude Code（Opus 4.7 · 1M context）串行派遣多个 subagent，每个 agent 独立完成 1 卷的完整 7 阶段工作流（调研 → 起草 → 跨模型审查 → 渲染 → 发布）；当前已完成 8 卷题库
 - 每个 agent 在 fresh context 里工作，互不污染——避免了"长上下文导致质量衰退"和"需要手动 /clear"两个痛点
 - 跨模型审查由独立的 Codex（GPT-5.5 xhigh）通过 MCP 协议完成，每轮 fresh-thread，多轮收敛
 - 执行者（Claude）≠ 审查者（GPT-5.5），是题库可信度的核心不变量

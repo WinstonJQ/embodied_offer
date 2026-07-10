@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>具身智能高频面试题库 · Embodied-AI Interview QA Bank</title>
-<meta name="description" content="中文具身智能秋招高频面试题库 · VLA / 模仿学习 / RL / 世界模型 / 工程落地 / 腿足机器人 / 3D 感知 / VLN / ObjectNav / VLM / LeetCode 与系统设计。题目来自公开面经，频次 ≥3 才入卷。">
+<meta name="description" content="中文具身智能秋招高频面试题库 · VLA / 模仿学习 / RL / 世界模型 / 工程落地 / 腿足机器人 / 3D 感知 / VLN / ObjectNav / VLM / LeetCode 与系统设计。主表题来自公开面经，频次 ≥3；近期趋势题用补充标签。">
 <style>
 :root {
   --bg: #fdfcf7;
@@ -226,8 +226,8 @@ footer.foot a:hover { color: var(--primary); border-bottom-color: var(--primary)
   <h1>具身智能高频面试题库</h1>
   <p class="subtitle">秋招冲刺向 · 题目来自公开面经</p>
   <p class="tagline">
-    覆盖具身智能算法岗的 <strong>7 个核心方向</strong>：通识基础、RL 算法、VLA / 模仿学习、世界模型 / Sim2Real、工程落地、腿足机器人运动控制 / 全身控制 / 遥操作、3D 感知 / SLAM / VLN / 零样本 ObjectNav / Embodied VLM。
-    题目来自牛客、知乎、小红书、一亩三分地等公开面经，<strong>同义题合并后频次 ≥3</strong> 才入卷。
+    覆盖具身智能算法岗的 <strong>8 个方向</strong>：通识基础、RL 算法、VLA / 模仿学习、世界模型 / Sim2Real、工程落地、腿足机器人运动控制 / 全身控制 / 遥操作、3D 感知 / SLAM / VLN / 零样本 ObjectNav / Embodied VLM、通用工程 coding 与系统设计。
+    主表题来自牛客、知乎、小红书、一亩三分地等公开面经，<strong>同义题合并后频次 ≥3</strong> 才入卷；近期趋势题用 <strong>补充</strong> 标签，不伪造频次。
     每题答案经独立审查后发布。
   </p>
 </header>
@@ -241,7 +241,7 @@ footer.foot a:hover { color: var(--primary); border-bottom-color: var(--primary)
       <div class="vol-line">
         <span class="vol-id">VOL · 01</span>
         <span class="vol-title">通识基础</span>
-        <span class="vol-status s-done">54 题</span>
+        <span class="vol-status s-done">55 题</span>
       </div>
       <p class="vol-scope">一面常考的入门概念，覆盖三块基础——深度学习侧的梯度、归一化、Transformer；强化学习侧的 MDP、贝尔曼方程、Q-learning；机器人学侧的坐标变换、雅可比矩阵与控制频率。建议作为知识盲区自查的起点。</p>
       </a>
@@ -263,9 +263,9 @@ footer.foot a:hover { color: var(--primary); border-bottom-color: var(--primary)
       <div class="vol-line">
         <span class="vol-id">VOL · 03</span>
         <span class="vol-title">VLA / 模仿学习</span>
-        <span class="vol-status s-done">66 题</span>
+        <span class="vol-status s-done">77 题</span>
       </div>
-      <p class="vol-scope">具身智能 2024-2026 的核心研究方向——主流视觉-语言-动作模型（OpenVLA、RT-2、π 系列、GR00T-N1）的架构与差别；动作生成方式（Diffusion Policy、ACT、Flow Matching）的对比；模仿学习从行为克隆到 DAgger 的演进。VLA 算法岗的必考范围。</p>
+      <p class="vol-scope">具身智能 2024-2026 的核心研究方向——主流视觉-语言-动作模型（OpenVLA、RT-2、π 系列、GR00T-N1）的架构与差别；动作生成方式（Diffusion Policy、ACT、Flow Matching）的对比；模仿学习从行为克隆到 DAgger 的演进；近期补充数据链路、时间同步、真机排障与 LoRA / PEFT 等项目拷打题。VLA 算法岗的必考范围。</p>
       </a>
     </div>
 
@@ -334,6 +334,7 @@ footer.foot a:hover { color: var(--primary); border-bottom-color: var(--primary)
     <div class="legend-line"><span class="lv lv-l2">L2</span> 进阶 · 二面常考 · 技术深度题</div>
     <div class="legend-line"><span class="lv lv-l3">L3</span> 顶级 lab · 开放 / 系统设计 / 前沿判断</div>
     <div class="legend-line" style="margin-top: 10px;"><span class="freq">🔥×12</span> 该题在公开面经中被合并统计了 12 次（同义题归并后）</div>
+    <div class="legend-line"><span class="freq">补充</span> 近期集中出现但未满三源频次证据的题，不伪造频次</div>
   </div>
 </section>
 
@@ -344,7 +345,7 @@ footer.foot a:hover { color: var(--primary); border-bottom-color: var(--primary)
       <li>每卷 HTML 默认 <strong>全部折叠</strong>——只看题目；点击题目展开答案。</li>
       <li>手机端原生支持折叠（HTML5 <code>&lt;details&gt;</code>，零 JS），公交地铁也能刷。</li>
       <li>建议按 <strong>L1 → L2 → L3</strong> 的顺序刷；同等级内按频次从高到低。</li>
-      <li>答案 ≤200 字，便于背诵；超长的拆"答 / 易错 / 延伸"三段。</li>
+      <li>答案 ≤350 字，便于背诵；超长的拆"答 / 关键对比 / 易错"三段。</li>
       <li>每题答案都经过另一组独立 AI 二次审查后发布，减少单一模型的事实错误。</li>
     </ol>
   </div>
