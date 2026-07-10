@@ -2,9 +2,9 @@
 
 > 中文具身智能秋招高频面试题库 · **第三卷**
 > 题源：牛客 / 知乎 / 小红书（教授级 AMA）/ CSDN / GitHub 公开面经
-> 同义题合并后 **58 题**（频次 ≥3 主表 + N1/N2/N4 三题因来源是顶级 lab 教授集中 AMA 破例入选）
+> 同义题合并后 **68 题**（频次 ≥3 主表 + N1/N2/N4 三题因来源是顶级 lab 教授集中 AMA 破例入选 + 近期面经补充 10 题）
 
-**难度分布**：L1（必会） **18** · L2（进阶） **31** · L3（顶级 lab） **9**
+**难度分布**：L1（必会） **23** · L2（进阶） **36** · L3（顶级 lab） **9**
 
 **使用方式**：题目默认折叠，点开看答案。建议先按 **L1 → L2 → L3** 顺序刷；同级内按频次从高到低。手机端原生支持。
 
@@ -467,7 +467,7 @@ $$\hat{A}_t^{\text{GAE}(\gamma, \lambda)} = \sum_{l=0}^\infty (\gamma\lambda)^l 
 </details>
 
 <details class="qa">
-<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q27</b> · ACT 推理时把 $z$ 固定为 0 有什么局限？为什么不随机采样？KL 权重 β 怎么调？</summary>
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×3</span> <b>Q27</b> · ACT 推理时把 z 固定为 0 有什么局限？为什么不随机采样？KL 权重 β 怎么调？</summary>
 
 **答**：**$z = 0$ 的局限**：取 prior 的 mode → 在多模态任务上退化为"代表性单解"路径，丢失探索性；如果训练分布里多策略权重接近，$z = 0$ 可能落在"平均路"附近，物理仍不可执行。
 
@@ -1030,7 +1030,7 @@ $$\hat{A}_t^{\text{GAE}(\gamma, \lambda)} = \sum_{l=0}^\infty (\gamma\lambda)^l 
 
 ---
 
-## §A 项目拷打 / 工程实现（6 题）
+## §A 项目拷打 / 工程实现（16 题）
 
 > 面试官会用项目题考察"系统观 + 真机经验"；答案要套用自己的项目讲，下面是标准答题框架。
 
@@ -1123,7 +1123,7 @@ $$\hat{A}_t^{\text{GAE}(\gamma, \lambda)} = \sum_{l=0}^\infty (\gamma\lambda)^l 
 2. **Proprio**：每维 $(x - \mu) / \sigma$，$\mu / \sigma$ 来自训练集统计。
 3. **Force**：通常归一化到 $[-1, 1]$（±10 N / 1 Nm 量程）；力觉噪声大需先低通滤波。
 
-**时序同步**：相机 30 Hz、关节 1 kHz、F/T 500 Hz——按**最低频率**（如 30 Hz）对齐，其它做插值或最近邻。
+**时序同步**：相机、关节、F/T 频率不同，训练样本通常以策略频率 / 样本频率为基准（如 10/20/50 Hz）。相机取最近且不晚于样本时刻的帧，或先估计链路延迟后做 offset 校正；高频 proprio、F/T 按样本时刻插值或窗口聚合。底层伺服 / PD 控制仍可保持数百 Hz 到 1 kHz。
 
 **历史窗口**：常用 4-8 帧图像 + 同步 proprio 序列；用 Transformer / RNN 编码时序。
 
@@ -1148,6 +1148,8 @@ $$\hat{A}_t^{\text{GAE}(\gamma, \lambda)} = \sum_{l=0}^\infty (\gamma\lambda)^l 
 - 双臂：两套末端 = 14 维（ALOHA）。
 - Mobile + 双臂：+ 2 维 base = **16 维**（Mobile ALOHA）。
 
+**绝对 / 相对动作**：绝对动作输出目标关节值或目标末端位姿，适合标定稳定、低频轨迹复现；相对动作输出相邻控制步的 $\Delta q$ / $\Delta x$，对标定误差和物体扰动有一定鲁棒性，但会累积漂移，需要限幅、闭环校正和安全检查。答题时必须说清坐标系、单位、姿态表示、控制频率，以及夹爪 / 底盘维度。
+
 **Trade-off**：
 - **数据效率**：末端空间任务对齐好，少 demos 也能学（ACT 50 demos）。
 - **物理稳定**：关节空间避免 IK 奇异，但模型要学更复杂映射。
@@ -1157,9 +1159,99 @@ $$\hat{A}_t^{\text{GAE}(\gamma, \lambda)} = \sum_{l=0}^\infty (\gamma\lambda)^l 
 
 </details>
 
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">补充</span> <b>Q59</b> · 数据采集到训练的数据链路如何设计？需要记录哪些字段？</summary>
+
+**答**：我会把它说成一条可复现的数据工程链路：先采 raw log，再做相机标定、时间同步、episode 切分、异常清洗、动作 / 状态归一化，最后导出统一 schema，比如 RLDS、LeRobot，或 HDF5 + metadata。字段至少包括时间戳、语言指令、图像观测、机器人状态、action、执行后状态、机器人 / 相机 / 控制频率等 metadata；如果有深度、相机标定、成功标签或子任务标签，也要一并记录。训练前还要按任务、场景、操作者或物体划分 train / val / test，避免同一个 episode 的相邻帧泄露到测试集。
+
+**易错**：不要只说"收了一些视频"，VLA 数据最关键的是 observation-action-time 三者可追溯。
+
+</details>
+
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">补充</span> <b>Q60</b> · 多频率传感器如何时间同步？为什么必须同步？</summary>
+
+**答**：真实机器人里相机、关节、力传感器和控制器频率通常不同，我会先统一时钟或记录硬件时间戳，再以策略训练的采样频率生成样本。相机取最近且不晚于样本时刻的帧，或在估计相机链路延迟后做 offset 校正；高频关节和力信号再按样本时刻插值、均值 / 末值聚合。同步的目的不是让底层控制降频，底层伺服仍常见于数百 Hz 到 1 kHz，而是让模型看到的 observation 对应它要模仿的 action。
+
+**易错**：错位一两帧在视频里不明显，但 BC 会学成"滞后控制"，真机表现就是抓取慢半拍、接触时过冲。
+
+</details>
+
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">补充</span> <b>Q61</b> · 机器人数据异常值如何清洗？归一化怎么做？</summary>
+
+**答**：清洗要分三层：帧级异常，如图像黑屏、时间戳跳变、关节速度尖峰；片段级异常，如遥操作中断、夹爪未响应；episode 级异常，如任务失败或碰撞。普通 BC 通常以成功演示和有效动作片段为主，明显坏帧和无效 episode 不直接混入同一个监督目标；如果失败片段带有恢复动作、偏好标注或奖励信息，可以用于恢复策略、offline RL、偏好学习，甚至作为纠错示范的一部分。归一化上，图像按 backbone 要求做 mean / std，proprio 和 action 用训练集均值方差或固定物理范围，夹爪二值 / 连续值要单独处理。
+
+**易错**：归一化统计只能 fit 训练集；用全量数据统计就是数据泄露。
+
+</details>
+
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">补充</span> <b>Q62</b> · 多任务混合训练 vs 单任务微调怎么取舍？什么时候会互相干扰？</summary>
+
+**答**：多任务混训适合想要泛化能力，尤其任务共享视觉、抓取、放置等底层技能时，它能让模型学到更稳的表征；单任务微调适合上线前追求某个任务的成功率和稳定性。互相干扰通常出现在任务动作分布冲突、语言指令不清、数据量极不均衡，或机器人形态不同却硬混时。工程上会用 task balancing、按任务采样、混入旧任务数据、LoRA adapter，或先通用预训练再小学习率微调。
+
+**易错**：多任务不必然提升，防遗忘也不是靠"混在一起"自动解决，要靠采样比例、保留集和分任务评测。
+
+</details>
+
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">补充</span> <b>Q63</b> · 训练中 loss 下降但真机成功率不升，怎么排查？</summary>
+
+**答**：我会先判断这是离线指标和闭环执行不一致。第一步看 validation loss 是否同步下降，排除过拟合；第二步按任务、物体、场景、操作者分桶统计成功率和失败类型；第三步回放模型输出，看动作是否平滑、是否饱和、夹爪时机是否错；第四步查数据切分、归一化、坐标系、action delay 和推理频率。很多时候 loss 下降只是模型更会拟合平均动作，真机需要的是闭环纠偏和关键接触时刻的正确动作。
+
+**易错**：不要只盯总 loss；机器人策略要看 rollout 视频、动作分布和真机分桶成功率。
+
+</details>
+
+<details class="qa">
+<summary><span class="lv lv-l1">L1</span> <span class="freq">补充</span> <b>Q64</b> · 真机上机械臂停滞、动作不连续或漂移，怎么排查？</summary>
+
+**答**：我会按"模型输出、通信链路、控制器、机器人状态"四层排。先记录模型 action、反归一化 action、发送到控制器的 command、机器人实际 joint / EEF 轨迹，确认是不是单位、坐标系、限幅或 action chunk 拼接出了问题；再查推理耗时和通信延迟，看是否控制频率掉帧；最后看 IK 是否到奇异点、关节限位、安全保护或速度 / 加速度约束触发。漂移常见于相对动作累积误差，停滞常见于动作被安全层裁掉或夹爪 / 末端坐标系错。
+
+**易错**：不要一句话归因"模型不行"，必须用日志对齐 commanded、desired 和 actual trajectory。
+
+</details>
+
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">补充</span> <b>Q65</b> · 长序列任务成功率低，或物体随机摆放就失败，原因和优化？</summary>
+
+**答**：长序列失败通常是复合误差，前面每一步的小偏差都会把后续状态带出训练分布；随机摆放失败则多半是视觉定位、相机外参、深度尺度、语言 grounding 或训练数据覆盖不足。优化上，短期可以加 action chunking、重规划频率、失败恢复数据和关键子任务检测；数据上要做位置、背景、光照、物体实例的覆盖；架构上可用分层规划，把长任务拆成 pick、place、open 等技能。
+
+**易错**：随机化不是只换背景图，末端与物体的几何关系、遮挡和接触状态也要覆盖。
+
+</details>
+
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">补充</span> <b>Q66</b> · 如果加触觉、力反馈或 3D 信息，数据采集和模型要怎么改？</summary>
+
+**答**：加这些模态首先是数据问题：触觉、力、点云都要有时间戳、标定和单位；力传感器要视安装方式做 bias / gravity compensation；点云要处理外参、深度尺度和缺失点。模型上可以把 3D 用 point encoder 或 voxel / BEV encoder，触觉和力用 MLP / Transformer 编成 token，再和视觉语言 token 融合。输出端是否预测力或阻抗目标取决于底层控制栈；很多项目只是把力觉作为 observation 和安全约束，不直接让 VLA 输出力。
+
+**易错**：模态越多不一定越好；同步、标定和噪声处理不到位会让模型更不稳定。
+
+</details>
+
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">补充</span> <b>Q67</b> · 本地评测、官方榜单和真机结果不一致，怎么解释和验证？</summary>
+
+**答**：我会把三者看成不同分布。本地评测可能和训练集接近，官方榜单强调标准 benchmark，真机还多了延迟、标定、控制器和环境扰动。解释时先确认 action space、图像预处理、相机视角、任务成功定义和容差是否一致，再看是否用了同一 checkpoint、同一归一化统计和同一推理频率。验证上要固定随机种子和评测脚本，同时保留 rollout 视频和失败分类，最后用真机 A / B test 决策。
+
+**易错**：榜单高不代表真机稳，真机低也不一定是模型差，可能是部署接口或标定错。
+
+</details>
+
+<details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">补充</span> <b>Q68</b> · LoRA / PEFT 微调 VLA 时冻结哪里？怎么验证没有灾难性遗忘？</summary>
+
+**答**：常见做法是冻结大部分视觉 backbone 和语言 backbone，只在 LLM attention / MLP 的低秩矩阵、action head 或 projector 上训练；数据很少时冻结更多，数据充足且 embodiment 差异大时可以开放 action head、adapter 或后几层。验证不能只看新任务成功率，还要保留一组旧任务、基础语言理解和原始机器人任务作为 replay eval，看是否出现旧任务成功率下降、语言指令理解退化或动作分布漂移。
+
+**易错**：LoRA 省显存但不自动防遗忘；学习率、rank、训练步数和 replay 数据同样关键。
+
+</details>
+
 ---
 
-## §H 手撕代码（8 题）
+## §H 手撕代码（9 题）
 
 > IL / VLA 手撕段——与上文"概念+答案"题区分开。本节每题给"考察点 / 实现 / 易错"——附 ≤30 行 Python 实现。
 
@@ -1442,3 +1534,31 @@ def attn_with_kv_cache(q_new, k_new, v_new, kv_cache, layer_idx):
 
 </details>
 
+<details class="qa qa-handcoding">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">补充</span> <b>✍ H09</b> · 手撕 Flow Matching 训练 step</summary>
+
+**考察点**：这是 rectified / linear path 版本的 Flow Matching。把归一化后的动作 $x_1$ 和噪声 $x_0$ 连成直线路径，随机采样 $t$ 得到 $x_t=(1-t)x_0+t x_1$，目标速度是 $v^*=x_1-x_0$，模型学习 $v_\theta(o,x_t,t)$。
+
+**实现**：
+
+```python
+import torch
+import torch.nn.functional as F
+
+def flow_matching_loss(model, obs, action):
+    # action 通常先归一化；形状可为 [B, D] 或 [B, horizon, D]
+    x1 = action
+    x0 = torch.randn_like(x1)
+    t_shape = (x1.size(0),) + (1,) * (x1.ndim - 1)
+    t = torch.rand(t_shape, device=x1.device, dtype=x1.dtype)
+    xt = (1 - t) * x0 + t * x1
+    v_target = x1 - x0
+    v_pred = model(obs, xt, t)
+    return F.mse_loss(v_pred, v_target)
+```
+
+**推理**：从噪声动作开始，用欧拉积分多步更新：$x \leftarrow x + \Delta t \cdot v_\theta(o,x,t)$，最后得到单步 action 或 action chunk。
+
+**易错**：不要把 Flow Matching 说成"预测噪声 $\epsilon$"；这里回归的是速度场。也不要说所有 Flow Matching 都必须用这条直线路径，它只是机器人动作生成里常见、好讲的一种形式。
+
+</details>

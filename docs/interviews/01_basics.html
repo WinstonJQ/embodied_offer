@@ -7,8 +7,8 @@
 
 <meta name="generator" content="ARIS render-html (academic, v1)">
 <meta name="aris:source-path" content="docs/interviews/01_basics.md">
-<meta name="aris:source-sha256" content="97654b08b3a08b2f0beebc52862827805e33301b24397148ea077bf56576c643">
-<meta name="aris:generated-at" content="2026-06-06 03:19 UTC">
+<meta name="aris:source-sha256" content="039dd5347f6b834f4c7eab1e20f4e51e268dd096ee3aa5aad2e00b568a45220a">
+<meta name="aris:generated-at" content="2026-07-10 15:43 UTC">
 
 <!-- MathJax 3 -->
 <script>
@@ -385,7 +385,7 @@ footer.aris-footer a { color: var(--ink-muted); border-bottom: 1px dotted var(--
   <a class="back-home" href="../index.html">← 返回主册</a>
   <h3>Contents</h3>
   <ol>
-<li><a href="#1-深度学习基础20-题">§1 深度学习基础（20 题）</a>
+<li><a href="#1-深度学习基础20-题--1-补充">§1 深度学习基础（20 题 + 1 补充）</a>
 </li>
 <li><a href="#2-强化学习基础14-题">§2 强化学习基础（14 题）</a>
 </li>
@@ -404,11 +404,11 @@ footer.aris-footer a { color: var(--ink-muted); border-bottom: 1px dotted var(--
 
 
 <h1 id="卷一--通识基础--高频面试题">卷一 · 通识基础 · 高频面试题</h1>
-<blockquote><p>中文具身智能秋招高频面试题库 · <strong>第一卷</strong> 题源：牛客 / 知乎 / CSDN / GitHub 公开面经 / 算法岗面试题汇编 同义题合并后 <strong>47 题</strong>（主表 44 题频次 ≥3 + 低频备选 3 题）</p></blockquote>
-<p><strong>难度分布</strong>：L1（必会） <strong>22</strong> · L2（进阶） <strong>23</strong> · L3（顶级lab） <strong>2</strong></p>
+<blockquote><p>中文具身智能秋招高频面试题库 · <strong>第一卷</strong> 题源：牛客 / 知乎 / CSDN / GitHub 公开面经 / 算法岗面试题汇编 同义题合并后 <strong>48 题</strong>（主表 44 题频次 ≥3 + 低频备选 3 题 + 补充 1 题）</p></blockquote>
+<p><strong>难度分布</strong>：L1（必会） <strong>22</strong> · L2（进阶） <strong>24</strong> · L3（顶级lab） <strong>2</strong></p>
 <p><strong>使用方式</strong>：题目默认折叠，点开看答案。建议按 <strong>L1 → L2 → L3</strong> 顺序刷；同级内按频次从高到低。手机端原生支持。</p>
 <hr />
-<h2 id="1-深度学习基础20-题">§1 深度学习基础（20 题）</h2>
+<h2 id="1-深度学习基础20-题--1-补充">§1 深度学习基础（20 题 + 1 补充）</h2>
 <blockquote><p>具身算法岗一面必考区，重点在梯度问题、归一化、优化器、Transformer 架构。</p></blockquote>
 <details class="qa">
 <summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×18</span> <b>Q01</b> · Transformer Self-Attention 的计算流程是什么？复杂度是多少？</summary>
@@ -539,6 +539,13 @@ footer.aris-footer a { color: var(--ink-muted); border-bottom: 1px dotted var(--
 <p><strong>易错</strong>：KV Cache 缓存的是 K 和 V，不是 attention 权重；每步 attention 仍要 attend 全部历史（计算量正比于前缀长度），消除的是前缀的 K/V 重复投影，不是 attention 计算本身。</p>
 </details>
 <details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">补充</span> <b>Q17A</b> · GQA / MQA / MHA 下 KV Cache 的存储差异是什么？</summary>
+<p><strong>答</strong>：面试里先把核心说清：KV Cache 缓存的是每一层历史 token 的 $K$ 和 $V$，不是 attention 权重。MHA、MQA、GQA 的差异来自"多少个 query head 共享一组 K/V head"。</p>
+<ul><li><strong>MHA</strong>：每个 query head 都有自己的 K/V head，$H_{kv}=H$，cache 最大，表达最完整。</li><li><strong>MQA</strong>：所有 query head 共享一组 K/V，$H_{kv}=1$，cache 最省，但可能损失一些表示能力。</li><li><strong>GQA</strong>：把 $H$ 个 query head 分成 $G$ 组，每组共享一组 K/V，$H_{kv}=G$，在效果和显存之间折中。</li></ul>
+<p>粗略显存可写成：$2 \times B \times N_{\text{layer}} \times T \times H_{kv} \times d_{\text{head}} \times \text{bytes}$，其中 2 对应 K/V 两份。GQA/MQA 降低的是 K/V 投影和 cache 存储，不会减少注意力要看的历史长度。</p>
+<p><strong>易错</strong>：GQA 不是稀疏注意力，也不会把上下文长度变短；它主要解决长上下文推理时 KV Cache 太占显存的问题。</p>
+</details>
+<details class="qa">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>Q18</b> · ViT（Vision Transformer）与 CNN 的本质区别是什么？在机器人视觉中各有什么优劣？</summary>
 <p><strong>答</strong>：</p>
 <table><thead><tr><th></th><th>ViT</th><th>CNN</th></tr></thead><tbody><tr><td>感受野</td><td>全局（每层 token 互相 attend）</td><td>局部（逐层扩大）</td></tr><tr><td>归纳偏置</td><td>弱（无平移等变性假设）</td><td>强（平移等变、局部性）</td></tr><tr><td>参数效率</td><td>数据少时差（需大量数据弥补归纳偏置缺失）</td><td>数据少时好</td></tr><tr><td>可扩展性</td><td>强（patch 数量可变、序列建模自然）</td><td>弱（固定感受野，改分辨率麻烦）</td></tr></tbody></table>
@@ -574,7 +581,7 @@ footer.aris-footer a { color: var(--ink-muted); border-bottom: 1px dotted var(--
 <p><strong>易错</strong>：Markov 性是对<strong>状态</strong>的假设，不是对<strong>观测</strong>的假设；如果状态包含足够历史信息（如 RNN 隐状态），POMDP 也可被 MDP 框架处理。</p>
 </details>
 <details class="qa">
-<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×13</span> <b>Q22</b> · Bellman 方程是什么？$V(s)$ 和 $Q(s,a)$ 的关系？</summary>
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×13</span> <b>Q22</b> · Bellman 方程是什么？V 和 Q 的关系？</summary>
 <p><strong>答</strong>：<strong>Bellman 期望方程</strong>（某策略 $\pi$ 下）：</p>
 <p>$$V^\pi(s) = \sum_a \pi(a \mid s) \sum_{s'} P(s' \mid s,a)[R(s,a,s') + \gamma V^\pi(s')]$$</p>
 <p>$$Q^\pi(s, a) = \sum_{s'} P(s' \mid s,a)[R(s,a,s') + \gamma \sum_{a'} \pi(a' \mid s') Q^\pi(s', a')]$$</p>
@@ -622,7 +629,7 @@ footer.aris-footer a { color: var(--ink-muted); border-bottom: 1px dotted var(--
 <p><strong>易错</strong>：PPO 看似可以用旧数据（clip 范围内），但理论上仍是 on-policy（clip 是近似约束，偏离太多就不行）；<strong>PPO 不是 off-policy</strong>。</p>
 </details>
 <details class="qa">
-<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×7</span> <b>Q28</b> · 折扣因子 $\gamma$ 的作用是什么？设置过大/过小会怎样？</summary>
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×7</span> <b>Q28</b> · 折扣因子 gamma 的作用是什么？设置过大/过小会怎样？</summary>
 <p><strong>答</strong>：$\gamma \in [0,1)$ 对未来奖励的权重指数衰减：$G_t = \sum_{k=0}^\infty \gamma^k r_{t+k}$。</p>
 <p><strong>直觉</strong>：① 数学上保证无限 horizon 的回报收敛（$\gamma &lt; 1$）；② 语义上表示"对未来不确定性的折价"，近期奖励更可靠。</p>
 <p><strong>$\gamma$ 太大（如 → 1）</strong>：对遥远未来奖励权重高，bootstrap 误差远程传播，训练不稳定；长期规划强但 credit assignment 难（某奖励追溯很多步前的动作）。</p>
@@ -638,7 +645,7 @@ footer.aris-footer a { color: var(--ink-muted); border-bottom: 1px dotted var(--
 <p><strong>易错</strong>：Reward Shaping 若与真实目标不对齐，会导致策略学会"刷虚假奖励"而非完成任务（reward hacking）。</p>
 </details>
 <details class="qa">
-<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×7</span> <b>Q30</b> · 什么是 Advantage 函数？它为什么比直接用 $Q(s,a)$ 更好？</summary>
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×7</span> <b>Q30</b> · 什么是 Advantage 函数？它为什么比直接用 Q 值更好？</summary>
 <p><strong>答</strong>：<strong>Advantage 函数</strong>：$A^\pi(s, a) = Q^\pi(s, a) - V^\pi(s)$，表示在状态 $s$ 执行动作 $a$ 相对于"平均水平"的超额价值。</p>
 <p><strong>为什么更好</strong>：</p>
 <ul><li>纯用 $Q(s,a)$ 作 PG 的权重：量纲大（$Q$ 的绝对值可能很大），方差高；</li><li>$A(s,a)$ 零中心化（某些动作正、某些负），梯度信号更清晰——好于平均的动作被强化，差于平均的被抑制；</li><li>方差显著降低（baseline = $V(s)$ 的效果）；</li><li>PPO 的 clip 目标就是 $\hat{A}_t$，没有 advantage 就没有 PPO。</li></ul>
@@ -1030,8 +1037,8 @@ def vae_loss(x, x_recon, mu, logvar, beta=1.0):
 <footer class="aris-footer">
   Generated by <a href="https://github.com/wanshuiyin/Auto-claude-code-research-in-sleep/blob/main/skills/render-html/SKILL.md">ARIS <code>/render-html</code></a> ·
   source path <code>docs/interviews/01_basics.md</code> ·
-  SHA256 <code>97654b08b3a0</code> ·
-  generated at 2026-06-06 03:19 UTC.
+  SHA256 <code>039dd5347f6b</code> ·
+  generated at 2026-07-10 15:43 UTC.
   This is a generated view — edit the source Markdown, then re-render.
 </footer>
 </main>

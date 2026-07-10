@@ -2,15 +2,15 @@
 
 > 中文具身智能秋招高频面试题库 · **第一卷**
 > 题源：牛客 / 知乎 / CSDN / GitHub 公开面经 / 算法岗面试题汇编
-> 同义题合并后 **47 题**（主表 44 题频次 ≥3 + 低频备选 3 题）
+> 同义题合并后 **48 题**（主表 44 题频次 ≥3 + 低频备选 3 题 + 补充 1 题）
 
-**难度分布**：L1（必会） **22** · L2（进阶） **23** · L3（顶级lab） **2**
+**难度分布**：L1（必会） **22** · L2（进阶） **24** · L3（顶级lab） **2**
 
 **使用方式**：题目默认折叠，点开看答案。建议按 **L1 → L2 → L3** 顺序刷；同级内按频次从高到低。手机端原生支持。
 
 ---
 
-## §1 深度学习基础（20 题）
+## §1 深度学习基础（20 题 + 1 补充）
 
 > 具身算法岗一面必考区，重点在梯度问题、归一化、优化器、Transformer 架构。
 
@@ -270,6 +270,21 @@ $$\hat{p}_i = \frac{e^{z_i}}{\sum_j e^{z_j}}$$
 </details>
 
 <details class="qa">
+<summary><span class="lv lv-l2">L2</span> <span class="freq">补充</span> <b>Q17A</b> · GQA / MQA / MHA 下 KV Cache 的存储差异是什么？</summary>
+
+**答**：面试里先把核心说清：KV Cache 缓存的是每一层历史 token 的 $K$ 和 $V$，不是 attention 权重。MHA、MQA、GQA 的差异来自"多少个 query head 共享一组 K/V head"。
+
+- **MHA**：每个 query head 都有自己的 K/V head，$H_{kv}=H$，cache 最大，表达最完整。
+- **MQA**：所有 query head 共享一组 K/V，$H_{kv}=1$，cache 最省，但可能损失一些表示能力。
+- **GQA**：把 $H$ 个 query head 分成 $G$ 组，每组共享一组 K/V，$H_{kv}=G$，在效果和显存之间折中。
+
+粗略显存可写成：$2 \times B \times N_{\text{layer}} \times T \times H_{kv} \times d_{\text{head}} \times \text{bytes}$，其中 2 对应 K/V 两份。GQA/MQA 降低的是 K/V 投影和 cache 存储，不会减少注意力要看的历史长度。
+
+**易错**：GQA 不是稀疏注意力，也不会把上下文长度变短；它主要解决长上下文推理时 KV Cache 太占显存的问题。
+
+</details>
+
+<details class="qa">
 <summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×5</span> <b>Q18</b> · ViT（Vision Transformer）与 CNN 的本质区别是什么？在机器人视觉中各有什么优劣？</summary>
 
 **答**：
@@ -347,7 +362,7 @@ $$\hat{p}_i = \frac{e^{z_i}}{\sum_j e^{z_j}}$$
 </details>
 
 <details class="qa">
-<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×13</span> <b>Q22</b> · Bellman 方程是什么？$V(s)$ 和 $Q(s,a)$ 的关系？</summary>
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×13</span> <b>Q22</b> · Bellman 方程是什么？V 和 Q 的关系？</summary>
 
 **答**：**Bellman 期望方程**（某策略 $\pi$ 下）：
 
@@ -446,7 +461,7 @@ $$Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \alpha \underbrace{\big[r_t + \gamma \max
 </details>
 
 <details class="qa">
-<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×7</span> <b>Q28</b> · 折扣因子 $\gamma$ 的作用是什么？设置过大/过小会怎样？</summary>
+<summary><span class="lv lv-l1">L1</span> <span class="freq">🔥×7</span> <b>Q28</b> · 折扣因子 gamma 的作用是什么？设置过大/过小会怎样？</summary>
 
 **答**：$\gamma \in [0,1)$ 对未来奖励的权重指数衰减：$G_t = \sum_{k=0}^\infty \gamma^k r_{t+k}$。
 
@@ -479,7 +494,7 @@ $$Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \alpha \underbrace{\big[r_t + \gamma \max
 </details>
 
 <details class="qa">
-<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×7</span> <b>Q30</b> · 什么是 Advantage 函数？它为什么比直接用 $Q(s,a)$ 更好？</summary>
+<summary><span class="lv lv-l2">L2</span> <span class="freq">🔥×7</span> <b>Q30</b> · 什么是 Advantage 函数？它为什么比直接用 Q 值更好？</summary>
 
 **答**：**Advantage 函数**：$A^\pi(s, a) = Q^\pi(s, a) - V^\pi(s)$，表示在状态 $s$ 执行动作 $a$ 相对于"平均水平"的超额价值。
 

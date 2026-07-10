@@ -62,7 +62,7 @@
 
 2024-2026 是具身智能（Embodied AI）行业的窗口期——VLA、人形、四足、灵巧操作算法岗的招聘量井喷，但**面试题源散乱在牛客、知乎、小红书、一亩三分地等多个平台**，没有一个专门针对这一方向、可在手机上随时翻的题库。
 
-本项目把公开面经里**真实被反复问到的题目**整理成七卷，每题给出 **≤350 字的精简答案 + "易错"一句**——面试前 30 分钟过一遍补盲区，不是看长篇教程的时机。
+本项目把公开面经里**真实被反复问到的题目**整理成八卷，每题给出 **≤350 字的精简答案 + "易错"一句**——面试前 30 分钟过一遍补盲区，不是看长篇教程的时机。
 
 ---
 
@@ -70,22 +70,32 @@
 
 | 卷 | 主题 | 题数 | 一句话 |
 |---|---|---:|---|
-| [一](https://winstonjq.github.io/embodied-interview-qa/interviews/01_basics.html) | **通识基础**（含 §H 手撕） | 54 | DL 基本盘 + RL 入门 + 机器人学 + 手撕（Attention / LayerNorm / Bellman / VAE ELBO） |
+| [一](https://winstonjq.github.io/embodied-interview-qa/interviews/01_basics.html) | **通识基础**（含 §H 手撕） | 55 | DL 基本盘 + RL 入门 + 机器人学 + 手撕（Attention / LayerNorm / Bellman / VAE ELBO） |
 | [二](https://winstonjq.github.io/embodied-interview-qa/interviews/02_rl_algo.html) | **RL 算法**（含 §H 手撕） | 50 | PPO / SAC / TD3 / 离线 RL / RLHF + 手撕（PPO clipped / GAE / DPO / GRPO 核心公式） |
-| [三](https://winstonjq.github.io/embodied-interview-qa/interviews/03_vla_il.html) | **VLA / 模仿学习**（含 §H 手撕） | 66 | OpenVLA / π 系列 / Diffusion Policy + 手撕（BC / DP 训练 step / ACT chunking / CLIP InfoNCE） |
+| [三](https://winstonjq.github.io/embodied-interview-qa/interviews/03_vla_il.html) | **VLA / 模仿学习**（含 §H 手撕） | 77 | OpenVLA / π 系列 / Diffusion Policy + Flow Matching + 手撕（BC / DP 训练 step / ACT chunking / CLIP InfoNCE） |
 | [四](https://winstonjq.github.io/embodied-interview-qa/interviews/04_world_sim.html) | **世界模型 / Sim2Real** | 31 | Dreamer / V-JEPA / 域随机化 / Isaac Lab，人形和四足公司重点 |
 | [五](https://winstonjq.github.io/embodied-interview-qa/interviews/05_engineering.html) | **工程落地**（含 §H 手撕） | 47 | VLA 部署 / FSDP / teleop 数据飞轮 + 手撕（数值稳定 softmax / CE / KL / Adam） |
 | [六](https://winstonjq.github.io/embodied-interview-qa/interviews/06_legged_control.html) | **腿足机器人控制 / 遥操作**（含 §H 手撕） | 58 | 浮动基座、MPC / WBC、RL-locomotion、AVP teleop、HumanPlus、actuator network sim2real + 手撕（PID / KF / EKF / LQR / 四元数 / IK / 互补滤波 / DH / MPC QP） |
 | [七](https://winstonjq.github.io/embodied-interview-qa/interviews/07_perception_nav.html) | **3D 感知 / SLAM / VLN / ObjectNav / Embodied VLM**（含 §H 手撕） | 67 | 点云 / NeRF / SLAM / Nav2 / HAMT / NaVid / VLFM / SAM 2 + 手撕（IoU / NMS / BFS·DFS / A* / ViT patch） |
 | [八](https://winstonjq.github.io/embodied-interview-qa/interviews/08_coding_systemdesign.html) | **通用工程：LeetCode + 系统设计** | 40 | LeetCode 高频 30 题 + ML 系统设计 5 + 机器人系统设计 5（所有具身 / 自动驾驶岗通用） |
 
-**主表共 413 题**，另含 ~19 题低频备选（每卷末单列）。**新增 §H 手撕代码**散布在卷一/二/三/五/六/七（共 53 题），**新增第八卷**专攻 LeetCode 与系统设计（40 题）。
+**主表及补充共 425 题**，另含 ~19 题低频备选（每卷末单列）。**新增 §H 手撕代码**散布在卷一/二/三/五/六/七（共 54 题），**新增第八卷**专攻 LeetCode 与系统设计（40 题）。
+
+---
+
+## 更新记录
+
+- **2026-05-20**：项目初始化，开始从公开面经与学习资料中整理具身智能面试知识框架。
+- **2026-05-21**：重构为多卷面试题库，参考牛客、知乎、CSDN、GitHub 公开面经等来源，按"同义题合并、频次优先"筛选主表题。
+- **2026-05-22**：补齐八卷主体内容，并加入手撕代码题，覆盖深度学习、强化学习、VLA / IL、工程部署、感知导航和系统设计。
+- **2026-06-06**：修复 Markdown 到 HTML 的公式与表格转义问题，保证变量、公式和表格能稳定渲染。
+- **2026-07-11**：参考 CSDN 帖《具身智能VLA面经总结（小鸡毛版）》及近期 VLA 面经趋势，补充数据链路、时间同步、真机排障、LoRA / PEFT、Flow Matching 等更贴近近期面试的问题。
 
 ---
 
 ## 特点
 
-- 🔥 **频次驱动**：题目来自牛客、知乎、小红书、一亩三分地、GitHub 公开面经，同义题合并后**频次 ≥3 才入主表**，杜绝单条噪声面经污染
+- 🔥 **频次驱动**：题目来自牛客、知乎、小红书、一亩三分地、GitHub 公开面经，同义题合并后**频次 ≥3 才入主表**；近期集中出现但未满三源证据的内容用 **补充** 标签，不伪造频次
 - ✏️ **短答案**：每题 ≤350 字精简答案 + "易错"一句，面试前快速过；不写公式推导和代码块（要深入学习另找资源）
 - 📱 **折叠交互**：默认全部折起只看题目，点击展开答案；基于 HTML5 `<details>` 原生折叠，零 JS，手机端无需任何 app
 - 🔍 **跨模型审查**：每题答案经**另一组独立 AI**二次审查（执行者 ≠ 审查者），减少单一模型的事实错误
